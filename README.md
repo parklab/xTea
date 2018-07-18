@@ -36,13 +36,19 @@
 2. **Run the pipeline**
 		
 	2.1 Generate the running script.	
+
 		+ Only with Illumina data
+
 		`sh run_gnrt_pipeline.sh sample_id.txt illumina_bam_list.txt null ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
 		`
+		
 		+ Only with 10X data
+
 		`sh run_gnrt_pipeline.sh sample_id.txt null 10X_bam_list.txt ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
 		`
+		
 		+ Working with hybrid data of 10X and Illumina
+		
 		`sh run_gnrt_pipeline.sh sample_id.txt illumina_bam_list.txt 10X_bam_list.txt ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
 		`
 		
