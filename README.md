@@ -1,12 +1,12 @@
 # xTEA
 
-##Dependency
+## Dependency
 1. bwa (version 0.7 or later), which can be downloaded from https://github.com/lh3/bwa.
 2. samtools (v1.0 or later), which can be downloaded from https://github.com/samtools.
 3. Python 2.7 or later version
 	+ pysam (https://github.com/pysam-developers/pysam, v0.13 or later) is required to be installed.
 
-##Run xTEA
+## Run xTEA
 1. **Input**
 	+ A sample id file, e.g. a file named `sample_id.txt` with content:
 	
@@ -35,21 +35,16 @@
 		
 2. **Run the pipeline**
 		
-	2.1 Generate the running script. If only have Illumina reads, set `X10_BAM=null`	
-	
-		```
-		#!/bin/bash
-	
-		SAMPLE_ID=./sample_id.txt
-		BAMS=./illumina_bam_list.txt
-		X10_BAM=./10X_bam_list.txt
-		WFOLDER=path/NA12878_10x_v2/L1/
-		OUT_SCRTP=submit_hybrid_L1.sh
-		TIME=2-5:00
-		REP_LIB=path/rep_lib_annotation/hg19_LINE1_lib_config.txt
-		python gnrt_pipeline.py -i ${SAMPLE_ID} -b ${BAMS} -x ${X10_BAM} -p ${WFOLDER} -o ${OUT_SCRTP} -q park -n 16 -m 70 -t ${TIME} \
-		-l ${REP_LIB} --nclip 5 --cr 3 --nd 8 --nfclip 3 --nfdisc 6 --flklen 3000 -f 19
-		```
+	2.1 Generate the running script.	
+		+ Only with Illumina data
+		`sh run_gnrt_pipeline.sh sample_id.txt illumina_bam_list.txt null ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
+		`
+		+ Only with 10X data
+		`sh run_gnrt_pipeline.sh sample_id.txt null 10X_bam_list.txt ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
+		`
+		+ Working with hybrid data of 10X and Illumina
+		`sh run_gnrt_pipeline.sh sample_id.txt illumina_bam_list.txt 10X_bam_list.txt ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
+		`
 		
 	2.2 The previous step will generate a shell script called `run_xTEA_pipeline.sh` under `WFOLDER/sample_id` with content like:
 		
