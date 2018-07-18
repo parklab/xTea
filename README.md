@@ -5,6 +5,19 @@
 2. samtools (v1.0 or later), which can be downloaded from https://github.com/samtools.
 3. Python 2.7 or later version
 	+ pysam (https://github.com/pysam-developers/pysam, v0.13 or later) is required to be installed.
+	
+		+ In detail, first install Anaconda:
+		```
+		wget https://repo.anaconda.com/archive/Anaconda2-5.2.0-Linux-x86_64.sh
+		sh Anaconda2-5.2.0-Linux-x86_64.sh
+		```
+		
+		+ Install pysam:
+		```
+		conda config --add channels r
+		conda config --add channels bioconda
+		conda install pysam
+		```
 
 ## Run xTEA
 1. **Input**
