@@ -37,20 +37,20 @@
 		
 	2.1 Generate the running script.	
 
-		+ Only with Illumina data
-
-		`sh run_gnrt_pipeline.sh sample_id.txt illumina_bam_list.txt null ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
-		`
+	+ Only with Illumina data
+		```
+		sh run_gnrt_pipeline.sh sample_id.txt illumina_bam_list.txt null ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
+		```
 		
-		+ Only with 10X data
-
-		`sh run_gnrt_pipeline.sh sample_id.txt null 10X_bam_list.txt ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
-		`
+	+ Only with 10X data
+		```
+		sh run_gnrt_pipeline.sh sample_id.txt null 10X_bam_list.txt ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
+		```
 		
-		+ Working with hybrid data of 10X and Illumina
-		
-		`sh run_gnrt_pipeline.sh sample_id.txt illumina_bam_list.txt 10X_bam_list.txt ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
-		`
+	+ Working with hybrid data of 10X and Illumina
+		```
+		sh run_gnrt_pipeline.sh sample_id.txt illumina_bam_list.txt 10X_bam_list.txt ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
+		```
 		
 	2.2 The previous step will generate a shell script called `run_xTEA_pipeline.sh` under `WFOLDER/sample_id` with content like:
 		
@@ -65,7 +65,7 @@
 		#SBATCH --mail-type=END
 		#SBATCH --mail-user=chong.simonchu@gmail.com
 		#SBATCH --account=park_contrib
-		
+		####
 		PREFIX=/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/1000G/hybrid/L1/NA19239/
 		############
 		############
@@ -82,8 +82,7 @@
 		REF=/n/data1/hms/dbmi/park/simon_chu/projects/data/reference/GRCh38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna
 		XTEA_PATH=/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/
 		############
-		############
-		
+		############	
 		python ${XTEA_PATH}"x_TEA_main.py" -C -i ${BAM_LIST} --lc 5 --rc 5 --cr 3  -r ${L1_COPY_WITH_FLANK}  -a ${ANNOTATION} --ref ${REF} -p ${TMP} -o ${PREFIX}"candidate_list_from_clip.txt"  -n 8
 		python ${XTEA_PATH}"x_TEA_main.py"  -D -i ${PREFIX}"candidate_list_from_clip.txt" --nd 6 --ref ${REF} -a ${ANNOTATION} -b ${BAM_LIST} -p ${TMP} -o ${PREFIX}"candidate_list_from_disc.txt" -n 8
 		python ${XTEA_PATH}"x_TEA_main.py" -N --cr 3 --nd 5 -b ${BAM_LIST} -p ${TMP_CNS} --fflank ${SF_FLANK} --flklen 3000 -n 8 -i ${PREFIX}"candidate_list_from_disc.txt" -r ${L1_CNS} --ref ${REF} -a ${ANNOTATION} -o ${PREFIX}"candidate_disc_filtered_cns.txt"
