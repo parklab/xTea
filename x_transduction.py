@@ -18,6 +18,7 @@ NOT_TRANSDUCTION = "not_transduction"
 MINIMAL_TRANSDUCT_MAPQ = 30
 NEARBY_CLIP = 50
 MAX_CLIP_CLIP_LEN = 6
+MIN_POLYMORPHIC_SOURCE_DIST=500
 
 class XTransduction():
     def __init__(self, working_folder, n_jobs, sf_reference):
@@ -206,7 +207,8 @@ class XTransduction():
             source_end = int(flank_id_fields[2])
             sourc_rc = flank_id_fields[-1][0]
 
-            if (ori_chrm==chrm_fl_L1) and (abs(ref_mpos-source_start)<300 or abs(ref_mpos-source_end)<300):
+            if (ori_chrm==chrm_fl_L1) and (abs(ref_mpos-source_start)<MIN_POLYMORPHIC_SOURCE_DIST
+                                           or abs(ref_mpos-source_end)<MIN_POLYMORPHIC_SOURCE_DIST):
                 continue
 
             # here need to process the chrom, and keep it consistent with the final list

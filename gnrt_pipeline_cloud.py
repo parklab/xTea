@@ -64,6 +64,10 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
                   "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" -r ${{L1_CNS}} " \
                   "--teilen {1} -o ${{PREFIX}}\"internal_snp.vcf.gz\"\n".format(ncores, min_tei_len)
 
+    sf_clean_tmp="rm ${{TMP}}\"*tmp*\"\n"
+    sf_clean_sam="find ${{TMP}} -type f -name \'*.sam\' -delete\n"
+    sf_clean_fa="find ${{TMP}} -type f -name \'*.fa\' -delete\n"
+    sf_clean_fq = "find ${{TMP}} -type f -name \'*.fq\' -delete\n"
     ####
     s_cmd = ""
     if iflag & 1 == 1:
@@ -84,6 +88,11 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
         s_cmd += sf_alg_ctg
     if iflag & 256 == 256:
         s_cmd += sf_mutation
+
+    s_cmd+=sf_clean_tmp
+    s_cmd +=sf_clean_sam
+    s_cmd +=sf_clean_fa
+    s_cmd +=sf_clean_fq
     return s_cmd
 
 
@@ -220,7 +229,7 @@ def gnrt_lib_config(sf_folder_rep, sf_ref, sf_folder_xtea, sf_config_prefix):
     sf_xtea = "XTEA_PATH " + sf_folder_xtea + "\n"
 
     # for L1
-    sf_config_L1 = sf_config_prefix + "_L1.config"
+    sf_config_L1 = sf_config_prefix + "L1.config"
     sf_anno = "ANNOTATION " + sf_folder_rep + "LINE/hg19/hg19_L1_larger2K_with_all_L1HS.out\n"
     sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "LINE/hg19/hg19_L1HS_copies_larger_5K_with_flank.fa\n"
     sf_flank = "SF_FLANK " + sf_folder_rep + "LINE/hg19/hg19_FL_L1_flanks_3k.fa\n"
@@ -229,7 +238,7 @@ def gnrt_lib_config(sf_folder_rep, sf_ref, sf_folder_xtea, sf_config_prefix):
                     s_tmp, s_tmp_clip, s_tmp_cns, sf_config_L1)
 
     #### for Alu
-    sf_config_L1 = sf_config_prefix + "_Alu.config"
+    sf_config_L1 = sf_config_prefix + "Alu.config"
     sf_anno = "ANNOTATION " + sf_folder_rep + "Alu/hg19/hg19_AluYabc.fa.out\n"
     sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "Alu/hg19/hg19_AluJabc_copies_with_flank.fa\n"
     sf_flank = "SF_FLANK null\n"
@@ -238,7 +247,7 @@ def gnrt_lib_config(sf_folder_rep, sf_ref, sf_folder_xtea, sf_config_prefix):
                     s_tmp, s_tmp_clip, s_tmp_cns, sf_config_L1)
 
     ####for SVA
-    sf_config_L1 = sf_config_prefix + "_SVA.config"
+    sf_config_L1 = sf_config_prefix + "SVA.config"
     sf_anno = "ANNOTATION " + sf_folder_rep + "SVA/hg19/hg19_SVA.out\n"
     sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "SVA/hg19/hg19_SVA_copies_with_flank.fa\n"
     sf_flank = "SF_FLANK " + sf_folder_rep + "SVA/hg19/hg19_FL_SVA_flanks_3k.fa\n"
@@ -322,7 +331,7 @@ if __name__ == '__main__':
 
     gnrt_lib_config(sf_folder_rep, sf_ref, sf_folder_xtea, s_wfolder)
     for rep_type in l_rep_type:
-        sf_config = s_wfolder+"_"+rep_type+".config"
+        sf_config = s_wfolder+rep_type+".config"
 
         s_wfolder_rep=s_wfolder+rep_type
         if os.path.exists(s_wfolder_rep)==False:

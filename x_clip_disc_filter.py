@@ -1013,15 +1013,15 @@ class XClipDiscFilter():
         # (chrm, map_pos, FLAG_LEFT_CLIP, is_rc, insertion_pos, n_cnt_clip, sample_id)
         sf_clip_fq = self.working_folder + "candidate_sites_all_clip.fq"
         sf_disc_fa = self.working_folder + "candidate_sites_all_disc.fa"
-        #self.collect_clipped_disc_reads(sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa)
+        self.collect_clipped_disc_reads(sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa)
 
         # # ##re-align the clipped reads
         bwa_align = BWAlign(BWA_PATH, BWA_REALIGN_CUTOFF, self.n_jobs)
         sf_clip_algnmt = self.working_folder + "temp_clip.sam"
-        #bwa_align.realign_clipped_reads(sf_rep_cns, sf_clip_fq, sf_clip_algnmt)
+        bwa_align.realign_clipped_reads(sf_rep_cns, sf_clip_fq, sf_clip_algnmt)
         # ##re-align the disc reads
         sf_disc_algnmt = self.working_folder + "temp_disc.sam"
-        #bwa_align.realign_disc_reads(sf_rep_cns, sf_disc_fa, sf_disc_algnmt)
+        bwa_align.realign_disc_reads(sf_rep_cns, sf_disc_fa, sf_disc_algnmt)
 
         ####analysis the re-aligned clipped reads, called out:
         # 1) left-max-clip-position, right-max-clip-position, TSD
