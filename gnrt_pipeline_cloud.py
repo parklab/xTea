@@ -64,10 +64,10 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
                   "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" -r ${{L1_CNS}} " \
                   "--teilen {1} -o ${{PREFIX}}\"internal_snp.vcf.gz\"\n".format(ncores, min_tei_len)
 
-    sf_clean_tmp="rm ${{TMP}}\"*tmp*\"\n"
-    sf_clean_sam="find ${{TMP}} -type f -name \'*.sam\' -delete\n"
-    sf_clean_fa="find ${{TMP}} -type f -name \'*.fa\' -delete\n"
-    sf_clean_fq = "find ${{TMP}} -type f -name \'*.fq\' -delete\n"
+    sf_clean_tmp="rm ${TMP}\"*tmp*\"\n"
+    sf_clean_sam="find ${TMP} -type f -name \'*.sam\' -delete\n"
+    sf_clean_fa="find ${TMP} -type f -name \'*.fa\' -delete\n"
+    sf_clean_fq = "find ${TMP} -type f -name \'*.fq\' -delete\n"
     ####
     s_cmd = ""
     if iflag & 1 == 1:
