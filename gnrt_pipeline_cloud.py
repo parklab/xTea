@@ -320,9 +320,9 @@ if __name__ == '__main__':
     l_rep_type.append("Alu")
     l_rep_type.append("SVA")
 
+    gnrt_lib_config(sf_folder_rep, sf_ref, sf_folder_xtea, s_wfolder)
     for rep_type in l_rep_type:
-        sf_config=s_wfolder + rep_type+".config"
-        gnrt_lib_config(sf_folder_rep, sf_ref, sf_folder_xtea, sf_config)
+        sf_config = s_wfolder+"_"+rep_type+".config"
 
         s_wfolder_rep=s_wfolder+rep_type
         if os.path.exists(s_wfolder_rep)==False:
