@@ -344,6 +344,7 @@ if __name__ == '__main__':
 
         s_calling_cmd = gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len,
                                              itei_len, iflag)
-        gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s_wfolder_rep, sf_sbatch_sh)
+        sf_sbatch_sh_rep=rep_type+"_"+sf_sbatch_sh
+        gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s_wfolder_rep, sf_sbatch_sh_rep)
 
 ####
