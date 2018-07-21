@@ -3,7 +3,6 @@
 ##@@contact: chong_chu@hms.harvard.edu
 
 '''
-
 ####@@CC 01/03/2018
 Todo List: 1. clip step requires lots of memory. 150G for 10 cores. This should be improved.
 Update: 01/09/2018: The issue is caused at the "ClipReadInfo::cnt_clip_part_aligned_to_rep()" function.
@@ -29,6 +28,7 @@ from x_analysis import *
 from optparse import OptionParser
 from x_reads_collection import *
 from x_mutation import *
+from x_sv import *
 ####
 ##parse the options
 def parse_option():
@@ -98,6 +98,9 @@ def parse_option():
                       help="Result analysis")
     parser.add_option("--flank", dest="flank", default=False,
                       help="flank regions")
+    parser.add_option("--sv",
+                      action="store_true", dest="sv", default=False,
+                      help="Call promoted SVs")
 
     parser.add_option("-i", "--input", dest="input",
                       help="input file ", metavar="FILE")
@@ -410,6 +413,12 @@ if __name__ == '__main__':
         xctg = XTEContig(s_working_folder, n_jobs)
         xctg.validate_TEI_from_phased_asm_algnmt(sf_sites, flank_length, f_map_cutoff, i_slack, sf_repeat_copies,
                                                  sf_keep_sites)
+    elif options.sv:
+        sf_sites = options.input
+        sf_dels=options.output
+        te_del=TEDeletion()
+        m_del=te_del.call_del_matched_brkpnts(sf_sites)
+        te_del.output_del(m_del, sf_dels)
 
 ####
     # elif options.trace:
@@ -445,4 +454,5 @@ if __name__ == '__main__':
         x_analysis=XAnalysis()
         #cnt # of TE insertions fall in repetitive regions
         x_analysis.cnt_fall_in_rep(sf_annotation, sf_candidate_list, sf_csv_prefix)
+####
 ####

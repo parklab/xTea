@@ -35,9 +35,11 @@ class XMutation():
             cmd="mkdir {0}".format(sf_mutation_folder)
             Popen(cmd, shell=True, stdout=PIPE).communicate()
 
-    def call_mutations_from_reads_algnmt(self, sf_sites, sf_cns, n_len_cutoff, n_jobs, sf_merged_vcf):
+
+    def call_mutations_from_reads_algnmt(self, sf_sites, sf_cns, i_len_cutoff, n_jobs, sf_merged_vcf):
         xsites = XSites(sf_sites)
-        m_sites = xsites.load_in_sites()
+        #m_sites = xsites.load_in_sites()
+        m_sites=xsites.load_in_qualified_sites_from_xTEA_output(i_len_cutoff)
 
         l_records = []
         for site_chrm in m_sites:
@@ -209,7 +211,7 @@ class XMutation():
     #  (28, 831, 'T'), (29, 832, 'G'), (30, 833, 'T'), (31, 834, 'G'), (32, 835, 'T'), (33, 836, 'G'), (34, 837, 'T'),
     #  (35, 838, 'G'), (36, 839, 'T'), (37, 840, 'G'), (38, 841, 'T'), (39, 842, 'g'), (40, 843, 'T'), (41, 844, 'G'),
     #  (42, 845, 'T'), (43, 846, 'G'), (44, 847, 'T'), (45, 848, 'G'), (46, 849, 'T'), (47, 850, 'g'), (48, 851, 'T')]
-
+####
     ####Call out the snp from repeat copy alignments: From the MD filed
     def call_snp_indel_from_rep_copy_algnmt(self):
         sf_bam = "/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/NA12878_10x_v2/tmp_dbg/cns/picked_disc.sorted.bam"
@@ -228,4 +230,7 @@ class XMutation():
                 break
             ncnt += 1
         bamfile.close()
+####
+
+
 ####

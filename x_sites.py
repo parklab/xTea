@@ -24,7 +24,7 @@ class XSites():
     # lclip-cns-start:end	rclip_cns-start:end	ldisc-cns-start:end	rdisc-cns-start:end	Transduction-info
     # ntsd-clip	ntsd-disc	ntsd-polyA	ldisc-same	ldisc-diff	rdisc-same	rdisc-diff
     # 3mer-inversion	confidential	estimated-insertion-length
-    def load_in_qualified_sites_xTEA_output(self, imin_len):
+    def load_in_qualified_sites_from_xTEA_output(self, imin_len):
         m_sites = {}
         with open(self.sf_sites) as fin_sites:
             for line in fin_sites:
@@ -32,14 +32,17 @@ class XSites():
                 chrm = fields[0]
                 pos = int(fields[1])
                 hcfdt=fields[-2]
-                b_save=True
-                if hcfdt=="Confident":
-                    b_save=False
-                transdct=fields[-11]
-
+                is_lth=int(fields[-1])
+                if is_lth < imin_len:
+                    continue
+                transdct = fields[-11]
+                if hcfdt == "Confident" and transdct=="not_transduction":
+                    continue
 
                 if chrm not in m_sites:
                     m_sites[chrm] = {}
                 m_sites[chrm][pos] = 1
         return m_sites
-####finished
+
+
+####

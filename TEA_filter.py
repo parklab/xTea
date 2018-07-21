@@ -11,6 +11,9 @@ from x_clip_disc_filter import *
 
 def parse_option():
     parser = OptionParser()
+    parser.add_option("-R", "--realign",
+                      action="store_true", dest="realign", default=False,
+                      help="Collect and realign the clip and disc reads")
     parser.add_option("-i", "--input", dest="input",
                       help="input file ", metavar="FILE")
     parser.add_option("-c", "--cns", dest="cns",

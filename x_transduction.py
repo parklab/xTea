@@ -49,11 +49,13 @@ class XTransduction():
 
         # parse the disc and clip alignment to flank regions
         # m_lclip_transd format: m_ltransduct[ori_chrm][ori_insertion_pos][ref_mpos].append(s_transduct)
+        #Here need to rule out those polymorphic full-length L1s, as their flank regions will be collected
         m_lclip_transd, m_rclip_transd, m_td_polyA = self.parse_transduction_clip_algnmt(sf_picked_clip_sam,
                                                                                          i_flank_lenth)
         m_disc_transd = self.parse_transduction_disc_algnmt(sf_picked_disc_sam, i_flank_lenth, ndisc_cutoff)
 
         return m_lclip_transd, m_rclip_transd, m_td_polyA, m_disc_transd
+
 
 ####
     def construct_novel_flanks(self, l_fl_polymorphic, sf_flank, i_flank_lenth, sf_new_flank):
@@ -162,7 +164,7 @@ class XTransduction():
             ori_clip_flag = read_info_fields[2]
             ori_insertion_pos = int(read_info_fields[4])
 
-            #####Hard code here########################################################################################
+            #####Hard code here#######################################################################################
             if abs(ref_mpos - ori_insertion_pos) > NEARBY_CLIP:  # only focus on the clipped reads nearby
                 continue
             if algnmt.is_unmapped == True:  ####skip the unmapped reads
@@ -203,6 +205,10 @@ class XTransduction():
             source_start = int(flank_id_fields[1])
             source_end = int(flank_id_fields[2])
             sourc_rc = flank_id_fields[-1][0]
+
+            if (ori_chrm==chrm_fl_L1) and (abs(ref_mpos-source_start)<300 or abs(ref_mpos-source_end)<300):
+                continue
+
             # here need to process the chrom, and keep it consistent with the final list
             if len(chrm_fl_L1) > 3 and chrm_fl_L1[:3] == "chr":  # contain
                 if len(ori_chrm) <= 3 or ori_chrm[:3] != "chr":
@@ -276,6 +282,11 @@ class XTransduction():
                 m_transduction[ins_chrm][ins_pos] = {}
 
             s_source = "{0}:{1}-{2}~{3}".format(chrm_fl_L1, source_start, source_end, sourc_rc)
+
+            ####this is to rule out those polymerphic Fl-L1 cases, which aligned to themselves' flank regions
+            if (ins_chrm==chrm_fl_L1) and (abs(ins_pos-source_start)<200 or abs(ins_pos-source_end)<300):
+                continue
+
             if s_source not in m_transduction[ins_chrm][ins_pos]:
                 m_transduction[ins_chrm][ins_pos][s_source] = []
             m_transduction[ins_chrm][ins_pos][s_source].append((hit_ref_pos, anchor_map_pos))
@@ -378,7 +389,7 @@ class XTransduction():
                         trsdct_info = "{0}~{1}-{2}".format(trsdct_source, trsdct_l, trsdct_r)
                         m_transduction[ins_chrm][ins_pos] = (b_l_trsdct, b_r_trsdct, n_disc_trsdct, trsdct_info)
         return m_transduction
-
+####
     # In this version, the transduction candidates are called out only by discordant reads
     # then, in this function, for each candidate, extract the related information
     def _extract_transduct_info(self, m_list, m_transduct, m_lclip_transduct, m_rclip_transduct, m_td_polyA, BIN_SIZE):

@@ -642,7 +642,7 @@ class XClipDiscFilter():
                  s_trsdct_info, n_clip_trsdct, n_disc_trsdct, n_polyA_trsdct) in l_candidates:
                 # output in format:
                 # #chrm    refined-pos   lclip-pos    rclip-pos TSD nalclip    narclip    naldisc
-                # nardisc    nalpolyA   narpolyA    nlclip  nrclip  nldisc  nrdisc  nlpolyA nrpolyA
+                # nardisc    nalpolyA   narpolyA  lcov  rcov  nlclip  nrclip  nldisc  nrdisc  nlpolyA nrpolyA
                 # lclip-cns-start:end rclip_cns-start:end    ldisc-cns-start:end   rdisc-cns-start:end
                 # Transduction-info  ntsd-clip  ntsd-disc ntsd-polyA
                 # (3'-inversion-info) ldisc-same ldisc-diff rdisc-same rdisc-diff
@@ -670,23 +670,32 @@ class XClipDiscFilter():
                 if (ins_chrm in m_high_confident) and (refined_pos in m_high_confident[ins_chrm]):
                     s_extra_info= "High-confident\t"
                 i_tei_lth=self._get_insertion_length(ldisc_cns_start, ldisc_cns_end, rdisc_cns_start, rdisc_cns_end,
-                                                     i_cns_lth)
+                                                     i_cns_lth, s_trsdct_info)
                 s_extra_info+=str(i_tei_lth)
 
                 sinfo = s_pos + s_cnt_all + s_cnt + s_cns_lclip + s_cns_rclip + s_cns_ldisc + s_cns_rdisc \
                         + s_transduct_out + s_rc_disc + s_extra_info+"\n"
                 fout_final_list.write(sinfo)
 
-    def _get_insertion_length(self, ldisc_cns_start, ldisc_cns_end, rdisc_cns_start, rdisc_cns_end, icns_lth):
+####
+    def _get_insertion_length(self, ldisc_cns_start, ldisc_cns_end, rdisc_cns_start, rdisc_cns_end, icns_lth, stsdc):
         i_tei_len=-1
+
         if ldisc_cns_end==-1 and rdisc_cns_start>0:
             i_tei_len=icns_lth-rdisc_cns_start
         elif rdisc_cns_end==-1 and ldisc_cns_start>0:
             i_tei_len = icns_lth - ldisc_cns_start
-        elif ldisc_cns_start>0 and rdisc_cns_start>0:
-            i_tei_len = rdisc_cns_end - ldisc_cns_start
-            if i_tei_len < 0:
-                i_tei_len = ldisc_cns_end - rdisc_cns_start
+        else:
+            if stsdc == NOT_TRANSDUCTION:
+                if ldisc_cns_start>0 and rdisc_cns_start>0:
+                    i_tei_len = rdisc_cns_end - ldisc_cns_start
+                    if i_tei_len < 0:
+                        i_tei_len = ldisc_cns_end - rdisc_cns_start
+            else:
+                if ldisc_cns_start<rdisc_cns_start:
+                    i_tei_len=icns_lth-ldisc_cns_start
+                else:
+                    i_tei_len = icns_lth - rdisc_cns_start
         return i_tei_len
 
     def _is_3mer_inversion(self, rc_rcd_disc):
@@ -978,7 +987,22 @@ class XClipDiscFilter():
         return l_selected, m_high_confident
 
     ####
-
+    ####this is only for TEA (as request by Rebeca)
+    ####collect clip and disc reads
+    ####realign the clipped and disc reads
+    # def collect_realign_clip_disc_reads(self, sf_candidate_list, extnd, bin_size, sf_rep_cns):
+    #     sf_clip_fq = self.working_folder + "candidate_sites_all_clip.fq"
+    #     sf_disc_fa = self.working_folder + "candidate_sites_all_disc.fa"
+    #     self.collect_clipped_disc_reads(sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa)
+    #
+    #     # # ##re-align the clipped reads
+    #     bwa_align = BWAlign(BWA_PATH, BWA_REALIGN_CUTOFF, self.n_jobs)
+    #     sf_clip_algnmt = self.working_folder + "temp_clip.sam"
+    #     bwa_align.realign_clipped_reads(sf_rep_cns, sf_clip_fq, sf_clip_algnmt)
+    #     # ##re-align the disc reads
+    #     sf_disc_algnmt = self.working_folder + "temp_disc.sam"
+    #     bwa_align.realign_disc_reads(sf_rep_cns, sf_disc_fa, sf_disc_algnmt)
+    #
     # Note: sf_rep_copies are copies with two end flank regions
     # this version align the reads to the consensus
     # then do the analysis
@@ -989,15 +1013,15 @@ class XClipDiscFilter():
         # (chrm, map_pos, FLAG_LEFT_CLIP, is_rc, insertion_pos, n_cnt_clip, sample_id)
         sf_clip_fq = self.working_folder + "candidate_sites_all_clip.fq"
         sf_disc_fa = self.working_folder + "candidate_sites_all_disc.fa"
-        self.collect_clipped_disc_reads(sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa)
+        #self.collect_clipped_disc_reads(sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa)
 
         # # ##re-align the clipped reads
         bwa_align = BWAlign(BWA_PATH, BWA_REALIGN_CUTOFF, self.n_jobs)
         sf_clip_algnmt = self.working_folder + "temp_clip.sam"
-        bwa_align.realign_clipped_reads(sf_rep_cns, sf_clip_fq, sf_clip_algnmt)
+        #bwa_align.realign_clipped_reads(sf_rep_cns, sf_clip_fq, sf_clip_algnmt)
         # ##re-align the disc reads
         sf_disc_algnmt = self.working_folder + "temp_disc.sam"
-        bwa_align.realign_disc_reads(sf_rep_cns, sf_disc_fa, sf_disc_algnmt)
+        #bwa_align.realign_disc_reads(sf_rep_cns, sf_disc_fa, sf_disc_algnmt)
 
         ####analysis the re-aligned clipped reads, called out:
         # 1) left-max-clip-position, right-max-clip-position, TSD
@@ -1116,6 +1140,7 @@ class XClipDiscFilter():
         ####output the old information of the selected sites, mainly for TEA-mem
         sf_old_pos=sf_final_list+".old_positions"
         self._dump_old_site_pos(l_final_candidates, m_new_old_match, sf_old_pos)
+
 
 ####
     ####

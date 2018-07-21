@@ -4,17 +4,8 @@ from optparse import OptionParser
 
 
 ####
-def gnrt_script_head(spartition, ncores, stime, smemory):
+def gnrt_script_head():
     s_head = "#!/bin/bash\n\n"
-    s_head += "#SBATCH -n {0}\n".format(ncores)
-    s_head += "#SBATCH -t {0}\n".format(stime)
-    s_head += "#SBATCH --mem={0}G\n".format(smemory)
-    s_head += "#SBATCH -p {0}\n".format(spartition)
-    s_head += "#SBATCH -o hostname_%j.out\n"
-    s_head += "#SBATCH --mail-type=END\n"
-    s_head += "#SBATCH --mail-user=chong.simonchu@gmail.com\n"
-    if spartition == "park" or spartition == "priopark":
-        s_head += "#SBATCH --account=park_contrib\n\n"
     return s_head
 
 
@@ -72,7 +63,6 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
     sf_mutation = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -I -p ${{TMP}} -n {0} " \
                   "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" -r ${{L1_CNS}} " \
                   "--teilen {1} -o ${{PREFIX}}\"internal_snp.vcf.gz\"\n".format(ncores, min_tei_len)
-
 
     ####
     s_cmd = ""
@@ -162,7 +152,7 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
                 if os.path.isfile(sf_10X_barcode_bai) == False:
                     cmd = "ln -s {0} {1}".format(s_barcode_bam + ".bai", sf_10X_barcode_bai)
                     Popen(cmd, shell=True, stdout=PIPE).communicate()
-                ####
+                    ####
     with open(sf_sbatch_sh, "w") as fout_sbatch:
         fout_sbatch.write("#!/bin/bash\n\n")
         for sid in m_id:
@@ -195,6 +185,67 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
             fout_sbatch.write(scmd)
 
 
+def write_to_config(sf_anno, sf_ref, sf_copy_with_flank, sf_flank, sf_cns, sf_xtea, s_bl, s_bam1, s_bc_bam,
+                    s_tmp, s_tmp_clip, s_tmp_cns, sf_config):
+    with open(sf_config, "w") as fout_L1:
+        fout_L1.write(sf_anno)
+        fout_L1.write(sf_ref)
+        fout_L1.write(sf_copy_with_flank)
+        fout_L1.write(sf_flank)
+        fout_L1.write(sf_cns)
+        fout_L1.write(sf_xtea)
+        fout_L1.write(s_bl)
+        fout_L1.write(s_bam1)
+        fout_L1.write(s_bc_bam)
+        fout_L1.write(s_tmp)
+        fout_L1.write(s_tmp_clip)
+        fout_L1.write(s_tmp_cns)
+
+
+def gnrt_lib_config(sf_folder_rep, sf_ref, sf_folder_xtea, sf_config_prefix):
+    if sf_folder_rep[-1] != "/":
+        sf_folder_rep += "/"
+    if sf_folder_xtea[-1] != "/":
+        sf_folder_xtea += "/"
+    if sf_config_prefix[-1] != "/":
+        sf_config_prefix += "/"
+
+    s_bl = "BAM_LIST ${PREFIX}\"bam_list.txt\"\n"
+    s_bam1 = "BAM1 ${PREFIX}\"10X_phased_possorted_bam.bam\"\n"
+    s_bc_bam = "BARCODE_BAM ${PREFIX}\"10X_barcode_indexed.sorted.bam\"\n"
+    s_tmp = "TMP ${PREFIX}\"tmp/\"\n"
+    s_tmp_clip = "TMP_CLIP ${PREFIX}\"tmp/clip/\"\n"
+    s_tmp_cns = "TMP_CNS ${PREFIX}\"tmp/cns/\"\n"
+    sf_ref = "REF " + sf_ref + "\n"
+    sf_xtea = "XTEA_PATH " + sf_folder_xtea + "\n"
+
+    # for L1
+    sf_config_L1 = sf_config_prefix + "_L1.config"
+    sf_anno = "ANNOTATION " + sf_folder_rep + "LINE/hg19/hg19_L1_larger2K_with_all_L1HS.out\n"
+    sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "LINE/hg19/hg19_L1HS_copies_larger_5K_with_flank.fa\n"
+    sf_flank = "SF_FLANK " + sf_folder_rep + "LINE/hg19/hg19_FL_L1_flanks_3k.fa\n"
+    sf_cns = "L1_CNS " + sf_folder_rep + "consensus/LINE1.fa\n"
+    write_to_config(sf_anno, sf_ref, sf_copy_with_flank, sf_flank, sf_cns, sf_xtea, s_bl, s_bam1, s_bc_bam,
+                    s_tmp, s_tmp_clip, s_tmp_cns, sf_config_L1)
+
+    #### for Alu
+    sf_config_L1 = sf_config_prefix + "_Alu.config"
+    sf_anno = "ANNOTATION " + sf_folder_rep + "Alu/hg19/hg19_AluYabc.fa.out\n"
+    sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "Alu/hg19/hg19_AluJabc_copies_with_flank.fa\n"
+    sf_flank = "SF_FLANK null\n"
+    sf_cns = "L1_CNS " + sf_folder_rep + "consensus/ALU.fa\n"
+    write_to_config(sf_anno, sf_ref, sf_copy_with_flank, sf_flank, sf_cns, sf_xtea, s_bl, s_bam1, s_bc_bam,
+                    s_tmp, s_tmp_clip, s_tmp_cns, sf_config_L1)
+
+    ####for SVA
+    sf_config_L1 = sf_config_prefix + "_SVA.config"
+    sf_anno = "ANNOTATION " + sf_folder_rep + "SVA/hg19/hg19_SVA.out\n"
+    sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "SVA/hg19/hg19_SVA_copies_with_flank.fa\n"
+    sf_flank = "SF_FLANK " + sf_folder_rep + "SVA/hg19/hg19_FL_SVA_flanks_3k.fa\n"
+    sf_cns = "L1_CNS " + sf_folder_rep + "consensus/SVA.fa\n"
+    write_to_config(sf_anno, sf_ref, sf_copy_with_flank, sf_flank, sf_cns, sf_xtea, s_bl, s_bam1, s_bc_bam,
+                    s_tmp, s_tmp_clip, s_tmp_cns, sf_config_L1)
+
 ####
 def parse_option():
     parser = OptionParser()
@@ -206,19 +257,15 @@ def parse_option():
                       help="TE lib config file ", metavar="FILE")
     parser.add_option("-b", "--bam", dest="bam",
                       help="Input bam file", metavar="FILE")
-    parser.add_option("-x", "--x10", dest="x10",
-                      help="Input 10X bam file", metavar="FILE")
 
     parser.add_option("-p", "--path", dest="wfolder", type="string",
                       help="Working folder")
     parser.add_option("-n", "--cores", dest="cores", type="int",
                       help="number of cores")
-    parser.add_option("-m", "--memory", dest="memory", type="int",
-                      help="Memory limit in GB")
-    parser.add_option("-q", "--partition", dest="partition", type="string",
-                      help="Which queue to run the job")
-    parser.add_option("-t", "--time", dest="time", type="string",
-                      help="Time limit")
+    parser.add_option("-r", "--ref", dest="ref", type="string",
+                      help="reference genome")
+    parser.add_option("-x", "--xtea", dest="xtea", type="string",
+                      help="xTEA folder")
 
     parser.add_option("-f", "--flag", dest="flag", type="int",
                       help="Flag indicates which step to run (1-clip, 2-disc, 4-barcode, 8-xfilter, 16-filter, 32-asm)")
@@ -249,7 +296,7 @@ if __name__ == '__main__':
     (options, args) = parse_option()
     sf_id = options.id
     sf_bams = options.bam
-    sf_bams_10X = options.x10
+    sf_bams_10X = "null"
     s_wfolder = options.wfolder
     sf_sbatch_sh = options.output
     if s_wfolder[-1] != "/":
@@ -263,25 +310,40 @@ if __name__ == '__main__':
     if os.path.isfile(sf_bams_10X) == False:
         sf_bams_10X = "null"
 
-    spartition = options.partition
     ncores = options.cores
-    stime = options.time
-    smemory = options.memory
-    sf_rep_lib = options.lib
+    sf_folder_rep = options.lib  ##this is the lib folder path
+    sf_ref=options.ref ####reference genome
+    sf_folder_xtea=options.xtea
 
-    s_head = gnrt_script_head(spartition, ncores, stime, smemory)
-    l_libs = load_par_config(sf_rep_lib)
-    s_libs = gnrt_parameters(l_libs)
-    ##
-    iclip_c = options.nclip
-    iclip_rp = options.cliprep
-    idisc_c = options.ndisc
-    iflt_clip = options.nfilterclip
-    iflt_disc = options.nfilterdisc
-    iflk_len = options.flklen
-    itei_len = options.teilen
-    iflag = options.flag
+    l_rep_type=[]
+    l_rep_type.append("L1")
+    l_rep_type.append("Alu")
+    l_rep_type.append("SVA")
 
-    s_calling_cmd = gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len, itei_len,
-                                         iflag)
-    gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s_wfolder, sf_sbatch_sh)
+    for rep_type in l_rep_type:
+        sf_config=s_wfolder + rep_type+".config"
+        gnrt_lib_config(sf_folder_rep, sf_ref, sf_folder_xtea, sf_config)
+
+        s_wfolder_rep=s_wfolder+rep_type
+        if os.path.exists(s_wfolder_rep)==False:
+            cmd="mkdir {0}".format(s_wfolder_rep)
+            Popen(cmd, shell=True, stdout=PIPE).communicate()
+
+        s_head = gnrt_script_head()
+        l_libs = load_par_config(sf_config)
+        s_libs = gnrt_parameters(l_libs)
+        ##
+        iclip_c = options.nclip
+        iclip_rp = options.cliprep
+        idisc_c = options.ndisc
+        iflt_clip = options.nfilterclip
+        iflt_disc = options.nfilterdisc
+        iflk_len = options.flklen
+        itei_len = options.teilen
+        iflag = options.flag
+
+        s_calling_cmd = gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len,
+                                             itei_len, iflag)
+        gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s_wfolder_rep, sf_sbatch_sh)
+
+####
