@@ -52,7 +52,7 @@
 
 	+ Only with Illumina data
 		```
-		sh run_gnrt_pipeline.sh sample_id.txt illumina_bam_list.txt null ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
+		python ./../xTEA/gnrt_pipeline_cloud.py -b input.bam -p /home/ec2-user/results2/ -o run_jobs.sh -n 16 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19
 		```
 		
 	+ Only with 10X data
