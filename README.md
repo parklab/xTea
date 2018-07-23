@@ -18,6 +18,7 @@
 		conda config --add channels bioconda
 		conda install pysam
 		```
+4. Note: bwa and samtools need to be added to the $PATH.
 
 ## Run xTEA
 1. **Input**
@@ -52,9 +53,20 @@
 
 	+ Only with Illumina data
 		```
-		python ./../xTEA/gnrt_pipeline_cloud.py -b input.bam -p /home/ec2-user/results2/ -o run_jobs.sh -n 16 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19
+		python ./../xTEA/gnrt_pipeline_cloud.py -b input.bam -p /home/ec2-user/results2/ -o run_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19
 		```
-		
+			+ For the parameters:
+			```
+				-b: the input bam/cram file (sorted and indexed);
+				-p: working folder, where the results and temporary files will be saved;
+				-o: temporary running scripts under the working folder;
+				-n: number of cores
+				-l: repeat library folder (decompressed from `s3://leelab-datafiles/rep_lib_annotation.tar.gz`);
+				-r: reference genome file (indexed by `bwa index`, and decompressed from `s3://leelab-datafiles/hg19_decoy.tar.gz`)
+				-x: path of xTEA folder (xTEA can be downloaded with command `git clone https://github.com/parklab/xTEA`)
+				Other parameters can be keep unchanged.
+			```
+
 	+ Only with 10X data
 		```
 		sh run_gnrt_pipeline.sh sample_id.txt null 10X_bam_list.txt ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
