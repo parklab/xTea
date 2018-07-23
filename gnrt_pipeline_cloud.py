@@ -1,7 +1,7 @@
 import os
 from subprocess import *
 from optparse import OptionParser
-
+import ntpath
 
 ####
 def gnrt_script_head():
@@ -190,7 +190,7 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
                 fout_sh.write("############\n")
                 fout_sh.write(s_calling_cmd)
             ####
-            scmd = "sbatch < {0}\n".format(sf_out_sh)
+            scmd = "sh {0}\n".format(sf_out_sh)
             fout_sbatch.write(scmd)
 
 
@@ -299,35 +299,32 @@ def parse_option():
     (options, args) = parser.parse_args()
     return (options, args)
 
-
-####
-if __name__ == '__main__':
-    (options, args) = parse_option()
-    sf_id = options.id
-    sf_bams = options.bam
-    sf_bams_10X = "null"
-    s_wfolder = options.wfolder
-    sf_sbatch_sh = options.output
+####gnrt the running shell
+def gnrt_running_shell(l_rep_type, sf_bam, s_wfolder, sf_sbatch_sh, ncores, sf_folder_rep, sf_ref, sf_folder_xtea):
     if s_wfolder[-1] != "/":
         s_wfolder += "/"
     if os.path.exists(s_wfolder) == False:
         scmd = "mkdir {0}".format(s_wfolder)
         Popen(scmd, shell=True, stdout=PIPE).communicate()
 
-    if os.path.isfile(sf_bams) == False:
-        sf_bams = "null"
-    if os.path.isfile(sf_bams_10X) == False:
-        sf_bams_10X = "null"
+    fname=ntpath.basename(sf_bam)
+    fname_fields=fname.split(".")
+    if fname_fields[-1]!="bam" and fname_fields[-1]!="cram":
+        print "Alignment is not end with .bam"
+        return
 
-    ncores = options.cores
-    sf_folder_rep = options.lib  ##this is the lib folder path
-    sf_ref=options.ref ####reference genome
-    sf_folder_xtea=options.xtea
+    #get the sample_id
+    sample_id=".".join(fname_fields[:-1])
 
-    l_rep_type=[]
-    l_rep_type.append("L1")
-    l_rep_type.append("Alu")
-    l_rep_type.append("SVA")
+    #gnrt the sample id list
+    #gnrt the bam file list
+    sf_id=s_wfolder+"sample_id.txt"
+    with open(sf_id, "w") as fout_id:
+        fout_id.write(sample_id)
+    sf_bam_list=s_wfolder+"bam_list.txt"
+    with open(sf_bam_list,"w") as fout_bamlist:
+        fout_bamlist.write(sample_id+"\t"+sf_bam)
+
 
     gnrt_lib_config(sf_folder_rep, sf_ref, sf_folder_xtea, s_wfolder)
     for rep_type in l_rep_type:
@@ -354,6 +351,32 @@ if __name__ == '__main__':
         s_calling_cmd = gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len,
                                              itei_len, iflag)
         sf_sbatch_sh_rep=rep_type+"_"+sf_sbatch_sh
-        gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s_wfolder_rep, sf_sbatch_sh_rep)
+        gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bam_list, sf_bams_10X, s_wfolder_rep, sf_sbatch_sh_rep)
+
+####run the pipelines
+def run_pipeline(l_rep_type, sf_sbatch_sh):
+    for rep_type in l_rep_type:
+        sf_sbatch_sh_rep = rep_type + "_" + sf_sbatch_sh
+        cmd="sh {0}".format(sf_sbatch_sh_rep)
+        Popen(cmd, shell=True, stdout=PIPE).communicate()
 
 ####
+if __name__ == '__main__':
+    (options, args) = parse_option()
+    sf_bam = options.bam ###input is a bam file
+    sf_bams_10X = "null"
+    s_wfolder = options.wfolder
+    sf_sbatch_sh = options.output
+
+    ncores = options.cores
+    sf_folder_rep = options.lib  ##this is the lib folder path
+    sf_ref=options.ref ####reference genome
+    sf_folder_xtea=options.xtea
+
+    l_rep_type = []
+    l_rep_type.append("L1")
+    l_rep_type.append("Alu")
+    l_rep_type.append("SVA")
+
+    gnrt_running_shell(l_rep_type, sf_bam, s_wfolder, sf_sbatch_sh, ncores, sf_folder_rep, sf_ref, sf_folder_xtea)
+    run_pipeline(l_rep_type, sf_sbatch_sh)
