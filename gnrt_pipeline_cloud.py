@@ -258,6 +258,9 @@ def gnrt_lib_config(sf_folder_rep, sf_ref, sf_folder_xtea, sf_config_prefix):
 ####
 def parse_option():
     parser = OptionParser()
+    parser.add_option("-D", "--decompress",
+                      action="store_true", dest="decompress", default=False,
+                      help="Decompress the rep lib and reference file")
     parser.add_option("-i", "--id", dest="id",
                       help="sample id list file ", metavar="FILE")
     parser.add_option("-a", "--par", dest="parameters",
@@ -360,6 +363,10 @@ def run_pipeline(l_rep_type, sf_sbatch_sh):
         cmd="sh {0}".format(sf_sbatch_sh_rep)
         Popen(cmd, shell=True, stdout=PIPE).communicate()
 
+def decompress(sf_in_tar):
+    cmd="tar -zxvf {0}".format(sf_in_tar)
+    Popen(cmd, shell=True, stdout=PIPE).communicate()
+
 ####
 if __name__ == '__main__':
     (options, args) = parse_option()
@@ -369,9 +376,17 @@ if __name__ == '__main__':
     sf_sbatch_sh = options.output
 
     ncores = options.cores
-    sf_folder_rep = options.lib  ##this is the lib folder path
-    sf_ref=options.ref ####reference genome
+    sf_folder_rep1 = options.lib  ##this is the lib folder path
+    sf_ref1=options.ref ####reference genome
     sf_folder_xtea=options.xtea
+
+    sf_folder_rep=sf_folder_rep1
+    sf_ref=sf_ref1
+    if options.decompress==True:
+        decompress(sf_folder_rep1)
+        decompress(sf_ref1)
+        sf_folder_rep=sf_folder_rep1[:-7] #trim tar.gz
+        sf_ref=sf_ref1[:-7]+"/genome.fa"#trim tar.gz and add
 
     l_rep_type = []
     l_rep_type.append("L1")
