@@ -386,7 +386,7 @@ if __name__ == '__main__':
         decompress(sf_folder_rep1)
         decompress(sf_ref1)
         sf_folder_rep=sf_folder_rep1[:-7] #trim tar.gz
-        sf_ref=sf_ref1[:-7]+"/genome.fa"#trim tar.gz and add
+        sf_ref=os.path.dirname(sf_ref1)+"/genome.fa"
 
     l_rep_type = []
     l_rep_type.append("L1")
