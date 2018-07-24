@@ -1127,7 +1127,7 @@ class XClipDiscFilter():
 
         n_min_check_cutoff = ndisc_cutoff / 2
         # min_l1_end = 5950
-        i_cns_lth = self._get_cns_length(sf_rep_cns)
+        i_cns_lth = self._get_cns_length(sf_rep_cns) #if multiple, then use the average length
         min_l1_end=i_cns_lth-150
         depth_ratio = 0.3  ##left-right read depth ratio
         l_final_candidates, m_hc = self.filter_by_clip_disc_polyA_consistency(l_candidates, m_read_depth,
@@ -1184,12 +1184,15 @@ class XClipDiscFilter():
 
     def _get_cns_length(self, sf_cns):
         l_rep = 0
+        n_copies=0
         with open(sf_cns) as fin_cns:
             for line in fin_cns:
                 if line[0] == ">":
+                    n_copies+=1
                     continue
                 l_rep += len(line.rstrip())
-        return l_rep
+        ave_len=int(l_rep/n_copies)
+        return ave_len
 
     ####
     def cnt_n_bams(self, sf_bam):

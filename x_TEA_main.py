@@ -180,7 +180,7 @@ if __name__ == '__main__':
         x_annotation = XAnnotation(sf_annotation)
         b_with_chr = x_annotation.is_ref_chrm_with_chr(sf_ref)
         x_annotation.set_with_chr(b_with_chr)  # if chrm in reference has "chr", then True, otherwise False
-        x_annotation.load_rmsk_annotation()
+        x_annotation.load_rmsk_annotation_no_extnd()
 
         x_annotation.collect_flank_regions_of_TE_from_ref(sf_ref, flank_lth, sf_out_fa)  # only get the flank regions
         x_annotation.bwa_index_TE_seqs(sf_out_fa)

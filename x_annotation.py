@@ -225,6 +225,40 @@ class XAnnotation():
 
     # 7288   1.3  0.1  0.1  chr21     32213340 32214177 (15915718) +  L1HS LINE/L1 5312 6155    (0) 4482983
     # 4741   0.6  0.0  0.0  chr21     17916705 17917238 (30212657) C  L1HS LINE/L1 (0) 6155   5622 4462908
+    def load_rmsk_annotation_no_extnd(self):
+        with open(self.sf_annotation) as fin_rmsk:
+            for line in fin_rmsk:
+                fields = line.split()
+                tmp_chrm = fields[4]
+                chrm = self._process_chrm_name(tmp_chrm)
+                start_pos = int(fields[5])
+                end_pos = int(fields[6])
+                b_rc = False
+                if fields[8] == "C":
+                    b_rc = True
+                sub_type = fields[9]
+                csn_start = -1
+                csn_end = -1
+                if b_rc == True:
+                    csn_start = int(fields[13])
+                    csn_end = int(fields[12])
+                else:
+                    csn_start = int(fields[11])
+                    csn_end = int(fields[12])
+
+                if chrm not in self.m_rmsk_annotation:
+                    self.m_rmsk_annotation[chrm] = {}
+                if start_pos in self.m_rmsk_annotation[chrm]:  ##this is not allowed!!!!
+                    print "Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos)
+
+                extd_start_pos = start_pos
+                if extd_start_pos not in self.m_rmsk_annotation[chrm]:
+                    self.m_rmsk_annotation[chrm][extd_start_pos] = []
+                self.m_rmsk_annotation[chrm][extd_start_pos].append(
+                    (end_pos, b_rc, sub_type, csn_start, csn_end))
+
+    # 7288   1.3  0.1  0.1  chr21     32213340 32214177 (15915718) +  L1HS LINE/L1 5312 6155    (0) 4482983
+    # 4741   0.6  0.0  0.0  chr21     17916705 17917238 (30212657) C  L1HS LINE/L1 (0) 6155   5622 4462908
     def load_rmsk_annotation_with_divgnt(self):
         with open(self.sf_annotation) as fin_rmsk:
             for line in fin_rmsk:
