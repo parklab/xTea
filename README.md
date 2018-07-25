@@ -120,3 +120,12 @@
 3. **Output**
 
 	3.1 For Illumina, `candidate_disc_filtered_cns.txt` is the final output.
+
+
+## Docker
+Docker image is built using the following command
+```
+image_name=duplexa/xtea:v1  # replace with your preferred image name
+docker build -t $image_name .
+docker push $image_name
+```
