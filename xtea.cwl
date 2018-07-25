@@ -43,19 +43,10 @@
       default: 8
     - 
       type: 
-        - "string"
-      id: "#outdir"
-      inputBinding: 
-        position: 5
-        prefix: "-p"
-        separate: true
-      default: "."
-    - 
-      type: 
         - "int"
       id: "#nclip"
       inputBinding: 
-        position: 6
+        position: 5
         prefix: "--nclip"
         separate: true
       default: 4
@@ -64,7 +55,7 @@
         - "int"
       id: "#cr"
       inputBinding: 
-        position: 7
+        position: 6
         prefix: "--cr"
         separate: true
       default: 2
@@ -73,7 +64,7 @@
         - "int"
       id: "#nd"
       inputBinding: 
-        position: 8
+        position: 7
         prefix: "--nd"
         separate: true
       default: 5
@@ -82,7 +73,7 @@
         - "int"
       id: "#nfclip"
       inputBinding: 
-        position: 9
+        position: 8
         prefix: "--nfclip"
         separate: true
       default: 3
@@ -91,7 +82,7 @@
         - "int"
       id: "#nfdisc"
       inputBinding: 
-        position: 10
+        position: 9
         prefix: "--nfdisc"
         separate: true
       default: 5
@@ -100,7 +91,7 @@
         - "int"
       id: "#flklen"
       inputBinding: 
-        position: 11
+        position: 10
         prefix: "--flklen"
         separate: true
       default: 3000
@@ -109,7 +100,7 @@
         - "int"
       id: "#f"
       inputBinding: 
-        position: 12
+        position: 11
         prefix: "-f"
         separate: true
       default: 19
@@ -119,7 +110,7 @@
         - "File"
       id: "#output"
       outputBinding: 
-        glob: "candidate_disc_filtered_cns.txt"
+        glob: "results.tar.gz"
   baseCommand: 
     - "python"
     - "/usr/local/bin/gnrt_pipeline_cloud.py"
@@ -128,6 +119,8 @@
     - "run_jobs.sh"
     - "-x"
     - "/usr/local/bin/"
+    - "-p"
+    - "."
   requirements: 
     - 
       class: "InlineJavascriptRequirement"
