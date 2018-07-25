@@ -15,7 +15,7 @@
         prefix: "-b"
         separate: true
       secondaryFiles: 
-        - ".bai"
+        - $(self.basename.replace('m$','i$'))
     - 
       type: 
         - "File"
