@@ -15,7 +15,7 @@
         prefix: "-b"
         separate: true
       secondaryFiles: 
-        - "$(self.basename + '.bai')"
+        - ".bai"
     - 
       type: 
         - "File"
