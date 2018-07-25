@@ -243,6 +243,48 @@ def parse_option():
     (options, args) = parser.parse_args()
     return (options, args)
 
+def cp_file(sf_from, sf_to):
+    cmd = "cp {0} {1}".format(sf_from, sf_to)
+    if os.path.isfile(sf_from)==False:
+        return
+    Popen(cmd, shell=True, stdout=PIPE).communicate()
+
+def cp_compress_results(s_wfolder, l_rep_type, sample_id):
+    # create a "results" folder
+    sf_rslts = s_wfolder + "results/"
+    if os.path.exists(sf_rslts)==False:
+        cmd = "mkdir {0}".format(sf_rslts)
+        Popen(cmd, shell=True, stdout=PIPE).communicate()
+
+    for rep_type in l_rep_type:
+        sf_rslts_rep_folder=sf_rslts+rep_type+"/"
+        if os.path.exists(sf_rslts_rep_folder)==False:
+            cmd = "mkdir {0}".format(sf_rslts_rep_folder)
+            Popen(cmd, shell=True, stdout=PIPE).communicate()
+        sf_samp_folder=sf_rslts_rep_folder+sample_id+"/"
+        if os.path.exists(sf_samp_folder)==False:
+            cmd="mkdir {0}".format(sf_samp_folder)
+            Popen(cmd, shell=True, stdout=PIPE).communicate()
+
+        sf_source_folder=s_wfolder+rep_type+"/"+sample_id+"/"
+        sf_rslt1=sf_source_folder+"candidate_disc_filtered_cns.txt"
+        cp_file(sf_rslt1, sf_samp_folder)
+        sf_rslt2 = sf_source_folder + "candidate_list_from_clip.txt"
+        cp_file(sf_rslt2, sf_samp_folder)
+        sf_rslt3 = sf_source_folder + "candidate_list_from_disc.txt"
+        cp_file(sf_rslt3, sf_samp_folder)
+
+        s_tmp1=sf_source_folder+"tmp/cns/candidate_sites_all_disc.fa"
+        cp_file(s_tmp1, sf_samp_folder)
+        s_tmp2 = sf_source_folder + "tmp/cns/candidate_sites_all_clip.fq"
+        cp_file(s_tmp2, sf_samp_folder)
+        s_tmp3 = sf_source_folder + "tmp/cns/all_with_polymerphic_flanks.fa"
+        cp_file(s_tmp3, sf_samp_folder)
+    #compress the results folder to one file
+    sf_compressed=sf_rslts+"results.tar.gz"
+    cmd="tar -cvzf {0} -C {1} .".format(sf_compressed, sf_rslts)
+    Popen(cmd, shell=True, stdout=PIPE).communicate()
+
 
 ####
 if __name__ == '__main__':
@@ -272,7 +314,7 @@ if __name__ == '__main__':
     s_head = gnrt_script_head(spartition, ncores, stime, smemory)
     l_libs = load_par_config(sf_rep_lib)
     s_libs = gnrt_parameters(l_libs)
-    ##
+    #
     iclip_c = options.nclip
     iclip_rp = options.cliprep
     idisc_c = options.ndisc
@@ -282,6 +324,14 @@ if __name__ == '__main__':
     itei_len = options.teilen
     iflag = options.flag
 
-    s_calling_cmd = gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len, itei_len,
-                                         iflag)
-    gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s_wfolder, sf_sbatch_sh)
+    #s_calling_cmd = gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len, itei_len,
+    #                                     iflag)
+    #gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s_wfolder, sf_sbatch_sh)
+
+
+    l_rep_type = []
+    l_rep_type.append("L1")
+    l_rep_type.append("Alu")
+    l_rep_type.append("SVA")
+    sample_id="SRR6071681"
+    cp_compress_results(s_wfolder, l_rep_type, sample_id)

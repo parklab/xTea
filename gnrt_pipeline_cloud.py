@@ -64,10 +64,12 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
                   "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" -r ${{L1_CNS}} " \
                   "--teilen {1} -o ${{PREFIX}}\"internal_snp.vcf.gz\"\n".format(ncores, min_tei_len)
 
-    sf_clean_tmp="rm ${TMP}\"*tmp*\"\n"
-    sf_clean_sam="find ${TMP} -type f -name \'*.sam\' -delete\n"
-    sf_clean_fa="find ${TMP} -type f -name \'*.fa\' -delete\n"
-    sf_clean_fq = "find ${TMP} -type f -name \'*.fq\' -delete\n"
+    # sf_clean_tmp="rm ${TMP}\"*tmp*\"\n"
+    # sf_clean_sam="find ${TMP} -type f -name \'*.sam\' -delete\n"
+    # sf_clean_fa="find ${TMP} -type f -name \'*.fa\' -delete\n"
+    # sf_clean_fq = "find ${TMP} -type f -name \'*.fq\' -delete\n"
+
+    ####
     ####
     s_cmd = ""
     if iflag & 1 == 1:
@@ -89,10 +91,10 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
     if iflag & 256 == 256:
         s_cmd += sf_mutation
 
-    s_cmd+=sf_clean_tmp
-    s_cmd +=sf_clean_sam
-    s_cmd +=sf_clean_fa
-    s_cmd +=sf_clean_fq
+    # s_cmd+=sf_clean_tmp
+    # s_cmd +=sf_clean_sam
+    # s_cmd +=sf_clean_fa
+    # s_cmd +=sf_clean_fq
     return s_cmd
 
 
@@ -303,6 +305,21 @@ def parse_option():
     (options, args) = parser.parse_args()
     return (options, args)
 
+def cp_file(sf_from, sf_to):
+    cmd = "cp {0} {1}".format(sf_from, sf_to)
+    if os.path.isfile(sf_from)==False:
+        return
+    Popen(cmd, shell=True, stdout=PIPE).communicate()
+
+def get_sample_id(sf_bam):
+    fname = ntpath.basename(sf_bam)
+    fname_fields = fname.split(".")
+    if fname_fields[-1] != "bam" and fname_fields[-1] != "cram":
+        print "Alignment is not end with .bam"
+        return None
+    sample_id = ".".join(fname_fields[:-1])
+    return sample_id
+
 ####gnrt the running shell
 def gnrt_running_shell(l_rep_type, sf_bam, s_wfolder, sf_sbatch_sh, ncores, sf_folder_rep, sf_ref, sf_folder_xtea):
     if s_wfolder[-1] != "/":
@@ -368,12 +385,51 @@ def decompress(sf_in_tar, sf_out):
     cmd="tar -zxvf {0} -C {1}".format(sf_in_tar, sf_out)
     Popen(cmd, shell=True, stdout=PIPE).communicate()
 
+def cp_compress_results(s_wfolder, l_rep_type, sample_id):
+    # create a "results" folder
+    sf_rslts = s_wfolder + "results/"
+    if os.path.exists(sf_rslts)==False:
+        cmd = "mkdir {0}".format(sf_rslts)
+        Popen(cmd, shell=True, stdout=PIPE).communicate()
+
+    for rep_type in l_rep_type:
+        sf_rslts_rep_folder=sf_rslts+rep_type+"/"
+        if os.path.exists(sf_rslts_rep_folder)==False:
+            cmd = "mkdir {0}".format(sf_rslts_rep_folder)
+            Popen(cmd, shell=True, stdout=PIPE).communicate()
+        sf_samp_folder = sf_rslts_rep_folder + sample_id + "/"
+        if os.path.exists(sf_samp_folder)==False:
+            cmd="mkdir {0}".format(sf_samp_folder)
+            Popen(cmd, shell=True, stdout=PIPE).communicate()
+
+        sf_source_folder=s_wfolder+rep_type+"/"+sample_id+"/"
+        sf_rslt1=sf_source_folder+"candidate_disc_filtered_cns.txt"
+        cp_file(sf_rslt1, sf_samp_folder)
+        sf_rslt2 = sf_source_folder + "candidate_list_from_clip.txt"
+        cp_file(sf_rslt2, sf_samp_folder)
+        sf_rslt3 = sf_source_folder + "candidate_list_from_disc.txt"
+        cp_file(sf_rslt3, sf_samp_folder)
+
+        s_tmp1=sf_source_folder+"tmp/cns/candidate_sites_all_disc.fa"
+        cp_file(s_tmp1, sf_samp_folder)
+        s_tmp2 = sf_source_folder + "tmp/cns/candidate_sites_all_clip.fq"
+        cp_file(s_tmp2, sf_samp_folder)
+        s_tmp3 = sf_source_folder + "tmp/cns/all_with_polymerphic_flanks.fa"
+        cp_file(s_tmp3, sf_samp_folder)
+    #compress the results folder to one file
+    sf_compressed=sf_rslts+"results.tar.gz"
+    cmd="tar -cvzf {0} -C {1} .".format(sf_compressed, sf_rslts)
+    Popen(cmd, shell=True, stdout=PIPE).communicate()
+
+
 ####
 if __name__ == '__main__':
     (options, args) = parse_option()
     sf_bam = options.bam ###input is a bam file
     sf_bams_10X = "null"
     s_wfolder = options.wfolder
+    if s_wfolder[-1]!="/":
+        s_wfolder+="/"
     sf_sbatch_sh = options.output
 
     ncores = options.cores
@@ -387,7 +443,7 @@ if __name__ == '__main__':
         #
         decompress(sf_folder_rep1, s_wfolder)
         decompress(sf_ref1, s_wfolder)
-        sf_folder_rep = s_wfolder+"rep_lib_annotation/" # trim tar.gz
+        sf_folder_rep = s_wfolder+"rep_lib_annotation/" #trim tar.gz
         sf_ref=s_wfolder+"genome.fa"
 
     l_rep_type = []
@@ -397,3 +453,6 @@ if __name__ == '__main__':
 
     gnrt_running_shell(l_rep_type, sf_bam, s_wfolder, sf_sbatch_sh, ncores, sf_folder_rep, sf_ref, sf_folder_xtea)
     run_pipeline(l_rep_type, sf_sbatch_sh)
+    sample_id=get_sample_id(sf_bam)
+    cp_compress_results(s_wfolder, l_rep_type, sample_id)
+
