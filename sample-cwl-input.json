@@ -1,15 +1,15 @@
 {
     "bam": {
         "class": "File", 
-        "path": "data/HuRef-mem-bwa0.7.8.sorted.bam"
+        "path": "../data/HuRef-mem-bwa0.7.8.sorted.bam"
     },
     "genome_tar": {
         "class": "File",
-        "path": "data/hg19_decoy.tar.gz"
+        "path": "../data/hg19_decoy.tar.gz"
     },
     "rep_library_tar": {
         "class": "File",
-        "path": "data/rep_lib_annotation.tar.gz"
+        "path": "../data/rep_lib_annotation.tar.gz"
     },
     "nThreads": 72
 }

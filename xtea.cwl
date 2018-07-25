@@ -25,10 +25,9 @@
         prefix: "-l"
         separate: true
     - 
-    - 
       type: 
         - "File"
-      id: "#rep_libary_tar"
+      id: "#rep_library_tar"
       inputBinding: 
         position: 3
         prefix: "-r"
@@ -111,19 +110,24 @@
       id: "#f"
       inputBinding: 
         position: 12
-        prefix: "--f"
+        prefix: "-f"
         separate: true
       default: 19
   outputs: 
     - 
       type: 
-        - "null"
         - "File"
       id: "#output"
       outputBinding: 
         glob: "candidate_disc_filtered_cns.txt"
   baseCommand: 
-    - ["python", "gnrt_pipeline_cloud.py","-D", "-o run_jobs.sh", "-x /usr/local/bin/"]
+    - "python"
+    - "/usr/local/bin/gnrt_pipeline_cloud.py"
+    - "-D"
+    - "-o"
+    - "run_jobs.sh"
+    - "-x"
+    - "/usr/local/bin/"
   requirements: 
     - 
       class: "InlineJavascriptRequirement"
