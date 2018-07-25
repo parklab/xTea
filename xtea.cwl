@@ -110,7 +110,7 @@
         - "File"
       id: "#output"
       outputBinding: 
-        glob: "results.tar.gz"
+        glob: "results/results.tar.gz"
   baseCommand: 
     - "python"
     - "/usr/local/bin/gnrt_pipeline_cloud.py"
