@@ -15,7 +15,7 @@
         prefix: "-b"
         separate: true
       secondaryFiles: 
-        - $(self.basename.replace('m$','i$'))
+        - $(self.basename.replace(/m$/,'i'))
     - 
       type: 
         - "File"
