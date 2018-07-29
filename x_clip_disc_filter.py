@@ -184,7 +184,7 @@ class XClipDisc():
             if algnmt.mate_is_unmapped == False and algnmt.next_reference_id >= 0:
                 mate_chrm = algnmt.next_reference_name
                 mate_pos = algnmt.next_reference_start
-
+####
             if l_cigar[0][0] == 4:  # left clipped
                 if algnmt.is_supplementary or algnmt.is_secondary:  ###secondary and supplementary are not considered
                     continue

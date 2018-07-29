@@ -64,7 +64,7 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
                   "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" -r ${{L1_CNS}} " \
                   "--teilen {1} -o ${{PREFIX}}\"internal_snp.vcf.gz\"\n".format(ncores, min_tei_len)
 
-    # sf_clean_tmp="rm ${TMP}\"*tmp*\"\n"
+    #sf_clean_tmp = "find ${TMP} -type f -name \'*tmp*\' -delete\n"
     # sf_clean_sam="find ${TMP} -type f -name \'*.sam\' -delete\n"
     # sf_clean_fa="find ${TMP} -type f -name \'*.fa\' -delete\n"
     # sf_clean_fq = "find ${TMP} -type f -name \'*.fq\' -delete\n"
@@ -410,9 +410,14 @@ def cp_compress_results(s_wfolder, l_rep_type, sample_id):
         sf_rslt3 = sf_source_folder + "candidate_list_from_disc.txt"
         cp_file(sf_rslt3, sf_samp_folder)
 
-        s_tmp1=sf_source_folder+"tmp/cns/candidate_sites_all_disc.fa"
+        # s_tmp1=sf_source_folder+"tmp/cns/candidate_sites_all_disc.fa"
+        # cp_file(s_tmp1, sf_samp_folder)
+        # s_tmp2 = sf_source_folder + "tmp/cns/candidate_sites_all_clip.fq"
+        # cp_file(s_tmp2, sf_samp_folder)
+
+        s_tmp1=sf_source_folder+"tmp/cns/picked_disc.sam"
         cp_file(s_tmp1, sf_samp_folder)
-        s_tmp2 = sf_source_folder + "tmp/cns/candidate_sites_all_clip.fq"
+        s_tmp2 = sf_source_folder + "tmp/cns/temp_clip.sam"
         cp_file(s_tmp2, sf_samp_folder)
         s_tmp3 = sf_source_folder + "tmp/cns/all_with_polymerphic_flanks.fa"
         cp_file(s_tmp3, sf_samp_folder)

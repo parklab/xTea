@@ -96,7 +96,6 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
         s_cmd += sf_mutation
     return s_cmd
 
-
 ####
 
 ####gnrt the whole pipeline
@@ -144,24 +143,36 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
 
                 # soft-link the bams
                 sf_10X_bam = sf_working_folder + sid + "/10X_phased_possorted_bam.bam"
-                if os.path.isfile(sf_10X_bam) == False:
-                    cmd = "ln -s {0} {1}".format(s_bam, sf_10X_bam)
+                if os.path.isfile(sf_10X_bam) == True:
+                    cmd="rm {0}".format(sf_10X_bam)
                     Popen(cmd, shell=True, stdout=PIPE).communicate()
+                cmd = "ln -s {0} {1}".format(s_bam, sf_10X_bam)
+                print "Run command: {0}\n".format(cmd)
+                Popen(cmd, shell=True, stdout=PIPE).communicate()
 
                 sf_10X_barcode_bam = sf_working_folder + sid + "/10X_barcode_indexed.sorted.bam"
-                if os.path.isfile(sf_10X_barcode_bam) == False:
-                    cmd = "ln -s {0} {1}".format(s_barcode_bam, sf_10X_barcode_bam)  #
+                if os.path.isfile(sf_10X_barcode_bam) == True:
+                    cmd = "rm {0}".format(sf_10X_barcode_bam)
                     Popen(cmd, shell=True, stdout=PIPE).communicate()
+                cmd = "ln -s {0} {1}".format(s_barcode_bam, sf_10X_barcode_bam)  #
+                print "Run command: {0}\n".format(cmd)
+                Popen(cmd, shell=True, stdout=PIPE).communicate()
                 # soft-link the bai
                 sf_10X_bai = sf_working_folder + sid + "/10X_phased_possorted_bam.bam.bai"
-                if os.path.isfile(sf_10X_bai) == False:
-                    cmd = "ln -s {0} {1}".format(s_bam + ".bai", sf_10X_bai)
+                if os.path.isfile(sf_10X_bai) == True:
+                    cmd = "rm {0}".format(sf_10X_bai)
                     Popen(cmd, shell=True, stdout=PIPE).communicate()
+                cmd = "ln -s {0} {1}".format(s_bam + ".bai", sf_10X_bai)
+                print "Run command: {0}\n".format(cmd)
+                Popen(cmd, shell=True, stdout=PIPE).communicate()
 
                 sf_10X_barcode_bai = sf_working_folder + sid + "/10X_barcode_indexed.sorted.bam.bai"
-                if os.path.isfile(sf_10X_barcode_bai) == False:
-                    cmd = "ln -s {0} {1}".format(s_barcode_bam + ".bai", sf_10X_barcode_bai)
+                if os.path.isfile(sf_10X_barcode_bai) == True:
+                    cmd = "rm {0}".format(sf_10X_barcode_bai)
                     Popen(cmd, shell=True, stdout=PIPE).communicate()
+                cmd = "ln -s {0} {1}".format(s_barcode_bam + ".bai", sf_10X_barcode_bai)
+                print "Run command: {0}\n".format(cmd)
+                Popen(cmd, shell=True, stdout=PIPE).communicate()
                 ####
     with open(sf_sbatch_sh, "w") as fout_sbatch:
         fout_sbatch.write("#!/bin/bash\n\n")
@@ -314,7 +325,7 @@ if __name__ == '__main__':
     s_head = gnrt_script_head(spartition, ncores, stime, smemory)
     l_libs = load_par_config(sf_rep_lib)
     s_libs = gnrt_parameters(l_libs)
-    #
+
     iclip_c = options.nclip
     iclip_rp = options.cliprep
     idisc_c = options.ndisc
@@ -324,14 +335,15 @@ if __name__ == '__main__':
     itei_len = options.teilen
     iflag = options.flag
 
-    #s_calling_cmd = gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len, itei_len,
-    #                                     iflag)
-    #gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s_wfolder, sf_sbatch_sh)
+    s_calling_cmd = gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len, itei_len,
+                                         iflag)
+    gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s_wfolder, sf_sbatch_sh)
 
 
-    l_rep_type = []
-    l_rep_type.append("L1")
-    l_rep_type.append("Alu")
-    l_rep_type.append("SVA")
-    sample_id="SRR6071681"
-    cp_compress_results(s_wfolder, l_rep_type, sample_id)
+    # l_rep_type = []
+    # l_rep_type.append("L1")
+    # l_rep_type.append("Alu")
+    # l_rep_type.append("SVA")
+    # sample_id="SRR6071681"
+    # cp_compress_results(s_wfolder, l_rep_type, sample_id)
+    #
