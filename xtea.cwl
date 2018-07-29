@@ -15,7 +15,7 @@
         prefix: "-b"
         separate: true
       secondaryFiles: 
-        - $(self.basename.replace('m$','i$'))
+        - $(self.basename.replace(/m$/,'i'))
     - 
       type: 
         - "File"
@@ -110,7 +110,7 @@
         - "File"
       id: "#output"
       outputBinding: 
-        glob: "results.tar.gz"
+        glob: "results/results.tar.gz"
   baseCommand: 
     - "python"
     - "/usr/local/bin/gnrt_pipeline_cloud.py"
@@ -124,4 +124,4 @@
   requirements: 
     - 
       class: "InlineJavascriptRequirement"
-  cwlVersion: "draft-3"
+  cwlVersion: "v1.0"

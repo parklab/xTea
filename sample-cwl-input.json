@@ -1,4 +1,8 @@
 {
+    "bai": {
+        "class": "File", 
+        "path": "../data/HuRef-mem-bwa0.7.8.sorted.bai"
+    },
     "bam": {
         "class": "File", 
         "path": "../data/HuRef-mem-bwa0.7.8.sorted.bam"
