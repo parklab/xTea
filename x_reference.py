@@ -115,6 +115,8 @@ class XReference():
 
                 sub_family="polymerphic"
                 ref_chrm = self.process_chrm_name(ins_chrm, b_with_chr)
+                if ref_chrm not in m_ref_chrms:#special cases like chrM, will be skipped
+                    continue
                 s_left_region = f_fa.fetch(ref_chrm, istart, ins_pos)
                 s_left_head=">{0}{1}{2}{3}{4}{5}{6}{7}{8}L".format(ins_chrm, S_DELIM, ins_pos, S_DELIM, ins_pos,
                                                        S_DELIM, sub_family, S_DELIM, bi_rc)
@@ -126,7 +128,7 @@ class XReference():
                 fout_flanks.write(s_right_head + "\n")
                 fout_flanks.write(s_right_region + "\n")
         f_fa.close()
-####
+
 
     #given chromosome lengths, break to bins
     def break_ref_to_bins(self, m_chrm_length, bin_size):

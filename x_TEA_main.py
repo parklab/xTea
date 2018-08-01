@@ -142,6 +142,8 @@ def parse_option():
                       help="cutoff of maximum # of molecure coverage")
     parser.add_option("--teilen", dest="teilen", type="int",
                       help="minimum length of the insertion for future analysis")
+    parser.add_option("--cov", dest="cov", type="float", default=30.0,
+                      help="approximate read depth")
 
     (options, args) = parser.parse_args()
     return (options, args)
@@ -258,12 +260,14 @@ if __name__ == '__main__':
         sf_output = options.output
         sf_flank=options.fflank
         i_flank_lenth = options.flklen
+        rdpth=options.cov
+        max_cov=int(8*rdpth)
 
         x_cd_filter = XClipDiscFilter(sf_bam_list, s_working_folder, n_jobs, sf_ref)
         x_cd_filter.call_MEIs_consensus(sf_candidate_list, iextnd, bin_size, sf_cns, sf_flank, i_flank_lenth,
                                         bmapped_cutoff, i_concord_dist, f_concord_ratio, n_clip_cutoff, n_disc_cutoff,
-                                        sf_output)
-
+                                        max_cov, sf_output)
+#
     elif options.mosaic:  # this is only for normal illumina data
         sf_bam_list = options.bam
         sf_candidate_list = options.input

@@ -624,7 +624,7 @@ class XClipDiscFilter():
                         + s_transduct_out + s_rc_disc + "\n"
                 fout_final_list.write(sinfo)
 
-    def dump_TEI_info2(self, l_candidates, m_high_confident, i_cns_lth, b_with_head, sf_final_list):
+    def dump_TEI_info2(self, l_candidates, m_high_confident, m_hcov, i_cns_lth, b_with_head, sf_final_list):
         with open(sf_final_list, "w") as fout_final_list:
             stitle1 = "#chrm\trefined-pos\tlclip-pos\trclip-pos\tTSD\tnalclip\tnarclip\tnaldisc\t"
             stitle2 = "nardisc\tnalpolyA\tnarpolyA\tlcov\trcov\tnlclip\tnrclip\tnldisc\tnrdisc\tnlpolyA\tnrpolyA\t"
@@ -669,6 +669,9 @@ class XClipDiscFilter():
                 s_extra_info = "Confident\t"
                 if (ins_chrm in m_high_confident) and (refined_pos in m_high_confident[ins_chrm]):
                     s_extra_info= "High-confident\t"
+                if (ins_chrm in m_hcov) and (refined_pos in m_hcov[ins_chrm]):
+                    s_extra_info ="Low-confident\t"
+
                 i_tei_lth=self._get_insertion_length(ldisc_cns_start, ldisc_cns_end, rdisc_cns_start, rdisc_cns_end,
                                                      i_cns_lth, s_trsdct_info)
                 s_extra_info+=str(i_tei_lth)
@@ -868,9 +871,11 @@ class XClipDiscFilter():
     # if the number <ncutoff, then will not check the consistency
     ###!!!!!!!!!!!!!!!
     ##Note: In some case TEI happen with SVs like inversion, where no coverage differ, then these will be filtered out
-    def filter_by_clip_disc_polyA_consistency(self, l_candidates, m_coverage, i_is, ncutoff, min_cns_end, depth_ratio):
+    def filter_by_clip_disc_polyA_consistency(self, l_candidates, m_coverage, i_is, ncutoff, min_cns_end, max_depth,
+                                              depth_ratio):
         l_selected = []
         m_high_confident={}
+        m_high_coverage={}
         for record in l_candidates:
             ins_chrm = record[0]
             ins_pos = record[1]
@@ -894,6 +899,11 @@ class XClipDiscFilter():
             frcov = m_coverage[ins_chrm][ins_pos][1]
             record[11] = flcov  # revise the left local depth
             record[12] = frcov  # revise the right local depth
+
+            if flcov>=max_depth or frcov>=max_depth:
+                if ins_chrm not in m_high_coverage:
+                    m_high_coverage[ins_chrm]={}
+                m_high_coverage[ins_chrm][ins_pos]=[flcov, frcov]
 
             # 1.3 if have deletion happen at one side, then should consistent with the read depth change
             bl_depth_differ = False  # left deletion
@@ -984,7 +994,7 @@ class XClipDiscFilter():
                 if ins_chrm not in m_high_confident:
                     m_high_confident[ins_chrm]={}
                 m_high_confident[ins_chrm][ins_pos]=1
-        return l_selected, m_high_confident
+        return l_selected, m_high_confident, m_high_coverage
 
     ####
     ####this is only for TEA (as request by Rebeca)
@@ -1007,7 +1017,8 @@ class XClipDiscFilter():
     # this version align the reads to the consensus
     # then do the analysis
     def call_MEIs_consensus(self, sf_candidate_list, extnd, bin_size, sf_rep_cns, sf_flank, i_flank_lenth,
-                            bmapped_cutoff, i_concord_dist, f_concord_ratio, nclip_cutoff, ndisc_cutoff, sf_final_list):
+                            bmapped_cutoff, i_concord_dist, f_concord_ratio, nclip_cutoff, ndisc_cutoff, max_depth,
+                            sf_final_list):
         # collect the clipped and discordant reads
         # each record in format like: @20~41951715~L~1~41952104~0~0,
         # (chrm, map_pos, FLAG_LEFT_CLIP, is_rc, insertion_pos, n_cnt_clip, sample_id)
@@ -1083,7 +1094,7 @@ class XClipDiscFilter():
         l_candidates, m_new_old_match = self._extract_detailed_info_TEI(m_disc_filtered, m_disc_consist_list, m_ins_lpos,
                                                        m_ins_rpos, m_polyA, m_clip_checked_list,
                                                        m_transdct_info)
-
+####
         ####
         # Here check whether need to call transductions, for example, if Alu, then no need
         if os.path.isfile(sf_flank) == True:
@@ -1130,17 +1141,17 @@ class XClipDiscFilter():
         i_cns_lth = self._get_cns_length(sf_rep_cns) #if multiple, then use the average length
         min_l1_end=i_cns_lth-150
         depth_ratio = 0.3  ##left-right read depth ratio
-        l_final_candidates, m_hc = self.filter_by_clip_disc_polyA_consistency(l_candidates, m_read_depth,
+        l_final_candidates, m_hc, m_hcov = self.filter_by_clip_disc_polyA_consistency(l_candidates, m_read_depth,
                                                                               i_concord_dist, n_min_check_cutoff,
-                                                                              min_l1_end, depth_ratio)
+                                                                              min_l1_end, max_depth, depth_ratio)
         ##save to file
         b_with_head = False
-        self.dump_TEI_info2(l_final_candidates, m_hc, i_cns_lth, b_with_head, sf_final_list)
+        self.dump_TEI_info2(l_final_candidates, m_hc, m_hcov, i_cns_lth, b_with_head, sf_final_list)
 
         ####output the old information of the selected sites, mainly for TEA-mem
         sf_old_pos=sf_final_list+".old_positions"
         self._dump_old_site_pos(l_final_candidates, m_new_old_match, sf_old_pos)
-
+####
 
 ####
     ####
@@ -1659,7 +1670,11 @@ class XClipDiscFilter():
                 n_l_not_rc = 0
                 n_r_rc = 0
                 n_r_not_rc = 0
+####Here, for anchor_pos, it's better to use the middle position as representative position
+####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 for (anchor_pos, cns_pos, b_same_ori) in m_disc[ins_chrm][ins_pos]:
+                    #
+                    anchor_pos+=15##anchor_pos is the left-most pos of the read, so here right-shift a little
                     if anchor_pos < clip_pos:
                         l_l_cns_pos.append(cns_pos)
                         if b_same_ori == True:

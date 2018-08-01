@@ -421,6 +421,11 @@ def cp_compress_results(s_wfolder, l_rep_type, sample_id):
         cp_file(s_tmp2, sf_samp_folder)
         s_tmp3 = sf_source_folder + "tmp/cns/all_with_polymerphic_flanks.fa"
         cp_file(s_tmp3, sf_samp_folder)
+        s_tmp4 = sf_source_folder + "tmp/clip_reads_tmp0"
+        cp_file(s_tmp4, sf_samp_folder)
+        s_tmp5 = sf_source_folder + "tmp/discordant_reads_tmp0"
+        cp_file(s_tmp5, sf_samp_folder)
+
     #compress the results folder to one file
     sf_compressed=sf_rslts+"results.tar.gz"
     cmd="tar -cvzf {0} -C {1} .".format(sf_compressed, sf_rslts)

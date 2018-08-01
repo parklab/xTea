@@ -51,7 +51,7 @@ def unwrap_self_collect_clip_parts_l(arg, **kwarg):
 
 
 BWA_T_CUTOFF = 32  ##the minimum clipped length
-BWA_REALIGN_CUTOFF = 11
+BWA_REALIGN_CUTOFF = 9
 NEARBY_REGION = 5
 CLIP_FREQ = 10
 TRIM_CLIP_FREQ = 2

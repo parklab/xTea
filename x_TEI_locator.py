@@ -82,11 +82,11 @@ class TE_Multi_Locator():
                 sf_out_tmp = self.working_folder + CLIP_TMP + '{0}'.format(cnt)  # for each alignment, has one output
                 cnt += 1
 
-                caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)  ####
+                caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
                 caller.call_TEI_candidate_sites_from_clip_reads_v2(sf_annotation, sf_ref, b_se, cutoff_left_clip,
                                                                    cutoff_right_clip, b_cutoff, sf_out_tmp)
 
-        # get all the chromsomes namesS
+        # get all the chromsomes names
         bam_info = BamInfo(s_sample_bam, self.sf_ref)
         b_with_chr = bam_info.is_chrm_contain_chr()
         m_chrms = bam_info.get_all_reference_names()
