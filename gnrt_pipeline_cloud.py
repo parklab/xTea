@@ -232,7 +232,7 @@ def gnrt_lib_config(sf_folder_rep, sf_ref, sf_folder_xtea, sf_config_prefix):
 
     # for L1
     sf_config_L1 = sf_config_prefix + "L1.config"
-    sf_anno = "ANNOTATION " + sf_folder_rep + "LINE/hg19/hg19_L1_larger2K_with_all_L1HS.out\n"
+    sf_anno = "ANNOTATION " + sf_folder_rep + "LINE/hg19/hg19_L1_larger500_with_all_L1HS.out\n"
     sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "LINE/hg19/hg19_L1HS_copies_larger_5K_with_flank.fa\n"
     sf_flank = "SF_FLANK " + sf_folder_rep + "LINE/hg19/hg19_FL_L1_flanks_3k.fa\n"
     sf_cns = "L1_CNS " + sf_folder_rep + "consensus/LINE1.fa\n"
