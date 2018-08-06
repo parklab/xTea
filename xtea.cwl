@@ -1,7 +1,7 @@
 ---
   hints: 
     - 
-      dockerPull: "duplexa/xtea:v1"
+      dockerPull: "duplexa/xtea:v2"
       class: "DockerRequirement"
   arguments: []
   class: "CommandLineTool"
