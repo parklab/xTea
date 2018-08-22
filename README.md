@@ -53,7 +53,7 @@
 
 	+ Only with Illumina data
 		```
-		python ./../xTEA/gnrt_pipeline_cloud.py -b input.bam -p /home/ec2-user/results2/ -o run_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19
+		python ./../xTEA/gnrt_pipeline_cloud.py -b input.bam -p /home/ec2-user/results2/ -o run_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 7
 		```
 
 			+ For the parameters:
@@ -66,6 +66,7 @@
 				-l: repeat library folder (if -D is set, then this is directly the `rep_lib_annotation.tar.gz` file) (decompressed from `s3://leelab-datafiles/rep_lib_annotation.tar.gz`);
 				-r: reference genome file (-f -D is set, then this is the `hg19_decoy.tar.gz`) (indexed by `bwa index`, and decompressed from `s3://leelab-datafiles/hg19_decoy.tar.gz`)
 				-x: path of xTEA folder (xTEA can be downloaded with command `git clone https://github.com/parklab/xTEA`)
+				-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV, 16-Mitochondrion)
 				Other parameters can be keep unchanged.
 			```
 
@@ -120,12 +121,3 @@
 3. **Output**
 
 	3.1 For Illumina, `candidate_disc_filtered_cns.txt` is the final output.
-
-
-## Docker
-Docker image is built using the following command
-```
-image_name=duplexa/xtea:v1  # replace with your preferred image name
-docker build -t $image_name .
-docker push $image_name
-```
