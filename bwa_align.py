@@ -26,6 +26,7 @@ class BWAlign():
     def realign_reads_to_bam(self, SAMTOOLS, sf_ref, sf_reads, sf_out_bam):
         cmd = "{0} mem -t {1} {2} {3} | {4} view -hSb - | {5} sort -o {6} - && {7} index {8}".format(
             self.BWA_PATH, self.n_jobs, sf_ref, sf_reads, SAMTOOLS, SAMTOOLS, sf_out_bam, SAMTOOLS, sf_out_bam)
+        print "Run command: {0}".format(cmd)
         Popen(cmd, shell=True, stdout=PIPE).communicate()
 
-    ####
+####

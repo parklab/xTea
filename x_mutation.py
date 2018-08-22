@@ -35,7 +35,6 @@ class XMutation():
             cmd="mkdir {0}".format(sf_mutation_folder)
             Popen(cmd, shell=True, stdout=PIPE).communicate()
 
-
     def call_mutations_from_reads_algnmt(self, sf_sites, sf_cns, i_len_cutoff, n_jobs, sf_merged_vcf):
         xsites = XSites(sf_sites)
         #m_sites = xsites.load_in_sites()
@@ -131,7 +130,7 @@ class XMutation():
         Popen(cmd, shell=True, stdout=PIPE).communicate()
         ####index the vcf gz file
         self._index_vcf_gz(sf_vcf_tmp)
-        ####filter the results  Hard code here !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        ####filter the results  Hard code here !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         cmd="{0} filter -O z -e 'DP<8 || %QUAL<50' -o {1} {2}".format(BCFTOOLS_PATH, sf_vcf, sf_vcf_tmp)
         Popen(cmd, shell=True, stdout=PIPE).communicate()
         ####
@@ -174,7 +173,7 @@ class XMutation():
             rlth = len(alignment.query_sequence)
             l_cigar=alignment.cigar
             ####here select fully mapped and at most 3 mismatch
-            #####Hard code here !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+            #####Hard code here !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             b_full_map, cnt_map=self.is_fully_mapped(l_cigar, 0.93)
             if b_full_map==False:
                 continue
@@ -212,7 +211,7 @@ class XMutation():
     #  (35, 838, 'G'), (36, 839, 'T'), (37, 840, 'G'), (38, 841, 'T'), (39, 842, 'g'), (40, 843, 'T'), (41, 844, 'G'),
     #  (42, 845, 'T'), (43, 846, 'G'), (44, 847, 'T'), (45, 848, 'G'), (46, 849, 'T'), (47, 850, 'g'), (48, 851, 'T')]
 ####
-    ####Call out the snp from repeat copy alignments: From the MD filed
+    ####Call out the snp from repeat copy alignments: From the MD field
     def call_snp_indel_from_rep_copy_algnmt(self):
         sf_bam = "/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/NA12878_10x_v2/tmp_dbg/cns/picked_disc.sorted.bam"
         sf_reference = "/n/data1/hms/dbmi/park/SOFTWARE/LongRanger/refdata-b37-2.1.0/fasta/genome.fa"

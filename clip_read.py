@@ -71,8 +71,7 @@ FLAG_LEFT_CLIP = "L"
 FLAG_RIGHT_CLIP = "R"
 SEPERATOR = '~'
 ALL_DISC_SUFFIX = ".initial.all.disc"  # this is to save all the disc reads
-
-
+####
 
 ####This class used for collect clip-read related information from the alignment
 class ClipReadInfo():
@@ -280,7 +279,7 @@ class ClipReadInfo():
         return m_clip_freq
 
     ####return two files:
-    ####1. the clip_position file
+    ####1. the clip_position
     def collect_clip_positions_by_chrm(self, record):
         chrm = record[0]
         sf_bam = record[1]
@@ -731,10 +730,10 @@ class ClipReadInfo():
         working_folder = record[2]
 
         ####clip positions for specific chrm
-        sf_clip_pos = working_folder + ref_chrm + CLIP_POS_SUFFIX
-        if os.path.isfile(sf_clip_pos) == False:
-            print "Error: Position file for chrom {0} doesn't exist!!!!".format(ref_chrm)
-            return
+        # sf_clip_pos = working_folder + ref_chrm + CLIP_POS_SUFFIX
+        # if os.path.isfile(sf_clip_pos) == False:
+        #     print "Error: Position file for chrom {0} doesn't exist!!!!".format(ref_chrm)
+        #     return
         ###clip positions for specific chrm with extra #left_clip #right_clip (mapped parts)
         sf_out_clip_pos = working_folder + ref_chrm + CLIP_RE_ALIGN_POS_SUFFIX
 
@@ -821,7 +820,6 @@ class ClipReadInfo():
                 fout_clip_pos.write("\n")
 
     ####Input:1. the re-aligned clipped parts
-    ####Ouput: for each chrmosome, output the
     def cnt_clip_part_aligned_to_rep(self, sf_clip_sam):
         samfile = pysam.AlignmentFile(self.sf_bam, "rb", reference_filename=self.sf_reference)
         references = samfile.references
@@ -868,7 +866,7 @@ class ClipReadInfo():
                             fout_clip_pos.write("0\t0\n")
 
     ####
-    def merge_clip_positions_with_cutoff(self, sf_out, cutoff_left_clip, cutoff_right_clip):
+    def merge_clip_positions_with_cutoff(self, sf_out, cutoff_left_clip, cutoff_right_clip, max_cov_cutoff):
         samfile = pysam.AlignmentFile(self.sf_bam, "rb", reference_filename=self.sf_reference)
         references = samfile.references
 
@@ -892,7 +890,9 @@ class ClipReadInfo():
                         pos = int(fields[0])
                         i_left_clip = int(fields[1])
                         i_right_clip = int(fields[2])
-                        if i_left_clip < cutoff_left_clip or i_right_clip < cutoff_right_clip:
+                        if i_left_clip < cutoff_left_clip and i_right_clip < cutoff_right_clip:
+                            continue
+                        if (i_left_clip+i_right_clip) > max_cov_cutoff:
                             continue
                         if pos in m_realign_pos:
                             fout_clip_pos.write(chrm + "\t")
@@ -991,7 +991,66 @@ class LRClipReadInfo():
                     fout_clip.write(">" + shead + "\n")
                     fout_clip.write(clip_seq + "\n")
         bamfile.close()
+####
+####
+    # collect the clipped parts for contigs or long reads of given site
+    def collect_clipped_parts_lr_by_region(self, record):
+        sf_bam = record[0]
+        chrm = record[1]# this is the chrm in the bam file
+        ins_pos=record[2]
+        iextend=record[3]#will extract reads in region chrm:(ins_pos+/- iextend)
+        islack = record[4] #slack around the breakpoint
+        working_folder = record[5]
 
+        left_boundary=ins_pos-iextend
+        if left_boundary<0:
+            left_boundary=0
+        right_boundary=ins_pos+iextend
+
+        bamfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference)
+        s_site="{0}_{1}".format(chrm, ins_pos)
+        sf_out = working_folder + s_site + LCLIP_FA_SUFFIX
+        with open(sf_out, "w") as fout_clip:
+            for algnmt in bamfile.fetch(chrm, left_boundary, right_boundary):#
+                l_cigar = algnmt.cigar
+                map_pos = algnmt.reference_start  # the mapping position
+                query_seq = algnmt.query_sequence
+                query_name=algnmt.query_name
+                if query_seq == None: ###why this happen??????
+                    continue
+                seq_lenth = len(query_seq)
+                lclip_len = 0
+                if l_cigar[0][0] == 4:# left-clip
+                    brkpnt = ins_pos - islack
+                    lclip_len = l_cigar[0][1]
+                    clip_pos = map_pos
+                    if lclip_len > 100:
+                        if brkpnt < clip_pos and brkpnt > (clip_pos - lclip_len):
+                            #print "left-clip", algnmt.query_name
+                            clip_seq = query_seq[:lclip_len]
+                            shead = chrm + SEPERATOR + str(ins_pos) + SEPERATOR + query_name + "L"
+                            fout_clip.write(">" + shead + "\n")
+                            fout_clip.write(clip_seq + "\n")
+
+                if l_cigar[-1][0] == 4:# right clipped
+                    brkpnt = ins_pos + islack
+                    rclip_len = l_cigar[-1][1]
+                    if rclip_len < 100:
+                        continue
+                    clip_pos = map_pos + seq_lenth - lclip_len - rclip_len
+                    if brkpnt > clip_pos and brkpnt < (clip_pos + rclip_len):
+                        #print "right-clip", algnmt.query_name
+                        clip_seq = query_seq[-1 * rclip_len:]
+                        shead = chrm + SEPERATOR + str(ins_pos) + SEPERATOR + query_name + "R"
+                        fout_clip.write(">" + shead + "\n")
+                        fout_clip.write(clip_seq + "\n")
+
+
+                #####also to consider the case that totally contained in the long read
+                #####whole inserted ones
+                #####
+
+        bamfile.close()
 
     ####This function:
     ####1. given dictionary of clip position, ##in format {chrm: {map_pos: (left_cnt, right_cnt)}}

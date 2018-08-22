@@ -37,20 +37,26 @@ class TEDeletion():
 
                 lcov=float(fields[11])
                 rcov=float(fields[12])
+
+                lclip_cns_cluster=fields[19]
+                rclip_cns_cluster=fields[20]
+                ldisc_cns_cluster=fields[21]
+                rdisc_cns_cluster=fields[22]
+
                 if chrm not in m_chrm_pos:
                     m_chrm_pos[chrm]=[]
                 if chrm not in m_chrm_pos_info:
                     m_chrm_pos_info[chrm]={}
                 if lclip_pos==-1:
                     m_chrm_pos[chrm].append(refined_pos)
-                    m_chrm_pos_info[chrm][refined_pos]=("rdel", lcov, rcov)#right is deletion
+                    m_chrm_pos_info[chrm][refined_pos]=("rdel", lcov, rcov, rclip_cns_cluster, ldisc_cns_cluster)#right is deletion
                 elif rclip_pos==-1:
                     m_chrm_pos[chrm].append(refined_pos)
-                    m_chrm_pos_info[chrm][refined_pos] = ("ldel", lcov, rcov) #left is deletion
+                    m_chrm_pos_info[chrm][refined_pos] = ("ldel", lcov, rcov, lclip_cns_cluster, rdisc_cns_cluster) #left is deletion
 
         print m_chrm_pos
         print m_chrm_pos_info
-
+####
         #each chrm sort according to coordinates
         for chrm in m_chrm_pos:
             l_pos=m_chrm_pos[chrm]
@@ -62,7 +68,7 @@ class TEDeletion():
                 rcd=m_chrm_pos_info[chrm][pos]
                 if chrm not in m_del:
                     m_del[chrm] = []
-                if rcd[0]  is "rdel": ##end of a candidate pair
+                if rcd[0] is "rdel": ##end of a candidate pair
                     if istart!=-1:#this is a pair
                         m_del[chrm].append((istart, pos))
                     else:#output as seperate pairs
@@ -89,4 +95,6 @@ class TEDeletion():
 ####Need to check the coverage:
 #1. if too large, then split to two
 #2. if coverage doesn't consistent, then split to two
-#3. 
+#3. Also, need to check whether the two "breakpoints" are for the same events
+
+#

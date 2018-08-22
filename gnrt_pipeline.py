@@ -43,36 +43,39 @@ def gnrt_parameters(l_pars):
 
 
 # grnt calling steps
-def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len, min_tei_len, iflag):
+def gnrt_calling_command(bmit, iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len, min_tei_len, iflag):
+    s_mit=""
+    if bmit==True:
+        s_mit="--mit"
+
     sclip_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -C -i ${{BAM_LIST}} --lc {0} --rc {1} --cr {2}  " \
                  "-r ${{L1_COPY_WITH_FLANK}}  -a ${{ANNOTATION}} --ref ${{REF}} -p ${{TMP}} " \
-                 "-o ${{PREFIX}}\"candidate_list_from_clip.txt\"  -n {3}\n".format(iclip_c, iclip_c, iclip_rp, ncores)
+                 "-o ${{PREFIX}}\"candidate_list_from_clip.txt\" -n {3} {4}\n".format(iclip_c, iclip_c, iclip_rp, ncores, s_mit)
     sdisc_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\"  -D -i ${{PREFIX}}\"candidate_list_from_clip.txt\" --nd {0} " \
                  "--ref ${{REF}} -a ${{ANNOTATION}} -b ${{BAM_LIST}} -p ${{TMP}} " \
-                 "-o ${{PREFIX}}\"candidate_list_from_disc.txt\" -n {1}\n".format(idisc_c, ncores)
+                 "-o ${{PREFIX}}\"candidate_list_from_disc.txt\" -n {1} {2}\n".format(idisc_c, ncores, s_mit)
     sbarcode_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -B -i ${{PREFIX}}\"candidate_list_from_disc.txt\" --nb 400 " \
                     "--ref ${{REF}} -a ${{ANNOTATION}} -b ${{BAM1}} -d ${{BARCODE_BAM}} -p ${{TMP}} " \
-                    "-o ${{PREFIX}}\"candidate_list_barcode.txt\" -n {0}\n".format(ncores)
+                    "-o ${{PREFIX}}\"candidate_list_barcode.txt\" -n {0} {1}\n".format(ncores, s_mit)
     sfilter_10x = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -N --cr {0} --nd {1} -b ${{BAM_LIST}} -p ${{TMP_CNS}} " \
                   "--fflank ${{SF_FLANK}} --flklen {2} -n {3} -i ${{PREFIX}}\"candidate_list_barcode.txt\" " \
                   "-r ${{L1_CNS}} --ref ${{REF}} -a ${{ANNOTATION}} " \
-                  "-o ${{PREFIX}}\"candidate_disc_filtered_cns.txt\"\n".format(iflt_clip, iflt_disc, iflk_len, ncores)
+                  "-o ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" {4}\n".format(iflt_clip, iflt_disc, iflk_len, ncores, s_mit)
     s_filter = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -N --cr {0} --nd {1} -b ${{BAM_LIST}} -p ${{TMP_CNS}} " \
                "--fflank ${{SF_FLANK}} --flklen {2} -n {3} -i ${{PREFIX}}\"candidate_list_from_disc.txt\" " \
                "-r ${{L1_CNS}} --ref ${{REF}} -a ${{ANNOTATION}} " \
-               "-o ${{PREFIX}}\"candidate_disc_filtered_cns.txt\"\n".format(iflt_clip, iflt_disc, iflk_len, ncores)
+               "-o ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" {4}\n".format(iflt_clip, iflt_disc, iflk_len, ncores, s_mit)
     sf_collect = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -E --nb 500 -b ${{BAM1}} -d ${{BARCODE_BAM}} --ref ${{REF}} " \
                  "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" -p ${{TMP}} -a ${{ANNOTATION}} -n {0} " \
-                 "--flklen {1}\n".format(ncores, iflk_len)
+                 "--flklen {1} {2}\n".format(ncores, iflk_len, s_mit)
     sf_asm = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -A -L -p ${{TMP}} --ref ${{REF}} -n {0} " \
-             "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\"\n".format(ncores)
+             "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" {1}\n".format(ncores, s_mit)
     sf_alg_ctg = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -M -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
                  "--ref ${{REF}} -n {0} -p ${{TMP}} -r ${{L1_CNS}} " \
-                 "-o ${{PREFIX}}\"candidate_list_asm.txt\"\n".format(ncores)
+                 "-o ${{PREFIX}}\"candidate_list_asm.txt\" {1}\n".format(ncores, s_mit)
     sf_mutation = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -I -p ${{TMP}} -n {0} " \
                   "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" -r ${{L1_CNS}} " \
-                  "--teilen {1} -o ${{PREFIX}}\"internal_snp.vcf.gz\"\n".format(ncores, min_tei_len)
-
+                  "--teilen {1} -o ${{PREFIX}}\"internal_snp.vcf.gz\" {2}\n".format(ncores, min_tei_len, s_mit)
 
     ####
     s_cmd = ""
@@ -209,6 +212,9 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
 ####
 def parse_option():
     parser = OptionParser()
+    parser.add_option("-M",
+                      action="store_true", dest="mit", default=False,
+                      help="Indicate call mitochondrion insertion")
     parser.add_option("-i", "--id", dest="id",
                       help="sample id list file ", metavar="FILE")
     parser.add_option("-a", "--par", dest="parameters",
@@ -300,6 +306,7 @@ def cp_compress_results(s_wfolder, l_rep_type, sample_id):
 ####
 if __name__ == '__main__':
     (options, args) = parse_option()
+    b_mit=options.mit #to call mitochondrion insertion
     sf_id = options.id
     sf_bams = options.bam
     sf_bams_10X = options.x10
@@ -335,8 +342,8 @@ if __name__ == '__main__':
     itei_len = options.teilen
     iflag = options.flag
 
-    s_calling_cmd = gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len, itei_len,
-                                         iflag)
+    s_calling_cmd = gnrt_calling_command(b_mit, iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len,
+                                         itei_len, iflag)
     gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s_wfolder, sf_sbatch_sh)
 
 

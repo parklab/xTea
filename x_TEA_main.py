@@ -17,13 +17,14 @@ Solution:
 '''
 
 import os
+import global_values
 from x_TEI_locator import *
 #from x_TEI_source_tracer import *
 from x_local_assembly import *
 from x_filter import *
 from x_reference import *
 from x_clip_disc_filter import *
-from x_mosaic_calling import *
+from x_somatic_calling import *
 from x_analysis import *
 from optparse import OptionParser
 from x_reads_collection import *
@@ -36,6 +37,9 @@ def parse_option():
     parser.add_option("-P", "--preprocess",
                       action="store_true", dest="preprocess", default=False,
                       help="Preprocessing stpes")
+    parser.add_option("-Q","--collectclip",
+                      action="store_true", dest="collect_clip", default=False,
+                      help="Call clipped reads from alignment")
     parser.add_option("-C", "--clip",
                       action="store_true", dest="clip", default=False,
                       help="Call candidate TEI sites from clipped reads")
@@ -84,6 +88,9 @@ def parse_option():
     parser.add_option("-K", "--withflank",
                       action="store_true", dest="withflank", default=False,
                       help="Keep the flank regions with the repeat copies")
+    parser.add_option("--mit",
+                      action="store_true", dest="mit", default=False,
+                      help="Indicate call mitochondrion insertion")
     parser.add_option("--bed",
                       action="store_true", dest="bed", default=False,
                       help="Input annotation in bed format")
@@ -118,6 +125,8 @@ def parse_option():
                       help="The output file", metavar="FILE")
     parser.add_option("-p", "--path", dest="wfolder", type="string",
                       help="Working folder")
+    parser.add_option("--cp", dest="cwfolder", type="string",
+                      help="Working folder for shared clipped reads")
     parser.add_option("-n", "--cores", dest="cores", type="int",
                       help="number of cores")
     parser.add_option("-e", "--extend", dest="extend", type="int",
@@ -153,6 +162,9 @@ def parse_option():
 if __name__ == '__main__':
     (options, args) = parse_option()
 
+    if options.mit:#if this to call mitochondrial insertion, then will not filter out chrM in "x_filter.py"
+        global_values.turn_on_mit()
+
     if options.preprocess:  # preprocess steps
         s_working_folder = options.wfolder
         sf_ref = options.reference
@@ -172,6 +184,7 @@ if __name__ == '__main__':
             # x_annotation.collect_flank_regions_of_TE_from_ref(sf_ref, flank_lth, sf_out_fa) #only get the flank regions
             x_annotation.collect_seqs_of_TE_from_ref(sf_ref, flank_lth, b_with_flank, sf_out_fa)
             x_annotation.bwa_index_TE_seqs(sf_out_fa)
+
     elif options.flank:  # preprocess the flank regions steps
         s_working_folder = options.wfolder
         sf_ref = options.reference
@@ -186,6 +199,18 @@ if __name__ == '__main__':
 
         x_annotation.collect_flank_regions_of_TE_from_ref(sf_ref, flank_lth, sf_out_fa)  # only get the flank regions
         x_annotation.bwa_index_TE_seqs(sf_out_fa)
+
+    elif options.collect_clip:#collect the clipped reads for the sample
+        sf_bam_list = options.input
+        s_working_folder = options.wfolder ##this is the folder to save all the clipped reads of the sample
+        n_jobs = options.cores
+        b_se = options.single  ##single end reads or not, default is not
+        sf_ref = options.ref  ###reference genome "-ref"
+        sf_annotation = options.annotation
+        tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
+        s_clip_wfolder=s_working_folder
+        # collect the clipped reads only
+        tem_locator.collect_all_clipped_from_multiple_alignmts(sf_annotation, b_se, s_clip_wfolder)
 
     elif options.clip:  ###take in the normal illumina reads (10x will be viewed as normal illumina)
         sf_bam_list = options.input
@@ -202,13 +227,19 @@ if __name__ == '__main__':
         cutoff_left_clip = options.lclip
         cutoff_right_clip = options.rclip
         cutoff_clip_mate_in_rep = options.cliprep
+
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
 
+        ####by default, if number of clipped reads is larger than this value, then discard
+        max_cov_cutoff=int(20*options.cov) #by default, this value is 600
+        wfolder_pub_clip = options.cwfolder #public clip folder
         ##Hard code inside:
         # 1. call_TEI_candidate_sites_from_clip_reads_v2 --> run_cnt_clip_part_aligned_to_rep_by_chrm_sort_version
         # here if half of the seq is mapped, then consider it as aligned work.
+        ##2. require >=2 clip reads, whose clipped part is aligned to repeat copies
         tem_locator.call_TEI_candidate_sites_from_multiple_alignmts(sf_annotation, sf_rep, b_se, cutoff_left_clip,
-                                                                    cutoff_right_clip, cutoff_clip_mate_in_rep, sf_out)
+                                                                    cutoff_right_clip, cutoff_clip_mate_in_rep,
+                                                                    wfolder_pub_clip, max_cov_cutoff, sf_out)
 
     elif options.discordant:  # this views all the alignments as normal illumina reads
         sf_list = options.bam  ###read in a bam list file
@@ -267,7 +298,7 @@ if __name__ == '__main__':
         x_cd_filter.call_MEIs_consensus(sf_candidate_list, iextnd, bin_size, sf_cns, sf_flank, i_flank_lenth,
                                         bmapped_cutoff, i_concord_dist, f_concord_ratio, n_clip_cutoff, n_disc_cutoff,
                                         max_cov, sf_output)
-#
+
     elif options.mosaic:  # this is only for normal illumina data
         sf_bam_list = options.bam
         sf_candidate_list = options.input
@@ -282,7 +313,7 @@ if __name__ == '__main__':
         clip_slack = 25
         af_cutoff = 0.1
 
-        mMEI = MosaicMEICaller(sf_ref)
+        mMEI = SomaticMEICaller(sf_ref)
         sf_af_filtered = sf_output + ".af_filtered"
         mMEI.filter_by_AF(sf_bam_list, sf_candidate_list, extnd, clip_slack, s_working_folder, n_jobs, af_cutoff,
                           sf_af_filtered)

@@ -63,9 +63,20 @@ class TE_Multi_Locator():
                 if len(sf_ori_bam) <= 1:
                     continue
 
+    def collect_all_clipped_from_multiple_alignmts(self, sf_annotation, b_se, s_clip_wfolder):
+        with open(self.sf_list) as fin_bam_list:
+            for line in fin_bam_list:  ###for each bam file
+                sf_ori_bam = line.rstrip()
+                if len(sf_ori_bam) <= 1:
+                    continue
+
+                caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
+                caller.collect_all_clipped_reads_only(sf_annotation, b_se, s_clip_wfolder)
+
 
     def call_TEI_candidate_sites_from_multiple_alignmts(self, sf_annotation, sf_ref, b_se, cutoff_left_clip,
-                                                        cutoff_right_clip, cutoff_clip_mate_in_rep, sf_out):
+                                                        cutoff_right_clip, cutoff_clip_mate_in_rep, sf_clip_folder,
+                                                        max_cov, sf_out):
         cnt = 0
         s_sample_bam = ""
         b_set = False
@@ -77,14 +88,21 @@ class TE_Multi_Locator():
                 if b_set == False:
                     s_sample_bam = sf_ori_bam
                     b_set = True
-                b_cutoff = False
+
+                b_cutoff = True ###############################Need to set as an option!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                cutoff_hit_rep_copy=2
+
                 # view the barcode bam as normal illumina bam
                 sf_out_tmp = self.working_folder + CLIP_TMP + '{0}'.format(cnt)  # for each alignment, has one output
                 cnt += 1
 
                 caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
-                caller.call_TEI_candidate_sites_from_clip_reads_v2(sf_annotation, sf_ref, b_se, cutoff_left_clip,
-                                                                   cutoff_right_clip, b_cutoff, sf_out_tmp)
+
+                # s_working_folder + CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
+
+                caller.call_TEI_candidate_sites_from_clip_reads_v2(sf_annotation, sf_ref, b_se, cutoff_hit_rep_copy,
+                                                                   cutoff_hit_rep_copy, b_cutoff, sf_clip_folder,
+                                                                   max_cov, sf_out_tmp)
 
         # get all the chromsomes names
         bam_info = BamInfo(s_sample_bam, self.sf_ref)
@@ -351,8 +369,61 @@ class TELocator():
     ##Note, this version consider the insertion with deletion cases, that is common in many cases
     ##So, for TEI with deletion, there will be two breakpoints, and at each breakpoint, only one type of clipped reads
     def call_TEI_candidate_sites_from_clip_reads_v2(self, sf_annotation, sf_ref, b_se, cutoff_left_clip,
-                                                    cutoff_right_clip, b_cutoff, sf_out):
+                                                    cutoff_right_clip, b_cutoff, sf_clip_folder, max_cov_cutoff, sf_out):
+        # this is a public folder for different type of repeats to share the clipped reads
+        if sf_clip_folder[-1]!="/":
+            sf_clip_folder+="/"
+        if os.path.exists(sf_clip_folder) == False:
+            cmd = "mkdir {0}".format(sf_clip_folder)
+            Popen(cmd, shell=True, stdout=PIPE).communicate()
+
+        #this is the local folder for the current read type to save the tmp files
         sf_clip_working_folder = self.working_folder + CLIP_FOLDER + "/"
+        if os.path.exists(sf_clip_working_folder) == False:
+            cmd = "mkdir {0}".format(sf_clip_working_folder)
+            Popen(cmd, shell=True, stdout=PIPE).communicate()
+
+        clip_info = ClipReadInfo(self.sf_bam, self.n_jobs, self.sf_reference)
+        #clip_info.set_working_folder(sf_clip_working_folder)
+        clip_info.set_working_folder(sf_clip_folder)
+
+        ######1. so first, re-align the clipped parts, and count the number of supported clipped reads
+        ####gnrt the clipped parts file
+        sf_bam_name = os.path.basename(self.sf_bam)
+        sf_all_clip_fq = sf_clip_folder + sf_bam_name + CLIP_FQ_SUFFIX
+        if os.path.isfile(sf_all_clip_fq)==False:
+            print "Collected clipped reads file {0} doesn't exist. Generate it now!".format(sf_all_clip_fq)
+
+            ##collect the clip positions
+            ##in format {chrm: {map_pos: [left_cnt, right_cnt, mate_within_rep_cnt]}}
+            # print "Output info: Collect clip positions for file ", self.sf_bam
+            initial_clip_pos_freq_cutoff = 2  ##########################################################################
+            clip_info.collect_clip_positions(sf_annotation, initial_clip_pos_freq_cutoff, b_se) ##save clip pos by chrm
+            print "Output info: Collect clipped parts for file ", self.sf_bam
+            clip_info.collect_clipped_parts(sf_all_clip_fq)
+        else:
+            print "Collected clipped reads file {0} already exist!".format(sf_all_clip_fq)
+
+        ####align the clipped parts to repeat copies
+        sf_algnmt = self.working_folder + sf_bam_name + CLIP_BAM_SUFFIX
+        print "Output info: Re-align clipped parts for file ", self.sf_bam
+        # if os.path.isfile(sf_algnmt)==False:
+        clip_info.realign_clipped_reads_to_reference(sf_ref, sf_all_clip_fq, sf_algnmt)
+
+        ####cnt number of clipped reads aligned to repeat copies from the re-alignment
+        clip_info.cnt_clip_part_aligned_to_rep(sf_algnmt)  ##require at least half of the seq is mapped !!!!
+
+        # if b_cutoff is set, then directly return the dict
+        if b_cutoff == False:
+            clip_info.merge_clip_positions(sf_out)
+        else:
+            clip_info.merge_clip_positions_with_cutoff(sf_out, cutoff_left_clip, cutoff_right_clip, max_cov_cutoff)
+####
+
+    def collect_all_clipped_reads_only(self, sf_annotation, b_se, s_working_folder):
+        sf_clip_working_folder = s_working_folder + CLIP_FOLDER + "/"
+        if len(sf_clip_working_folder)>1 and sf_clip_working_folder[-1]!="/":
+            sf_clip_working_folder+="/"
         if os.path.exists(sf_clip_working_folder) == False:
             cmd = "mkdir {0}".format(sf_clip_working_folder)
             Popen(cmd, shell=True, stdout=PIPE).communicate()
@@ -369,25 +440,11 @@ class TELocator():
         ######1. so first, re-align the clipped parts, and count the number of supported clipped reads
         ####gnrt the clipped parts file
         sf_bam_name = os.path.basename(self.sf_bam)
-        sf_all_clip_fq = self.working_folder + sf_bam_name + CLIP_FQ_SUFFIX
+        sf_all_clip_fq = sf_clip_working_folder + sf_bam_name + CLIP_FQ_SUFFIX
         print "Output info: Collect clipped parts for file ", self.sf_bam
         # if os.path.isfile(sf_all_clip_fq)==False:
         clip_info.collect_clipped_parts(sf_all_clip_fq)
-
-        ####align the clipped parts to repeat copies
-        sf_algnmt = self.working_folder + sf_bam_name + CLIP_BAM_SUFFIX
-        print "Output info: Re-align clipped parts for file ", self.sf_bam
-        # if os.path.isfile(sf_algnmt)==False:
-        clip_info.realign_clipped_reads_to_reference(sf_ref, sf_all_clip_fq, sf_algnmt)
-
-        ####cnt number of clipped reads aligned to repeat copies from the re-alignment
-        clip_info.cnt_clip_part_aligned_to_rep(sf_algnmt)  ##require at least half of the seq is mapped !!!!
-
-        # if b_cutoff is set, then directly return the dict
-        if b_cutoff == False:
-            clip_info.merge_clip_positions(sf_out)
-        else:
-            clip_info.merge_clip_positions_with_cutoff(sf_out, cutoff_left_clip, cutoff_right_clip)
+####
 
     def _is_decoy_contig_chrms(self, chrm):
         fields = chrm.split("_")

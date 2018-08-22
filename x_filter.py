@@ -4,6 +4,7 @@
 
 import os
 from subprocess import *
+import global_values
 
 NEARBY_REGION = 50
 #PEAK_WINDOW = 100
@@ -92,8 +93,11 @@ class XFilter():
         elif chrm == "hs37d5":
             return True
 
-        if chrm=="MT" or chrm=="chrMT":#doesn't consider the mitchrondrial DNA
-            return True
+        # if this is not to call mitochondrial insertion, then filter out chrm related reads
+        if global_values.GLOBAL_MITCHONDRION_SWITCH=="OFF":
+            if chrm=="MT" or chrm=="chrMT" or chrm=="chrM":#doesn't consider the mitchrondrial DNA
+                #print "[TEST]: global value is off"
+                return True
 
         dot_fields = chrm.split(".")
         if len(dot_fields) > 1:

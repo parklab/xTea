@@ -6,9 +6,23 @@ import ntpath
 ####
 PUB_CLIP="pub_clip"
 
-def gnrt_script_head():
+# def gnrt_script_head():
+#     s_head = "#!/bin/bash\n\n"
+#     return s_head
+
+def gnrt_script_head(spartition, ncores, stime, smemory):
     s_head = "#!/bin/bash\n\n"
+    s_head += "#SBATCH -n {0}\n".format(ncores)
+    s_head += "#SBATCH -t {0}\n".format(stime)
+    s_head += "#SBATCH --mem={0}G\n".format(smemory)
+    s_head += "#SBATCH -p {0}\n".format(spartition)
+    s_head += "#SBATCH -o hostname_%j.out\n"
+    s_head += "#SBATCH --mail-type=END\n"
+    s_head += "#SBATCH --mail-user=chong.simonchu@gmail.com\n"
+    if spartition == "park" or spartition == "priopark":
+        s_head += "#SBATCH --account=park_contrib\n\n"
     return s_head
+
 
 # load in the parameter file or the configuration file
 def load_par_config(sf_par_config):
@@ -31,7 +45,7 @@ def gnrt_parameters(l_pars):
         sline = sid + "=" + svalue + "\n"
         s_pars += sline
     return s_pars
-
+####
 
 # grnt calling steps
 def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len, min_tei_len, iflag,
@@ -397,7 +411,12 @@ def gnrt_running_shell(l_rep_type, sf_bam, s_wfolder, ncores, sf_folder_rep, sf_
             cmd="mkdir {0}".format(s_wfolder_rep)
             run_cmd(cmd)
 
-        s_head = gnrt_script_head()
+        spartition="park"
+        ncores=8
+        stime="0-15:00"
+        smemory="40"
+
+        s_head = gnrt_script_head(spartition, ncores, stime, smemory)
         l_libs = load_par_config(sf_config)
         s_libs = gnrt_parameters(l_libs)
         ##
@@ -512,8 +531,8 @@ if __name__ == '__main__':
 
     sample_id=get_sample_id(sf_bam)
     gnrt_running_shell(l_rep_type, sf_bam, s_wfolder, ncores, sf_folder_rep, sf_ref, sf_folder_xtea)
-    run_pipeline(l_rep_type, sample_id, s_wfolder)
+    #run_pipeline(l_rep_type, sample_id, s_wfolder)
 
-    cp_compress_results(s_wfolder, l_rep_type, sample_id)
+    #cp_compress_results(s_wfolder, l_rep_type, sample_id)
 
 ####
