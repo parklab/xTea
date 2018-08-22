@@ -11,7 +11,7 @@ XTEA=$7
 #REP_TYPE=$8
 
 python gnrt_pipeline_cloud.py -i ${SAMPLE_ID} -b ${BAMS} -x ${X10_BAM} -p ${WFOLDER} -o ${OUT_SCRTP} -n 8 \
--l ${REP_LIB} -r ${REF} -x ${XTEA} --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 7
+-l ${REP_LIB} -r ${REF} -x ${XTEA} --nclip 3 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 7
 
 #1. tar rep lib folder to one file
 #2. tar reference genome to one file
