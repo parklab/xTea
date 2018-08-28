@@ -74,7 +74,6 @@
 		
 	+ Run on O2 (slurm) cluster
 		+ Only with Illumina data
-		
 			```
 			python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 1 			```
 
@@ -94,8 +93,10 @@
 				-x: 10X bam file list (sorted and indexed, each file per line);
 				-p: working folder, where the results and temporary files will be saved;
 				-o: temporary running scripts under the working folder;
-				-n: number of cores
-				-l: repeat library folder;					-r: reference genome file;					-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV, 16-Mitochondrion)
+				-n: number of cores;
+				-l: repeat library folder;	
+				-r: reference genome file;
+				-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV, 16-Mitochondrion)
 				Other parameters can be keep unchanged or adjust according.
 			```
 		
