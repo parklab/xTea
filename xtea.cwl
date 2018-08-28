@@ -1,7 +1,7 @@
 ---
   hints: 
     - 
-      dockerPull: "duplexa/xtea:v2"
+      dockerPull: "duplexa/xtea:v3"
       class: "DockerRequirement"
   arguments: []
   class: "CommandLineTool"
@@ -49,7 +49,7 @@
         position: 5
         prefix: "--nclip"
         separate: true
-      default: 4
+      default: 3
     - 
       type: 
         - "int"
@@ -104,6 +104,15 @@
         prefix: "-f"
         separate: true
       default: 19
+    - 
+      type: 
+        - "int"
+      id: "#y"
+      inputBinding: 
+        position: 11
+        prefix: "-y"
+        separate: true
+      default: 7
   outputs: 
     - 
       type: 
