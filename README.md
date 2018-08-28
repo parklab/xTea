@@ -51,73 +51,60 @@
 		
 	2.1 Generate the running script.	
 
-	+ Only with Illumina data
+	
+	+ Run on Amazon AWS
+		+ Run for one given bam/cram file
 		```
-		python ./../xTEA/gnrt_pipeline_cloud.py -b input.bam -p /home/ec2-user/results2/ -o run_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 7
+		python ./xTEA/gnrt_pipeline_cloud.py -b input.bam -p /home/ec2-user/results2/ -o run_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 7
 		```
-
-			+ For the parameters:
+		
+		+ Parameters for Amazon AWS
+		
+		```
+			-D: if set, then decompress the files(.tar.gz) -l and -r specify			-b: the input bam/cram file (sorted and indexed);
+			-p: working folder, where the results and temporary files will be saved;
+			-o: temporary running scripts under the working folder;
+			-n: number of cores
+			-l: repeat library folder (if -D is set, then this is directly the `rep_lib_annotation.tar.gz` file) (decompressed from `s3://leelab-datafiles/rep_lib_annotation.tar.gz`);
+			-r: reference genome file (-f -D is set, then this is the `hg19_decoy.tar.gz`) (indexed by `bwa index`, and decompressed from `s3://leelab-datafiles/hg19_decoy.tar.gz`)
+			-x: path of xTEA folder (xTEA can be downloaded with command `git clone https://github.com/parklab/xTEA`)
+			-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV, 16-Mitochondrion)
+			Other parameters can be keep unchanged.
+		```
+		
+	+ Run on O2 (slurm) cluster
+		+ Only with Illumina data
+		
 			```
-				-D: if set, then decompress the files(.tar.gz) -l and -r specify
-				-b: the input bam/cram file (sorted and indexed);
+			python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 1 			```
+
+		+ Only with 10X data
+			```
+				python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b null -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 1 			```
+		
+		+ Working with hybrid data of 10X and Illumina
+			```
+			python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b illumina_bam_list.txt -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 1
+			```
+		+ Parameters:
+			
+			```
+				-i: samples id list file (each sample id per line);
+				-b: Illumna bam/cram file list file (sorted and indexed, each file per line);
+				-x: 10X bam file list (sorted and indexed, each file per line);
 				-p: working folder, where the results and temporary files will be saved;
 				-o: temporary running scripts under the working folder;
 				-n: number of cores
-				-l: repeat library folder (if -D is set, then this is directly the `rep_lib_annotation.tar.gz` file) (decompressed from `s3://leelab-datafiles/rep_lib_annotation.tar.gz`);
-				-r: reference genome file (-f -D is set, then this is the `hg19_decoy.tar.gz`) (indexed by `bwa index`, and decompressed from `s3://leelab-datafiles/hg19_decoy.tar.gz`)
-				-x: path of xTEA folder (xTEA can be downloaded with command `git clone https://github.com/parklab/xTEA`)
-				-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV, 16-Mitochondrion)
-				Other parameters can be keep unchanged.
+				-l: repeat library folder;					-r: reference genome file;					-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV, 16-Mitochondrion)
+				Other parameters can be keep unchanged or adjust according.
 			```
-
-	+ Only with 10X data
-		```
-		sh run_gnrt_pipeline.sh sample_id.txt null 10X_bam_list.txt ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
-		```
 		
-	+ Working with hybrid data of 10X and Illumina
-		```
-		sh run_gnrt_pipeline.sh sample_id.txt illumina_bam_list.txt 10X_bam_list.txt ./path_work_folder ./rep_lib_annotation/hg19_LINE1_lib_config.txt
-		```
+	2.2 The previous step will generate a shell script called `run_xTEA_pipeline.sh` under `WFOLDER/sample_id/L1(or other type of repeats)`.
 		
-	2.2 The previous step will generate a shell script called `run_xTEA_pipeline.sh` under `WFOLDER/sample_id` with content like:
-		
-		```
-		#!/bin/bash
-
-		#SBATCH -n 16
-		#SBATCH -t 1-5:00
-		#SBATCH --mem=70G
-		#SBATCH -p park
-		#SBATCH -o hostname_%j.out
-		#SBATCH --mail-type=END
-		#SBATCH --mail-user=chong.simonchu@gmail.com
-		#SBATCH --account=park_contrib
-		####
-		PREFIX=/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/1000G/hybrid/L1/NA19239/
-		############
-		############
-		SF_FLANK=/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/rep_lib_annotation/LINE/hg38/hg38_FL_L1_flanks_3k.fa
-		L1_CNS=/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/rep_lib_annotation/consensus/LINE1.fa
-		BAM1=${PREFIX}"10X_phased_possorted_bam.bam"
-		L1_COPY_WITH_FLANK=/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/rep_lib_annotation/LINE/hg38/hg38_L1HS_copies_larger_5K_with_flank.fa
-		TMP_CNS=${PREFIX}"tmp/cns/"
-		BARCODE_BAM=${PREFIX}"10X_barcode_indexed.sorted.bam"
-		ANNOTATION=/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/rep_lib_annotation/LINE/hg38/hg38_L1_larger2K_with_all_L1HS.out
-		BAM_LIST=${PREFIX}"bam_list.txt"
-		TMP=${PREFIX}"tmp/"
-		TMP_CLIP=${PREFIX}"tmp/clip/"
-		REF=/n/data1/hms/dbmi/park/simon_chu/projects/data/reference/GRCh38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna
-		XTEA_PATH=/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/
-		############
-		############	
-		python ${XTEA_PATH}"x_TEA_main.py" -C -i ${BAM_LIST} --lc 5 --rc 5 --cr 3  -r ${L1_COPY_WITH_FLANK}  -a ${ANNOTATION} --ref ${REF} -p ${TMP} -o ${PREFIX}"candidate_list_from_clip.txt"  -n 8
-		python ${XTEA_PATH}"x_TEA_main.py"  -D -i ${PREFIX}"candidate_list_from_clip.txt" --nd 6 --ref ${REF} -a ${ANNOTATION} -b ${BAM_LIST} -p ${TMP} -o ${PREFIX}"candidate_list_from_disc.txt" -n 8
-		python ${XTEA_PATH}"x_TEA_main.py" -N --cr 3 --nd 5 -b ${BAM_LIST} -p ${TMP_CNS} --fflank ${SF_FLANK} --flklen 3000 -n 8 -i ${PREFIX}"candidate_list_from_disc.txt" -r ${L1_CNS} --ref ${REF} -a ${ANNOTATION} -o ${PREFIX}"candidate_disc_filtered_cns.txt"
-		```
 	+ To run on the cluster, like slurm system: `sbatch < run_xTEA_pipeline.sh`
 	+ To run on a single node: `sh run_xTEA_pipeline.sh`
 	
 3. **Output**
 
 	3.1 For Illumina, `candidate_disc_filtered_cns.txt` is the final output.
+	
