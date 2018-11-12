@@ -75,15 +75,15 @@
 	+ Run on O2 (slurm) cluster
 		+ Only with Illumina data
 			```
-			python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 1 			```
+			python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa --xtea /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 1 			```
 
 		+ Only with 10X data
 			```
-				python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b null -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 1 			```
+				python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b null -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -xtea /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 1 			```
 		
 		+ Working with hybrid data of 10X and Illumina
 			```
-			python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b illumina_bam_list.txt -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -x /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 1
+			python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b illumina_bam_list.txt -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -xtea /home/ec2-user/xTEA/ --nclip 4 --cr 2 --nd 5 --nfclip 3 --nfdisc 5 --flklen 3000 -f 19 -y 1
 			```
 		+ Parameters:
 			
@@ -97,6 +97,7 @@
 				-l: repeat library folder;	
 				-r: reference genome file;
 				-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV, 16-Mitochondrion)
+				--xtea: xTEA full path
 				Other parameters can be keep unchanged or adjust according.
 			```
 		
@@ -107,5 +108,14 @@
 	
 3. **Output**
 
-	3.1 For Illumina, `candidate_disc_filtered_cns.txt` is the final output.
+	3.1 Columns:
+
+	chrm    refined-pos    lclip-pos    rclip-pos    TSD    nalclip    narclip    naldisc    nardisc    nalpolyA    narpolyA    lcov    rcov    nlclip    nrclip    nldisc    nrdisc    nlpolyA    nrpolyA    lclip-cns-start:end    rclip_cns-start:end    ldisc-cns-start:end    rdisc-cns-start:end    Transduction-info    ntrsdct-clip    ntrsdct-disc    ntrsdct-polyA    ldisc-same    ldisc-diff    rdisc-same    rdisc-diff    3mer-inversion    confidential    insertion-length
+	(ldisc-same: # of left-discordant pairs of the same direction;
+	ldisc-diff: # of left-discordant pairs of the different direction;
+	rdisc-same: # of right-discordant pairs of the same direction;
+	rdisc-diff: # of right-discordant pairs of the different direction;
+	3mer-inversion)
+
+	3.2 For Illumina, `candidate_disc_filtered_cns.txt` is the final output.
 	
