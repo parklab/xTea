@@ -23,7 +23,8 @@ RUN conda update -y conda \
     && rm Miniconda2-latest-Linux-x86_64.sh
 RUN conda config --add channels r \
     && conda config --add channels bioconda \
-    && conda install pysam==0.14.1 -y
+    && conda install pysam==0.14.1 -y \
+    && conda install sortedcontainers -y
 
 # download tools
 WORKDIR /usr/local/bin
@@ -39,10 +40,9 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 
 # wrapper
-COPY *.py *.sh ./
-RUN chmod +x *.py
+COPY *.pyc *.sh ./
+RUN chmod +x *.pyc
 
 # default command
 CMD ["ls /usr/local/bin"]
-
 

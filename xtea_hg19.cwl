@@ -134,7 +134,7 @@
         glob: "results.tar.gz"
   baseCommand: 
     - "python"
-    - "/usr/local/bin/gnrt_pipeline_cloud_v38.pyc"
+    - "/usr/local/bin/gnrt_pipeline_cloud.pyc"
     - "-D"
     - "-o"
     - "run_jobs.sh"
