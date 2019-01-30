@@ -124,7 +124,7 @@
         position: 11
         prefix: "-y"
         separate: true
-      default: 47
+      default: 7
   outputs: 
     - 
       type: 
