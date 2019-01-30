@@ -1,7 +1,7 @@
 ---
   hints: 
     - 
-      dockerPull: "warbler/xteab:v8"
+      dockerPull: "warbler/xteab:v9"
       class: "DockerRequirement"
   arguments: []
   class: "CommandLineTool"
@@ -124,7 +124,7 @@
         position: 11
         prefix: "-y"
         separate: true
-      default: 7
+      default: 47
   outputs: 
     - 
       type: 
