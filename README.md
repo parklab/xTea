@@ -2,26 +2,28 @@
 
 xTea (comprehensive Transposable element analyzer) is designed to identify TE insertions from paired-end Illumina reads, barcode Linked-Reads, long reads (PacBio or Nanopore), or hybrid data (WGS/WES). 
 
+![alt text](xTea_workflow.png "xTea workflow")
+
 Copyright (c) 2019 - President and Fellows of Harvard College. All rights reserved.
 
 
-##Download
+## Download
 
 1. short reads (Illumina and Linked-Reads)
 
-	+ 1.1 Latest version
+	+ 1.1 Latest version (master branch)
 
 	```
 	git clone https://github.com/parklab/xTea.git
 	```
 
-	+ 1.2 cloud binary version
+	+ 1.2 cloud binary version (branch: release_xTea_cloud_1.0.0-beta)
 
 	```
 	git clone --single-branch --branch release_xTea_cloud_1.0.0-beta  https://github.com/parklab/xTea.git
 	```
 
-2. long reads (PacBio or Nanopore)
+2. long reads (PacBio or Nanopore, branch to be merged: xTea_long_release_v0.1.0)
 
 	```
 	git clone --single-branch --branch xTea_long_release_v0.1.0 https://github.com/parklab/xTea.git
