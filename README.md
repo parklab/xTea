@@ -2,7 +2,7 @@
 
 xTea (comprehensive Transposable element analyzer) is designed to identify TE insertions from paired-end Illumina reads, barcode Linked-Reads, long reads (PacBio or Nanopore), or hybrid data (WGS/WES). 
 
-![alt text](https://github.com/parklab/xTea/blob/master/xTea_workflow.png)
+![alt text](./xTea_workflow.png)
 
 
 ## Download
