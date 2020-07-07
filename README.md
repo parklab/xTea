@@ -2,9 +2,7 @@
 
 xTea (comprehensive Transposable element analyzer) is designed to identify TE insertions from paired-end Illumina reads, barcode Linked-Reads, long reads (PacBio or Nanopore), or hybrid data (WGS/WES). 
 
-![image info](./xTea_workflow.png)
-
-Copyright (c) 2019 - President and Fellows of Harvard College. All rights reserved.
+![image info](xTea_workflow.png)
 
 
 ## Download
@@ -138,6 +136,7 @@ Copyright (c) 2019 - President and Fellows of Harvard College. All rights reserv
 
 
 ## Contact
+Copyright (c) 2019 - President and Fellows of Harvard College. All rights reserved.  
 Requests for use of the Software for or on behalf of for-profit entities or for any commercial purposes, please contact:
 
 Office of Technology Development  
