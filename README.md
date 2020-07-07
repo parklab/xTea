@@ -4,7 +4,9 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 
 Copyright (c) 2019 - President and Fellows of Harvard College. All rights reserved.
 
+
 ##Download
+
 1. short reads (Illumina and Linked-Reads)
 
 	+ 1.1 Latest version
@@ -26,6 +28,7 @@ Copyright (c) 2019 - President and Fellows of Harvard College. All rights reserv
 	```
 	
 ## Dependency
+
 1. bwa (version **0.7.17** or later, require the **-o** option), which can be downloaded from https://github.com/lh3/bwa.
 2. samtools (v1.0 or later), which can be downloaded from https://github.com/samtools.
 3. minimap2 (for long reads only), which can be downloaded from https://github.com/lh3/minimap2.
