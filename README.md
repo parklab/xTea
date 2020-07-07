@@ -1,14 +1,36 @@
-## xTEA
+## xTea
 
-xTEA is designed to call TE insertions from paired-end Illumina reads, 10X linked reads or hybrid Illumina and 10X data (WGS/WES). 
+xTea (comprehensive Transposable element analyzer) is designed to identify TE insertions from paired-end Illumina reads, barcode Linked-Reads, long reads (PacBio or Nanopore), or hybrid data (WGS/WES). 
 
-@2019 by the Park Lab. This software is provided ``as is`` without warranty of any kind. In no event shall the author be held responsible for any damage resulting from the use of this software. A manuscript is under preparation and please check back for a citation.
-xTEA is free for academic use only. For non-academic use, please email Dr. Tatiana Demidova-Rice at Harvard University Office of Technology Development (tatiana_demidova-rice@harvard.edu)
+Copyright (c) 2019 - President and Fellows of Harvard College. All rights reserved.
 
+##Download
+1. short reads (Illumina and Linked-Reads)
+
+	+ 1.1 Latest version
+
+	```
+	git clone https://github.com/parklab/xTea.git
+	```
+
+	+ 1.2 cloud binary version
+
+	```
+	git clone --single-branch --branch release_xTea_cloud_1.0.0-beta  https://github.com/parklab/xTea.git
+	```
+
+2. long reads (PacBio or Nanopore)
+
+	```
+	git clone --single-branch --branch xTea_long_release_v0.1.0 https://github.com/parklab/xTea.git
+	```
+	
 ## Dependency
 1. bwa (version **0.7.17** or later, require the **-o** option), which can be downloaded from https://github.com/lh3/bwa.
 2. samtools (v1.0 or later), which can be downloaded from https://github.com/samtools.
-3. Python 2.7 or later version
+3. minimap2 (for long reads only), which can be downloaded from https://github.com/lh3/minimap2.
+4. wtdbg2 (for long reads only), which can be downloaded from https://github.com/ruanjue/wtdbg2.
+5. Python 2.7 or later version
 	+ pysam (https://github.com/pysam-developers/pysam, v0.12 or later) is required to be installed.
 
 		+ In detail, first install Anaconda:
@@ -31,7 +53,7 @@ xTEA is free for academic use only. For non-academic use, please email Dr. Tatia
 
 4. Note: bwa and samtools need to be added to the $PATH.
 
-## Run xTEA
+## Run xTea
 1. **Input**
 	+ A sample id file, e.g. a file named `sample_id.txt` with content:
 	
@@ -62,11 +84,11 @@ xTEA is free for academic use only. For non-academic use, please email Dr. Tatia
 	+ Run on a slurm cluster or a single node (Please replace `gnrt_pipeline_local.pyc` with `gnrt_pipeline_local_v38.pyc` for running on **GRCh38**)
 		+ Only with Illumina data
 			```
-			python ./xTEA/gnrt_pipeline_local.pyc -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa --xtea /home/ec2-user/xTEA/ --flklen 3000 -y 7 			```
+			python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa --xtea /home/ec2-user/xTEA/ --flklen 3000 -y 7 			```
 
 		+ Only with 10X data
 			```
-			python ./xTEA/gnrt_pipeline_local.pyc -i sample_id.txt -b null -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -xtea /home/ec2-user/xTEA/ --flklen 3000 -y 7 			```
+			python ./xTEA/gnrt_pipeline_local.py -i sample_id.txt -b null -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -xtea /home/ec2-user/xTEA/ --flklen 3000 -y 7 			```
 		
 		+ Working with hybrid data of 10X and Illumina 
 			```
@@ -107,27 +129,16 @@ xTEA is free for academic use only. For non-academic use, please email Dr. Tatia
 	
 3. **Output**
 
-	3.1 Columns:
-
-	chrm    refined-pos    lclip-pos    rclip-pos    TSD    nalclip    narclip    naldisc    nardisc    nalpolyA    narpolyA    lcov    rcov    nlclip    nrclip    nldisc    nrdisc    nlpolyA    nrpolyA    lclip-cns-start:end    rclip_cns-start:end    ldisc-cns-start:end    rdisc-cns-start:end    Transduction-info    ntrsdct-clip    ntrsdct-disc    ntrsdct-polyA    ldisc-same    ldisc-diff    rdisc-same    rdisc-diff    3mer-inversion    confidential    insertion-length
-
-	
-	(ldisc-same: # of left-discordant pairs of the same direction;
-	ldisc-diff: # of left-discordant pairs of the different direction;
-	rdisc-same: # of right-discordant pairs of the same direction;
-	rdisc-diff: # of right-discordant pairs of the different direction;
-	3mer-inversion)
-
-	3.2 `candidate_disc_filtered_cns.txt` is the final output. 
-
+	A gVCF file will be generated for each sample.
 
 
 ## Contact
+Requests for use of the Software for or on behalf of for-profit entities or for any commercial purposes, please contact:
 
-The current version is tested on human genome (GRCh37 and GRCh38, and reads are aligned with `bwa mem`) only, but in theory it also works for other species. Collaborations are welcomed if you want to apply xTEA on other species. If you have any questions or suggestions please contact us:
-
-Simon (Chong) Chu: chong_chu at hms.harvard.edu
-
-Alice Lee: ejalice.lee at gmail.com
-
-Peter J Park: peter_park at hms.harvard.edu
+Office of Technology Development  
+Harvard University  
+Smith Campus Center, Suite 727E  
+1350 Massachusetts Avenue  
+Cambridge, MA 02138 USA  
+Telephone: (617) 495-3067  
+E-mail: otd@harvard.edu
