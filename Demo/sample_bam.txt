@@ -1,1 +1,1 @@
-HG002_test [absolute-path]/demo/test.bam
+NA12878 [replace-with-absolute-path]/NA12878.sorted.bam
