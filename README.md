@@ -30,12 +30,13 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 	git clone --single-branch --branch xTea_long_release_v0.1.0 https://github.com/parklab/xTea.git
 	```
 3. pre-processed repeat library used by xTea   
-	The file size is large, and please use
+	The file size is large, and please use git lfs (https://git-lfs.github.com/)  
 	```
 	git lfs get 
 	```
-	(or directly click and then save) to download the library file.
-	
+	(or directly click and then save) to download the library file. 
+4. Gene annotation file are downloaded from GENCODE (https://www.gencodegenes.org/human/release_33.html)
+
 ## Dependency
 
 1. bwa (version **0.7.17** or later, require the **-o** option), which can be downloaded from https://github.com/lh3/bwa.
@@ -115,7 +116,7 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 				-b: Illumna bam/cram file list file (sorted and indexed, each file per line);
 				-x: 10X bam file list (sorted and indexed, each file per line);
 				-p: working folder, where the results and temporary files will be saved;
-				-l: repeat library folder;
+				-l: repeat library folder (folder contain files decompressed from "rep_lib_annotation.tar.gz";
 				-r: reference genome file;
 				-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV; sum all selected as one value);
 				-f: steps to run. (5907 means run all the steps);
