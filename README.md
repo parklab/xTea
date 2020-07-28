@@ -87,8 +87,8 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 	
 	2.1 Generate the running script.	
 			
-	+ Run on a slurm cluster or a single node
-		+ Demo script on slurm/LSF system on a cluster
+	+ Run on a cluster or a single node
+		+ Demo script
 		
 			```  
 			SAMPLE_ID=sample_ids.txt  	
@@ -102,8 +102,7 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 			CNS_L1=[prefix-abosolute-path]/rep_lib_annotation/consensus/LINE1.fa
 			REP_LIB=[prefix-abosolute-path]/rep_lib_annotation/
 			
-			python ${XTEA}"gnrt_pipeline_local_long_read_v38.py"  -i ${SAMPLE_ID} -b ${BAMS} -p ${WFOLDER} -o ${OUT_SCRTP} --xtea ${XTEA} \
- -n 16 -m 16 -t ${TIME} -r ${REF} --rmsk ${RMSK} --cns ${CNS_L1} --rep ${REP_LIB}  --min 4000  -f 31 -y 7 --clean
+			python ${XTEA}"gnrt_pipeline_local_long_read_v38.py"  -i ${SAMPLE_ID} -b ${BAMS} -p ${WFOLDER} -o ${OUT_SCRTP} --xtea ${XTEA} -n 16 -m 16 -t ${TIME} -r ${REF} --rmsk ${RMSK} --cns ${CNS_L1} --rep ${REP_LIB}  --min 4000  -f 31 -y 7 --clean
 			```
 
 			
