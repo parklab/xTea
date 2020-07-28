@@ -151,6 +151,7 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 	A gVCF file will be generated for each sample.
 
 
+
 ## Contact
 Copyright (c) 2019 - President and Fellows of Harvard College. All rights reserved.  
 Requests for use of the Software for or on behalf of for-profit entities or for any commercial purposes, please contact:
