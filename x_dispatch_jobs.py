@@ -2,6 +2,9 @@ import os
 import sys
 from subprocess import *
 
+#This is designed for 10X assembly step only, where genome assembly takes time.
+#This module will speed up the assembly steps
+
 IDBA_UD = "idba_ud"
 MINIMAP2 = 'minimap2'
 READS_FOLDER = "reads_fa"

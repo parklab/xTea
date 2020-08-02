@@ -21,7 +21,8 @@
 #  def check_disc_consistency(self, m_clip_checked, m_disc_pos, m_polyA, i_dist, ratio):
 # def call_MEIs(self, sf_candidate_list, extnd, bin_size, sf_rep_copies, i_flank_lenth, bmapped_cutoff,
 #                  sf_annotation, i_concord_dist, f_concord_ratio, sf_final_list):
-#
+
+####
 import os
 import sys
 import pysam
@@ -32,11 +33,11 @@ from x_annotation import *
 from x_coverage import *
 from bwa_align import *
 from x_transduction import *
-from x_consensus import *
+from x_cluster_consistency import *
 from x_polyA import *
 import global_values
 from x_log import *
-from x_genotype import *
+from x_genotype_feature import *
 
 def unwrap_self_collect_clip_disc_reads(arg, **kwarg):
     return XClipDisc.collect_clipped_disc_reads_by_region(*arg, **kwarg)
@@ -44,7 +45,7 @@ def unwrap_self_collect_clip_disc_reads(arg, **kwarg):
 def unwrap_self_calc_AF_by_clip_reads(arg, **kwarg):
     return XClipDisc.calc_AF_of_site(*arg, **kwarg)
 
-class XClipDisc():
+class XClipDisc():####
     def __init__(self, sf_bam, working_folder, n_jobs, sf_ref):
         self.sf_bam = sf_bam
         self.working_folder = working_folder
@@ -102,6 +103,7 @@ class XClipDisc():
 
         samfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference)
         n_cnt_clip = 0  # as a index to set a different read id for collected reads clip at the same position
+        n_cnt_low_mapq_clip=0 #this is to count the low mapping quality clip reads
         xpolyA = PolyA()#
         m_chrm_id=self._get_chrm_id_name(samfile)
         for algnmt in samfile.fetch(chrm_in_bam, start_pos, end_pos):  ##fetch reads mapped to "chrm:start_pos-end_pos"
@@ -117,8 +119,6 @@ class XClipDisc():
                 continue
             l_cigar = algnmt.cigar
             if len(l_cigar) < 1:  # wrong alignment
-                continue
-            if algnmt.mapping_quality < global_values.MINIMUM_CLIP_MAPQ:
                 continue
 
             query_name = algnmt.query_name
@@ -141,16 +141,30 @@ class XClipDisc():
             b_fully_mapped = False
             i_map_start = map_pos
             i_map_end=-1
-            if len(l_cigar) == 1 and l_cigar[0][0] == 0:  ##fully mapped
+            if len(l_cigar) == 1 and l_cigar[0][0] == 0:##fully mapped
                 b_fully_mapped = True
                 i_map_end=i_map_start+l_cigar[0][1]
+
+            if algnmt.mapping_quality < global_values.MINIMUM_CLIP_MAPQ:##
+                if algnmt.mapping_quality < global_values.CLIP_LOW_MAPQ:
+                    if l_cigar[0][0] == 4:#left clip
+                        if abs(map_pos - insertion_pos) < global_values.NEARBY_LOW_Q_CLIP:
+                            n_cnt_low_mapq_clip+=1
+                    elif l_cigar[-1][0] == 4:#right clip
+                        tmp_map_lenth=global_values.READ_LENGTH-l_cigar[-1][1]
+                        if abs(map_pos + tmp_map_lenth - insertion_pos) < global_values.NEARBY_LOW_Q_CLIP:
+                            n_cnt_low_mapq_clip+=1
+                continue
+
+            if self.is_two_side_clipped(l_cigar, global_values.TWO_SIDE_CLIP_MIN_LEN)==True:
+                continue
 
             b_left_clip=0#whether is left clip
             if l_cigar[0][0] == 4:  #left clipped
                 if algnmt.is_supplementary or algnmt.is_secondary:###secondary and supplementary are not considered
                     continue
-
-                # if map_pos in m_pos:
+####
+                # if map_pos in m_pos:#
                 clipped_seq = query_seq[:l_cigar[0][1]]
                 len_clip_seq=len(clipped_seq)
                 ####Here will collect those
@@ -251,9 +265,14 @@ class XClipDisc():
         samfile.close()
         f_clip_fq.close()
         f_disc_pos.close()
-
+        return (chrm, insertion_pos, n_cnt_low_mapq_clip)
 ####
-
+    def is_two_side_clipped(self, l_cigar, i_min_clip):
+        b_two_clip=False
+        if l_cigar[-1][0] == 4 and l_cigar[0][0] == 4:#both side clip
+            if l_cigar[-1][1] > i_min_clip and l_cigar[0][1] > i_min_clip:
+                return True
+        return b_two_clip
     ####
     ##whether a pair of read is discordant (for TEI only) or not
     def is_discordant(self, chrm, map_pos, mate_chrm, mate_pos, is_threshold):
@@ -266,7 +285,7 @@ class XClipDisc():
                 # if first_rc==second_rc: ##direction are abnormal, by default consider (F,R) as right mode
                 #     return True
         return False
-
+####
     ####
     ####This function: Given a list of insertion sites, get all the clipped parts (in fastq) and disc reads
     ##Parameters: "sf_candidate_list" saves all the candidate sites
@@ -281,7 +300,7 @@ class XClipDisc():
                 pos = int(fields[1])  # candidate insertion site
                 l_chrm_records.append(((chrm, pos, extnd), self.sf_bam, self.working_folder))
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_collect_clip_disc_reads, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        l_low_mapq=pool.map(unwrap_self_collect_clip_disc_reads, zip([self] * len(l_chrm_records), l_chrm_records), 1)
         pool.close()
         pool.join()
 
@@ -299,24 +318,112 @@ class XClipDisc():
                 insertion_pos = record[0][1]
                 s_pos_info = "{0}_{1}".format(chrm, insertion_pos)
                 sf_clip_fq = self.working_folder + s_pos_info + global_values.CLIP_FQ_SUFFIX
-                with open(sf_clip_fq) as fin_clip_fq:
-                    for line in fin_clip_fq:
-                        fout_merged_clip_fq.write(line)
-                if os.path.isfile(sf_clip_fq)==True:#here remove the temporary file
-                    os.remove(sf_clip_fq)
+                if os.path.isfile(sf_clip_fq)==True:
+                    with open(sf_clip_fq) as fin_clip_fq:
+                        for line in fin_clip_fq:
+                            fout_merged_clip_fq.write(line)
+                    if os.path.isfile(sf_clip_fq)==True:#here remove the temporary file
+                        os.remove(sf_clip_fq)
 
                 sf_disc_pos = self.working_folder + s_pos_info + global_values.DISC_POS_SUFFIX  # this is to save the disc positions
-                with open(sf_disc_pos) as fin_disc_pos:
-                    for line in fin_disc_pos:
-                        fout_merged_disc_pos.write(line)
+                if os.path.isfile(sf_disc_pos)==True:
+                    with open(sf_disc_pos) as fin_disc_pos:
+                        for line in fin_disc_pos:
+                            fout_merged_disc_pos.write(line)
                 if os.path.isfile(sf_disc_pos):
                     os.remove(sf_disc_pos)
 
         # now, need to retrieve the reads according to the read names and disc positions
         bam_info = BamInfo(self.sf_bam, self.sf_reference)
         bam_info.extract_mate_reads_by_name(sf_all_disc_pos, bin_size, self.working_folder, self.n_jobs, sf_disc_fa)
+        return l_low_mapq
+####
 
+    ####
+    ####This function: Given a list of insertion sites, get all the clipped parts (in fastq)
+    ##Parameters: "sf_candidate_list" saves all the candidate sites
+    #             for each site, will collect reads within [-extnd, +extnd] region
+    #             "sf_rep_copies" is the repeat copy files in fasta format (including flank regions)
+    def collect_clipped_reads_of_given_list(self, sf_candidate_list, extnd, sf_all_clip_fq):
+        m_chrm_pos={}
+        with open(sf_candidate_list) as fin_list:
+            for line in fin_list:
+                fields = line.split()
+                chrm = fields[0]
+                pos = int(fields[1])  # candidate insertion site
+                #l_chrm_records.append(((chrm, pos, extnd), self.sf_bam, self.working_folder))
+                if chrm not in m_chrm_pos:
+                    m_chrm_pos[chrm]=[]
+                m_chrm_pos[chrm].append(pos)
 
+                #for debug only
+                #self.collect_clipped_disc_reads_by_region(((chrm, pos, extnd), self.sf_bam, self.working_folder))
+
+        sf_all_disc_pos = self.working_folder + "all_disc_pos" + global_values.DISC_POS_SUFFIX  # this is to save all the disc pos
+        with open(sf_all_clip_fq, "w") as fout_merged_clip_fq, open(sf_all_disc_pos, "w") as fout_merged_disc_pos:
+            for chrm in m_chrm_pos:
+                l_chrm_records = []
+                for pos in m_chrm_pos[chrm]:
+                    l_chrm_records.append(((chrm, pos, extnd), self.sf_bam, self.working_folder))
+                pool = Pool(self.n_jobs)
+                pool.map(unwrap_self_collect_clip_disc_reads, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+                pool.close()
+                pool.join()
+
+                ###I. For clipped reads
+                ## get all the clipped parts for each candidate site
+                ###II. For disc reads
+                ### here merge all the read_id files and pos files
+                ####in format:chrm, map_pos, mate_chrm, mate_pos, query_name, s_mate_first, insertion_pos
+                ####it is possible there are duplicate records are merged
+
+                # m_read_names={}####in case duplicate reads are saved
+                for record in l_chrm_records:
+                    chrm = record[0][0]
+                    insertion_pos = record[0][1]
+                    s_pos_info = "{0}_{1}".format(chrm, insertion_pos)
+                    sf_clip_fq = self.working_folder + s_pos_info + global_values.CLIP_FQ_SUFFIX
+                    with open(sf_clip_fq) as fin_clip_fq:
+                        for line in fin_clip_fq:
+                            fout_merged_clip_fq.write(line)
+                    if os.path.isfile(sf_clip_fq) == True:  # here remove the temporary file
+                        os.remove(sf_clip_fq)
+
+                    sf_disc_pos = self.working_folder + s_pos_info + global_values.DISC_POS_SUFFIX  # this is to save the disc positions
+                    with open(sf_disc_pos) as fin_disc_pos:
+                        for line in fin_disc_pos:
+                            fout_merged_disc_pos.write(line)
+                    if os.path.isfile(sf_disc_pos):
+                        os.remove(sf_disc_pos)
+        # now, need to retrieve the reads according to the read names and disc positions
+        #bam_info = BamInfo(self.sf_bam, self.sf_reference)
+        #bam_info.extract_mate_reads_by_name(sf_all_disc_pos, bin_size, self.working_folder, self.n_jobs, sf_disc_fa)
+
+    ####
+    ####This function: Given a list of insertion sites, get all the clipped parts (in fastq) and disc reads
+    ##Parameters: "sf_candidate_list" saves all the candidate sites
+    #             for each site, will collect reads within [-extnd, +extnd] region
+    #             "sf_rep_copies" is the repeat copy files in fasta format (including flank regions)
+    def collect_disc_reads_of_given_list(self, sf_candidate_list, extnd, bin_size, sf_disc_fa):
+        l_chrm_records = []
+        with open(sf_candidate_list) as fin_list:
+            for line in fin_list:
+                fields = line.split()
+                chrm = fields[0]
+                pos = int(fields[1])  # candidate insertion site
+                l_chrm_records.append(((chrm, pos, extnd), self.sf_bam, self.working_folder))
+
+        ###II. For disc reads
+        ### here merge all the read_id files and pos files
+        ####in format:chrm, map_pos, mate_chrm, mate_pos, query_name, s_mate_first, insertion_pos
+        ####it is possible there are duplicate records are merged
+        sf_all_disc_pos = self.working_folder + "all_disc_pos" + global_values.DISC_POS_SUFFIX  # this is to save all the disc pos
+        # now, need to retrieve the reads according to the read names and disc positions
+        bam_info = BamInfo(self.sf_bam, self.sf_reference)
+        bam_info.extract_mate_reads_by_name(sf_all_disc_pos, bin_size, self.working_folder, self.n_jobs, sf_disc_fa)
+        ####
+
+####
     ####
     '''
         for each alignment in the alignment_list:
@@ -617,11 +724,13 @@ class XClipDiscFilter():
                 refined_pos = lpeak_pos
                 if lpeak_pos == -1 or lpeak_pos == None:
                     refined_pos = rpeak_pos
+                if refined_pos==-1:
+                    refined_pos=ins_pos
                 if ins_chrm not in m_refined_pos:
                     m_refined_pos[ins_chrm] = {}
                 m_refined_pos[ins_chrm][ins_pos] = refined_pos
         return m_refined_pos
-
+####
     ####Note, for each recode, recode[1] will be skipped
     def dump_TEI_info(self, l_candidates, sf_final_list, b_with_head):
         with open(sf_final_list, "w") as fout_final_list:
@@ -668,6 +777,65 @@ class XClipDiscFilter():
                         + s_transduct_out + s_rc_disc + s_anchor_rc +"\n"
                 fout_final_list.write(sinfo)
 ####
+####
+    def load_TEI_info_from_file(self, sf_tei):
+        m_tei={}
+        with open(sf_tei) as fin_tei:
+            for line in fin_tei:
+                fields=line.split()
+                ins_chrm=fields[0]
+                ins_pos=int(fields[1])
+                nlclip=int(fields[6])
+                nrclip=int(fields[7])
+                nldisc=int(fields[8])
+                nrdisc=int(fields[9])
+                nlpolyA=int(fields[10])
+                nrpolyA=int(fields[11])
+                s_cns_lclip=fields[20]
+                s_cns_rclip=fields[21]
+                s_cns_ldisc=fields[22]
+                s_cns_rdisc=fields[23]
+
+                if ins_chrm not in m_tei:
+                    m_tei[ins_chrm]={}
+                m_tei[ins_chrm][ins_pos]=(nlclip, nrclip, nldisc, nrdisc, nlpolyA, nrpolyA, s_cns_lclip, s_cns_rclip,
+                                          s_cns_ldisc, s_cns_rdisc)
+        return m_tei
+    ####
+
+    #separate the output to transduction and non-transduction
+    def sprt_TEI_to_td_non_td(self, sf_cns, sf_td, sf_non_td):
+        with open(sf_cns) as fin_cns:
+            with open(sf_td,"w") as fout_td, open(sf_non_td,"w") as fout_non_td:
+                for line in fin_cns:
+                    fields=line.split()
+                    if len(fields)>=23 and (fields[23]== global_values.NOT_TRANSDUCTION):
+                        l_fields=fields[23].split(":")
+                        if len(l_fields)>1:
+                            fout_td.write(line)
+                        else:
+                            fout_non_td.write(line)
+                    else:
+                        fout_td.write(line)
+
+    # separate the output to transduction and non-transduction
+    def sprt_TEI_to_td_orphan_non_td(self, sf_cns, sf_non_td, sf_td, sf_orphan):
+        with open(sf_cns) as fin_cns:
+            with open(sf_td, "w") as fout_td, open(sf_orphan, "w") as fout_orphan, open(sf_non_td, "w") as fout_non_td:
+                for line in fin_cns:
+                    fields = line.split()
+                    if len(fields) >= 32 and (fields[32] == global_values.ORPHAN_TRANSDUCTION):
+                        fout_orphan.write(line)
+                    elif len(fields) >= 23 and (fields[23] == global_values.NOT_TRANSDUCTION):
+                        l_fields = fields[23].split(":")
+                        if len(l_fields) > 1:
+                            fout_td.write(line)
+                        else:
+                            fout_non_td.write(line)
+                    else:
+                        fout_td.write(line)
+####
+
     ####Note, for each recode, recode[1] will be skipped
     def dump_TEI_info_with_ori_pos(self, l_candidates, sf_final_list, b_with_head):
         with open(sf_final_list, "w") as fout_final_list:
@@ -717,7 +885,7 @@ class XClipDiscFilter():
     ####
     def _second_stage_classify_dump(self, m_ins_categories, l_candidates, m_high_confident, m_one_side_low_confident,
                                     m_hcov, m_not_hit_end, m_gntp_features, i_cns_lth, b_with_head, sf_final_list):
-        sf_final_high_confident=sf_final_list+".high_confident"
+        sf_final_high_confident=sf_final_list+global_values.HIGH_CONFIDENT_SUFFIX
         with open(sf_final_list, "w") as fout_final_list, open(sf_final_high_confident, "w") as fout_high_confident:
             stitle1 = "#chrm\trefined-pos\tlclip-pos\trclip-pos\tTSD\tnalclip\tnarclip\tnaldisc\t"
             stitle2 = "nardisc\tnalpolyA\tnarpolyA\tlcov\trcov\tnlclip\tnrclip\tnldisc\tnrdisc\tnlpolyA\tnrpolyA\t"
@@ -796,7 +964,8 @@ class XClipDiscFilter():
                     sf_gntp_info="\t{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}".format(
                         n_af_clip, n_full_map, n_raw_lclip, n_raw_rclip, n_disc_pairs, n_concd_pairs,
                         n_disc_large_indel, s_clip_lens)
-
+                else:#because some sites with extremly large number of clipped reads at breakpoints, and are filtered out
+                    continue
                 if (n_raw_lclip+n_raw_rclip>0) and (float(n_total_lpolyA+n_total_rpolyA)/float(n_raw_lclip+n_raw_rclip)) \
                         > global_values.MAX_POLYA_RATIO:
                     b_polyA_dominant=True
@@ -865,7 +1034,7 @@ class XClipDiscFilter():
                 if b_high_confident==True:
                     fout_high_confident.write(sinfo)
 
-####
+####Note:the length is re-estiamted (refined) at xtea_parser.replace_ins_length (x_post_filter.py)
     def _get_insertion_length(self, ldisc_cns_start, ldisc_cns_end, rdisc_cns_start, rdisc_cns_end, icns_lth, stsdc):
         i_tei_len=-1
 
@@ -873,12 +1042,15 @@ class XClipDiscFilter():
             i_tei_len=icns_lth-rdisc_cns_start
         elif rdisc_cns_end==-1 and ldisc_cns_start>0:
             i_tei_len = icns_lth - ldisc_cns_start
+        elif rdisc_cns_end<0 and ldisc_cns_start<0:
+            i_tei_len = -1
         else:
             if stsdc == global_values.NOT_TRANSDUCTION:
                 if ldisc_cns_start>0 and rdisc_cns_start>0:
                     i_tei_len = rdisc_cns_end - ldisc_cns_start
                     if i_tei_len < 0:
                         i_tei_len = ldisc_cns_end - rdisc_cns_start
+
             else:
                 if ldisc_cns_start<rdisc_cns_start:
                     i_tei_len=icns_lth-ldisc_cns_start
@@ -886,6 +1058,7 @@ class XClipDiscFilter():
                     i_tei_len = icns_lth - rdisc_cns_start
         return i_tei_len
 
+####
     def _is_3mer_inversion(self, rc_rcd_disc):
         n_l_ff = rc_rcd_disc[0]
         n_l_fr = rc_rcd_disc[1]
@@ -898,11 +1071,11 @@ class XClipDiscFilter():
         if n_r_fr > n_r_ff:
             b_r_ff = False
         if (b_l_ff==True and b_r_ff==True) or (b_l_ff==False and b_r_ff==False):
-            return "Not-3mer-Inversion"
+            return global_values.NOT_FIVE_PRIME_INV
         else:
-            return "3mer-Inversion"
+            return global_values.FIVE_PRIME_INVERSION
 
-
+####
     # m_list: candidate list
     # m_clip_lpos, m_clip_rpos: left and right clip position
     # m_disc_anchor_pos: map positions of the discord anchor reads
@@ -946,6 +1119,12 @@ class XClipDiscFilter():
                     nrpolyA = m_polyA[ins_chrm][ins_pos][1]
                     n_total_lpolyA += nlpolyA
                     n_total_rpolyA += nrpolyA
+                    nlpolyA_seqA = m_polyA[ins_chrm][ins_pos][2]
+                    nrpolyA_seqA = m_polyA[ins_chrm][ins_pos][3]
+                    if nlpolyA_seqA < (nlpolyA-nlpolyA_seqA):#polyA < polyT
+                        nlpolyA=-1*nlpolyA#negative means mainly polyT rather than polyA
+                    if nrpolyA_seqA < (nrpolyA - nrpolyA_seqA):  # polyA < polyT
+                        nrpolyA=-1*nrpolyA#negative means mainly polyT rather than polyA
 
                 # start-end position on the consensus of the clipped parts
                 lc_cns_start = -1
@@ -986,7 +1165,7 @@ class XClipDiscFilter():
                         n_total_rclip += n_clip_trsdct
                         n_total_ldisc += n_disc_trsdct
                         n_total_rpolyA += n_polyA_trsdct
-#
+
                 ####save the rescued cases
                 if (ins_chrm in m_rescued_n_src) and (ins_pos in m_rescued_n_src[ins_chrm]):
                     s_trsdct_info=global_values.ONE_SIDE_FLANKING
@@ -1150,7 +1329,6 @@ class XClipDiscFilter():
                     m_one_side_low_confident[ins_chrm][ins_pos]=1
                     #continue
 ####
-
             # 1. check clip-disc consistency
             # 1.1 position consistency
             bl_consist = False
@@ -1217,7 +1395,6 @@ class XClipDiscFilter():
                 continue
 
             l_selected.append(record)
-
             #both clip and disc doesn't reach the end
             if b_tailed_clip==False and b_tailed_disc==False:
                 if ins_chrm not in m_not_hit_end:
@@ -1229,11 +1406,106 @@ class XClipDiscFilter():
                     m_high_confident[ins_chrm]={}
                 m_high_confident[ins_chrm][refined_pos]=1
         return l_selected, m_high_confident, m_one_side_low_confident, m_not_hit_end
-####
 
+####
     def clean_file_by_path(self, sf_path):
         if os.path.isfile(sf_path)==True:
             os.remove(sf_path)
+
+    ####
+    #this function is called at the somatic calling step, with given sites and control bam, check whether:
+    #1. there are clip cluster
+    #2. there are disc cluster
+    #3. count # of clippe reads aligned to consensus
+    #4. count # of disc reads aligned to consensus
+    def call_clip_disc_cluster(self, sf_candidate_list, extnd, bin_size, sf_rep_cns, bmapped_cutoff,
+                               i_concord_dist, f_concord_ratio, nclip_cutoff, ndisc_cutoff, working_folder, sf_out):
+        # collect the clipped and discordant reads
+        # each record in format like: @20~41951715~L~1~41952104~0~0,
+        # (chrm, map_pos, global_values.FLAG_LEFT_CLIP, is_rc, insertion_pos, n_cnt_clip, sample_id)
+        sf_clip_fq = working_folder + "candidate_sites_all_clip_from_control.fq"
+        sf_disc_fa = working_folder + "candidate_sites_all_disc_from_control.fa"
+        self.collect_clipped_disc_reads(sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa)
+        # # ##re-align the clipped reads
+        bwa_align = BWAlign(global_values.BWA_PATH, global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
+        sf_clip_algnmt = working_folder + "temp_clip.sam"
+
+        bwa_align.realign_clipped_read_with_polyA(sf_rep_cns, sf_clip_fq, sf_clip_algnmt)
+        self.clean_file_by_path(sf_clip_fq)
+
+        # ##re-align the disc reads
+        sf_disc_algnmt = working_folder + "temp_disc.sam"
+        bwa_align.realign_disc_reads(sf_rep_cns, sf_disc_fa, sf_disc_algnmt)
+        self.clean_file_by_path(sf_disc_fa)
+
+        m_ins_lpos, m_ins_rpos, m_cns_lpos, m_cns_rpos, m_clip_sample, m_polyA = \
+            self.parse_clip_realignment_consensus(sf_clip_algnmt, bmapped_cutoff)
+
+        idist = global_values.CLIP_SEARCH_WINDOW  # count number of clipped reads within this range (default 15)
+        # at lease "ratio" percent of the clipped reads are clipped within the region
+        ratio = global_values.CLIP_CONSISTENT_RATIO
+        # Each returned record in format: (l_peak_pos, r_peak_pos, cns_peak_start, cns_peak_end)
+        EXD_BIN_SIZE = idist
+        # 1. check clip consistency
+        # check left side and right side seperately: Check whether they form cluster (> ratio of reads within a cluster)
+        # here require lclip+rclip<=nclip_cutoff, and if lclip or rclip is zero, then use half of this value
+        m_clip_checked_list, m_clip_only_cluster = self.check_clip_alone_consistency_for_somatic(
+            m_ins_lpos, m_ins_rpos, sf_candidate_list, idist, ratio, nclip_cutoff, EXD_BIN_SIZE)
+####################temp usage###############
+        with open(sf_out+".tmp_clip_chk.txt", "w") as fout_clip:
+            for ins_chrm in m_clip_checked_list:
+                for ins_pos in m_clip_checked_list[ins_chrm]:
+                    s_tmp1=str(m_clip_checked_list[ins_chrm][ins_pos][2])
+                    s_tmp2 = str(m_clip_checked_list[ins_chrm][ins_pos][3])
+                    s_tmp3 = str(m_clip_checked_list[ins_chrm][ins_pos][4])
+                    s_tmp4 = str(m_clip_checked_list[ins_chrm][ins_pos][5])
+                    s_tmp_info=s_tmp1+":"+s_tmp2+"\t"+s_tmp3+":"+s_tmp4
+                    fout_clip.write(ins_chrm+"\t"+str(ins_pos)+"\t"+s_tmp_info+"\n")
+##############################################
+
+        # 2.1 This is only parse the alignment to count the number
+        # disc map position on the repeat consensus
+        ####In format: m_rep_pos_disc[ins_chrm][ins_pos].append((anchor_map_pos, pos_in_consensus))
+        ####Note that: use the middle-map-pos of a read as the pos_in_consensus
+        # m_rep_pos_disc, each record in format: (anchor_map_pos, pos_in_consensus, b_rc)
+        # m_disc_anchor_dir[ins_chrm][ins_pos]: save (l_disc_rc[i_anchor_pos], l_disc_not_rc[i_anchor_pos])
+        m_rep_pos_disc, m_disc_sample, m_disc_polyA = \
+            self.parse_disc_algnmt_consensus(sf_disc_algnmt, bmapped_cutoff)
+
+        ####Potential problem: some sample may be of low coverage, in this way, ndisc_cutoff should be an array based on cov
+        #########!!!!!!!!!!!!!In to-do-list
+        # 2.2 check whether all the samples have enough disc reads support
+        n_disc_half_cutoff = ndisc_cutoff / 2  # here cutoff value, should be an arrary for each sample, here is arbitary
+        nclip_half_cutoff = nclip_cutoff / 2
+        m_disc_consist_list = None
+        if global_values.CHECK_BY_SAMPLE == True:
+            m_disc_consist_list = self.check_disc_sample_consistency(m_clip_checked_list, m_disc_sample,
+                                                                     n_disc_half_cutoff)
+        else:
+            m_disc_consist_list = dict(m_clip_checked_list)
+
+        ##get the representative clip position
+        m_represent_clip_pos = self._refine_represent_clip_pos(m_disc_consist_list)
+
+        # 2.3 Filter by checking whether discordant reads form clusters
+        # First, check whether left and right form seperate cluster (>f_concord_ratio disc reads suport that)
+        # Then, if both ends form cluster, then total number of disc reads should > ndisc_cutoff
+        # m_disc_filtered format: [ins_chrm][ins_pos] = (n_l_disc, lcns_start, lcns_end, n_r_disc, rcns_start, rcns_end)
+        m_disc_filtered = self.check_seprt_disc_consistency(m_represent_clip_pos, m_rep_pos_disc,
+                                                            i_concord_dist, f_concord_ratio, ndisc_cutoff)
+        m_transdct_info = {}  # by default, this is empty
+        # l_candidates: [(ins_chrm, ins_pos, refined_pos, ...), ...]
+        # keep ins_chrm, and ins_pos to keep 1-1 match between dicts
+        m_rescued = {}
+        l_candidates = self._extract_detailed_info_TEI(m_disc_filtered, m_disc_consist_list, m_ins_lpos, m_ins_rpos,
+                                                       m_polyA, m_clip_checked_list, m_transdct_info, m_rescued)
+        b_with_head = False
+        self.dump_TEI_info_with_ori_pos(l_candidates, sf_out, b_with_head)#keep the insertion position unchanged
+        return m_clip_only_cluster
+
+####
+
+####
     ####
     # Note: sf_rep_copies are copies with two end flank regions
     # this version align the reads to the consensus
@@ -1243,7 +1515,8 @@ class XClipDiscFilter():
     # 3. nclip_cutoff:
     # 4. ndisc_cutoff:
     # 5. max_depth: by default: 4*calc-depth
-    def call_MEIs_consensus(self, sf_candidate_list, extnd, bin_size, sf_rep_cns, sf_flank, i_flank_lenth,
+    # 6. check the background clipped reads (reads clipped at the location, but with low mapping quality)
+    def call_MEIs_consensus(self, sf_candidate_list, sf_raw_disc, extnd, bin_size, sf_rep_cns, sf_flank, i_flank_lenth,
                             bmapped_cutoff, i_concord_dist, f_concord_ratio, nclip_cutoff, ndisc_cutoff, sf_final_list):
         sf_cns_log=self.working_folder + "filtering_log.txt"
         xlog=XLog()
@@ -1255,7 +1528,16 @@ class XClipDiscFilter():
         sf_clip_fq = self.working_folder + "candidate_sites_all_clip.fq"
         sf_disc_fa = self.working_folder + "candidate_sites_all_disc.fa"
         xlog.append_to_file(f_log, "[Filtering:collect_clipped_disc_reads:Starts...]\n")
-        self.collect_clipped_disc_reads(sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa)
+        m_lowq_clip_cnt = self.collect_clipped_disc_reads(sf_candidate_list, extnd, bin_size, sf_clip_fq,
+                                                          sf_disc_fa, sf_raw_disc)
+#need to be comment out !!!!!
+        # sf_temp_lowq_clip=self.working_folder + "low_mapq_clip_cnt.txt"
+        # with open(sf_temp_lowq_clip, "w") as fout_lowq:
+        #     for tmp_chrm in m_lowq_clip_cnt:
+        #         for tmp_pos in m_lowq_clip_cnt[tmp_chrm]:
+        #             sinfo="{0} {1} {2}\n".format(tmp_chrm, tmp_pos, m_lowq_clip_cnt[tmp_chrm][tmp_pos])
+        #             fout_lowq.write(sinfo)
+
         xlog.append_to_file(f_log, "[Filtering:collect_clipped_disc_reads:Finished]\n")
 
         # # ##re-align the clipped reads
@@ -1278,7 +1560,7 @@ class XClipDiscFilter():
         # peak clip position on the repeat consensus
         xlog.append_to_file(f_log, "[Filtering:Clip-Consistency-Checking:Starts...]\n")
         m_ins_lpos, m_ins_rpos, m_cns_lpos, m_cns_rpos, m_clip_sample, m_polyA = \
-            self.parse_clip_realignment_consensus(sf_clip_algnmt, bmapped_cutoff)
+            self.parse_clip_realignment_consensus(sf_clip_algnmt, bmapped_cutoff)####
 
         idist = global_values.CLIP_SEARCH_WINDOW  # count number of clipped reads within this range (default 15)
         # at lease "ratio" percent of the clipped reads are clipped within the region
@@ -1291,7 +1573,7 @@ class XClipDiscFilter():
         #check left side and right side seperately: Check whether they form cluster (> ratio of reads within a cluster)
         #here require lclip+rclip<=nclip_cutoff, and if lclip or rclip is zero, then use half of this value
         m_clip_checked_list = self.check_clip_alone_consistency2(m_ins_lpos, m_ins_rpos, idist,
-                                                                 ratio, nclip_cutoff, EXD_BIN_SIZE)
+                                                                 ratio, nclip_cutoff, EXD_BIN_SIZE, m_lowq_clip_cnt)
         xlog.append_to_file(f_log, "[Filtering:Clip-Consistency-Checking:Finished...]\n")
         m_qlfd_clip = {}
         m_qlfd_clip_no_polyA = {}
@@ -1329,11 +1611,11 @@ class XClipDiscFilter():
             self.parse_disc_algnmt_consensus(sf_disc_algnmt, bmapped_cutoff)
 
         ####Potential problem: some sample may be of low coverage, in this way, ndisc_cutoff should be an array based on cov
-
+####
 #########!!!!!!!!!!!!!In to-do-list
         #2.2 check whether all the samples have enough disc reads support
-        n_disc_half_cutoff = ndisc_cutoff / 2 + 1  # here cutoff value, should be an arrary for each sample, here is arbitary
-        nclip_half_cutoff = nclip_cutoff / 2 + 1
+        n_disc_half_cutoff = ndisc_cutoff / 2 # here cutoff value, should be an arrary for each sample, here is arbitary
+        nclip_half_cutoff = nclip_cutoff / 2
         m_disc_consist_list=None
         if global_values.CHECK_BY_SAMPLE==True:
             m_disc_consist_list = self.check_disc_sample_consistency(m_clip_checked_list, m_disc_sample, n_disc_half_cutoff)
@@ -1343,7 +1625,6 @@ class XClipDiscFilter():
         xlog.append_to_file(f_log, "[Filtering:Disc-Consistency-Checking: "
                                    "m_disc_consist_list size is {0}]\n".format(len(m_disc_consist_list)))
 ########
-
         ##get the representative clip position
         m_represent_clip_pos = self._refine_represent_clip_pos(m_disc_consist_list)
 
@@ -1409,73 +1690,19 @@ class XClipDiscFilter():
         #first stage classification of the candidates
         m_ins_categories=self._first_stage_classify(l_candidates, m_hcov)
 
-        # Here check whether need to call transductions, for example, if Alu, then no need
-        xlog.append_to_file(f_log, "[Filtering:Transduction-Callling:Starts...]\n")
-        l_rescued=None
-        if os.path.isfile(sf_flank) == True:
-            ##call out the full length L1 candidates (here use very flexible threshold to integrate all possible ones)
-            ileftmost_cns = 500  # at lest hit the first 500bp
-            if global_values.IS_CALL_SVA == True:#
-                ileftmost_cns = 5000 #then here, we will consider all the candidate SVAs
-            l_fl_polymorpic = self._call_full_length_TE_insertion(l_candidates, m_hcov, ileftmost_cns)
-
-            xlog.append_to_file(f_log, "[Filtering:Transduction-Callling:construct_novel_flanks:Starts...]\n")
-            ##generate the new flank regions with polymerphic full length insertion flanks
-            xtransduction = XTransduction(self.working_folder, self.n_jobs, self.sf_reference)
-            sf_flank_with_poly = self.working_folder + "all_with_polymerphic_flanks.fa"
-            ####Note, we add L1, Alu and SVA consensus to the flank regions to filter out those mapped to consensus
-            xtransduction.construct_novel_flanks(l_fl_polymorpic, sf_flank, i_flank_lenth, sf_flank_with_poly)
-            xlog.append_to_file(f_log, "[Filtering:Transduction-Callling:construct_novel_flanks:Finished...]\n")
-
-            ####call transduction
-            xlog.append_to_file(f_log, "[Filtering:Transduction-Callling:call_candidate_transductions:Starts...]\n")
-            #Here skip those both-side cases:
-            # One potential bug is if the transduction region is very short, then will be missed !!!!!
-            m_lclip_transd, m_rclip_transd, m_td_polyA, m_disc_transd, m_n_src_lclip, m_n_src_rclip, m_n_src_disc = \
-                xtransduction.call_candidate_transductions(m_ins_categories, m_disc_consist_list, sf_clip_algnmt,
-                                                           sf_disc_algnmt, sf_flank_with_poly, i_flank_lenth,
-                                                           n_disc_half_cutoff)
-
-            xlog.append_to_file(f_log, "[Filtering:Transduction-Callling:call_candidate_transductions:Finished...]\n")
-            # And, call out the candidate transductions
-            # m_transduct_candidates in format: [ins_chrm][ins_pos] = (b_l_trsdct, b_r_trsdct, n_disc_trsdct, trsdct_info)
-            xlog.append_to_file(f_log, "[Filtering:Transduction-Callling:Extract-Transduction-Info:Starts...]\n")
-
-####
-            m_transduct_candidates = xtransduction.call_out_candidate_transduct(m_represent_clip_pos, m_disc_transd,
-                                                                                i_concord_dist, f_concord_ratio)
-            ##each record in format:
-            #[ins_chrm][ins_pos] = (trsdct_info, (b_l_trsdct, n_clip_trsdct, peak_ref_clip_pos, n_disc_trsdct, n_polyA))
-            m_transdct_info = xtransduction._extract_transduct_info(m_disc_filtered, m_transduct_candidates,
-                                                                    m_lclip_transd, m_rclip_transd, m_td_polyA,
-                                                                    i_concord_dist)
-
-            ####save one side aligned to dispersed flanking regions case
-            m_rescued=self.rescue_one_side_with_flanking_hits(m_disc_filtered, m_n_src_lclip, m_n_src_rclip, m_n_src_disc,
-                                                              nclip_half_cutoff, n_disc_half_cutoff, i_concord_dist,
-                                                              f_concord_ratio)
-
-
-            ####Re-extract the detailed information with transduction information
-            l_candidates = self._extract_detailed_info_TEI(m_disc_filtered, m_disc_consist_list,
-                                                           m_ins_lpos, m_ins_rpos, m_polyA,
-                                                           m_clip_checked_list, m_transdct_info, m_rescued)
-
-            xlog.append_to_file(f_log, "[Filtering:Transduction-Callling:Extract-Transduction-Info:Finished...]\n")
-        xlog.append_to_file(f_log, "[Filtering:Transduction-Callling:Finished...]\n")
-####
         xlog.append_to_file(f_log, "[Filtering:Filter-Dump-Insertion-Info:Starts...]\n")
         sf_before_filtering = sf_final_list + ".before_filtering"
         b_with_head = False
         self.dump_TEI_info_with_ori_pos(l_candidates, sf_before_filtering, b_with_head)
 
-####need to test !!!!
         #here extract the features for genotyping
         x_gntper = XGenotyper(self.sf_reference, self.working_folder, self.n_jobs)
         is_extnd = global_values.DFT_IS
+        xlog.append_to_file(f_log, "[extension length is: {0}]\n".format(is_extnd))#####################################
         sf_gntp_feature=sf_final_list + ".gntp.features"
         x_gntper.call_genotype(self.sf_bam_list, sf_before_filtering, is_extnd, sf_gntp_feature)
-        m_gntp_info=x_gntper.load_in_features_from_file(sf_gntp_feature)
+        #load in features, also filter out sites with very large clipped reads at the breakpoints
+        m_gntp_info=x_gntper.load_in_features_from_file_with_cov_cutoff(sf_gntp_feature, i_max_cov)
 
         min_l1_end=i_cns_lth-150
         depth_ratio = 0.35  ##left-right read depth ratio
@@ -1641,7 +1868,6 @@ class XClipDiscFilter():
                     m_ins_categories[global_values.ONE_HALF_SIDE_TRPT][s_id] = 1
             else:
                 m_ins_categories[global_values.OTHER_TYPE][s_id] = 1
-
         return m_ins_categories
 
 ####
@@ -2075,7 +2301,16 @@ class XClipDiscFilter():
                     m_checked_list[ins_chrm] = {}
                 m_checked_list[ins_chrm][ins_pos] = (l1_pos, cns_lpeak_start, cns_lpeak_end, b_lconsist, l1_acm)
         return m_checked_list
-#
+
+    #whether this is lowq clip
+    def _is_high_lowq_clip(self, n_lowq_clip, n_all_clip, f_ratio):
+        if n_all_clip==0:
+            return True
+        if float(n_lowq_clip)/float(n_all_clip) > f_ratio:
+            return True
+        return False
+
+####
     ####
     ###this version consider the left and right clip positions seperatelly, thus we can include some complex events:
     # like TE insertion with deletion
@@ -2084,7 +2319,7 @@ class XClipDiscFilter():
     # then the left and right peak clip position should satisfy the TSD constrain
     # otherwise, if only have left or right clip, then no need to check this TSD constrain
     # for ins_chrm in m_clip_checked_list
-    def check_clip_alone_consistency2(self, m_left_clip_pos, m_right_clip_pos, idist, ratio, n_cutoff, BSIZE):
+    def check_clip_alone_consistency2(self, m_left_clip_pos, m_right_clip_pos, idist, ratio, n_cutoff, BSIZE, m_lowq_clip=None):
         m_checked_list = {}
         m_left_checked = self.check_one_side_clip_consistency(m_left_clip_pos, idist, ratio, BSIZE)
         m_right_checked = self.check_one_side_clip_consistency(m_right_clip_pos, idist, ratio, BSIZE)
@@ -2105,13 +2340,26 @@ class XClipDiscFilter():
                     cnt_clip += rrecord[-1]
                     if cnt_clip < n_cutoff:
                         continue
+                    if m_lowq_clip is not None:
+                        if (ins_chrm in m_lowq_clip) and (ins_pos in m_lowq_clip[ins_chrm]):
+                            n_lowq_clip = m_lowq_clip[ins_chrm][ins_pos]
+                            if self._is_high_lowq_clip(n_lowq_clip, n_lowq_clip+cnt_clip,
+                                                       global_values.MAX_LOWQ_CLIP_RATIO)==True:
+                                continue
+
                     if ins_chrm not in m_checked_list:
                         m_checked_list[ins_chrm] = {}
                     m_checked_list[ins_chrm][ins_pos] = (lrecord[0], rrecord[0], lrecord[1], lrecord[2], rrecord[1],
                                                          rrecord[2], False, False, True, False)
-                else:#this is the only have left-clipped
+                else:#this is those only have left-clipped
                     if cnt_clip < (n_cutoff/2)+1:
                         continue
+                    if m_lowq_clip is not None:
+                        if (ins_chrm in m_lowq_clip) and (ins_pos in m_lowq_clip[ins_chrm]):
+                            n_lowq_clip = m_lowq_clip[ins_chrm][ins_pos]
+                            if self._is_high_lowq_clip(n_lowq_clip, n_lowq_clip+cnt_clip,
+                                                       global_values.MAX_LOWQ_CLIP_RATIO)==True:
+                                continue
                     if ins_chrm not in m_checked_list:
                         m_checked_list[ins_chrm] = {}
                     m_checked_list[ins_chrm][ins_pos] = (lrecord[0], None, lrecord[1], lrecord[2], -1,
@@ -2126,6 +2374,12 @@ class XClipDiscFilter():
                 cnt_clip = rrecord[-1]
                 if cnt_clip < (n_cutoff/2)+1:
                     continue
+                if m_lowq_clip is not None:
+                    if (ins_chrm in m_lowq_clip) and (ins_pos in m_lowq_clip[ins_chrm]):
+                        n_lowq_clip = m_lowq_clip[ins_chrm][ins_pos]
+                        if self._is_high_lowq_clip(n_lowq_clip, n_lowq_clip + cnt_clip,
+                                                   global_values.MAX_LOWQ_CLIP_RATIO) == True:
+                            continue
                 if (ins_chrm in m_left_checked) and (ins_pos in m_left_checked[ins_chrm]):
                     continue
                 if ins_chrm not in m_checked_list:
@@ -2134,6 +2388,86 @@ class XClipDiscFilter():
                                                      True, False, True, False)
         return m_checked_list
 ####
+
+    ####
+    ###this version consider the left and right clip positions seperatelly, thus we can include some complex events:
+    # like TE insertion with deletion
+    ##Also check TSD consistency (now is comment out):
+    # if candidate site has both left and right clipped reads
+    # then the left and right peak clip position should satisfy the TSD constrain
+    # otherwise, if only have left or right clip, then no need to check this TSD constrain
+    # for ins_chrm in m_clip_checked_list
+    def check_clip_alone_consistency_for_somatic(self, m_left_clip_pos, m_right_clip_pos, sf_ori_list,
+                                                 idist, ratio, n_cutoff, BSIZE):
+        m_checked_list = {}
+        m_form_clip_cluster={}#save those already form clip cluster
+        m_left_checked = self.check_one_side_clip_consistency(m_left_clip_pos, idist, ratio, BSIZE)
+        m_right_checked = self.check_one_side_clip_consistency(m_right_clip_pos, idist, ratio, BSIZE)
+
+        for ins_chrm in m_left_checked:
+            for ins_pos in m_left_checked[ins_chrm]:  # this is for events have both left and right clipped reads
+                lrecord = m_left_checked[ins_chrm][ins_pos]
+                cnt_clip = lrecord[-1]
+                if (ins_chrm in m_right_checked) and (ins_pos in m_right_checked[ins_chrm]):
+                    rrecord = m_right_checked[ins_chrm][ins_pos]#(l1_pos, cns_peak_start, cns_peak_end, b_lconsist, nclip)
+                    cnt_clip += rrecord[-1]
+                    if ins_chrm not in m_checked_list:
+                        m_checked_list[ins_chrm] = {}
+                    if cnt_clip < n_cutoff:
+                        m_checked_list[ins_chrm][ins_pos] = (None, None, -1, -1, -1,
+                                                             -1, False, False, False, False)
+                        continue
+                    m_checked_list[ins_chrm][ins_pos] = (lrecord[0], rrecord[0], lrecord[1], lrecord[2], rrecord[1],
+                                                         rrecord[2], False, False, True, False)
+                    if ins_chrm not in m_form_clip_cluster:
+                        m_form_clip_cluster[ins_chrm]={}
+                    m_form_clip_cluster[ins_chrm][ins_pos]=(lrecord[0], rrecord[0], lrecord[1], lrecord[2], rrecord[1],
+                                                         rrecord[2], False, False, True, False)
+                else:  # this is those only have left-clipped
+                    if ins_chrm not in m_checked_list:
+                        m_checked_list[ins_chrm] = {}
+                    if cnt_clip < (n_cutoff / 2) + 1:
+                        m_checked_list[ins_chrm][ins_pos] = (None, None, -1, -1, -1,
+                                                             -1, False, False, False, False)
+                        continue
+                    m_checked_list[ins_chrm][ins_pos] = (lrecord[0], None, lrecord[1], lrecord[2], -1,
+                                                         -1, False, True, True, False)
+                    if ins_chrm not in m_form_clip_cluster:
+                        m_form_clip_cluster[ins_chrm] = {}
+                    m_form_clip_cluster[ins_chrm][ins_pos]=(lrecord[0], None, lrecord[1], lrecord[2], -1,
+                                                            -1, False, True, True, False)
+
+        # this is to focus on the events only have right-clipped
+        for ins_chrm in m_right_checked:
+            for ins_pos in m_right_checked[ins_chrm]:
+                rrecord = m_right_checked[ins_chrm][ins_pos]
+                cnt_clip = rrecord[-1]
+                if (ins_chrm in m_left_checked) and (ins_pos in m_left_checked[ins_chrm]):
+                    continue
+                if ins_chrm not in m_checked_list:
+                    m_checked_list[ins_chrm] = {}
+                if cnt_clip < (n_cutoff / 2) + 1:
+                    m_checked_list[ins_chrm][ins_pos] = (None, None, -1, -1, -1,
+                                                         -1, False, False, False, False)
+                    continue
+                m_checked_list[ins_chrm][ins_pos] = (None, rrecord[0], -1, -1, rrecord[1], rrecord[2],
+                                                     True, False, True, False)
+                if ins_chrm not in m_form_clip_cluster:
+                    m_form_clip_cluster[ins_chrm] = {}
+                m_form_clip_cluster[ins_chrm][ins_pos] =(None, rrecord[0], -1, -1, rrecord[1], rrecord[2],
+                                                     True, False, True, False)
+        #add those in the original list, but not caught here
+        with open(sf_ori_list) as fin_ori:
+            for line in fin_ori:
+                fields=line.split()
+                ins_chrm=fields[0]
+                ins_pos=int(fields[1])
+                if ins_chrm not in m_checked_list:
+                    m_checked_list[ins_chrm]={}
+                if (ins_pos not in m_checked_list[ins_chrm]):
+                    m_checked_list[ins_chrm][ins_pos] = (None, None, -1, -1, -1,
+                                                         -1, False, False, False, False)
+        return m_checked_list, m_form_clip_cluster
 
     # First, all samples should at least have n_disc_cutoff disc reads
     def check_disc_sample_consistency(self, m_clip_checked, m_sample_disc, n_disc_cutoff):
@@ -2164,16 +2498,10 @@ class XClipDiscFilter():
                     m_selected[ins_chrm][ins_pos] = m_clip_checked[ins_chrm][ins_pos]
         return m_selected
 
-####
-    # def _cnt_disc_lr_rc(self, l_rc_pos, ins_pos):
-    #     n_rc=n_non_rc=0
-    #     for ipos in l_rc_pos:
-    #         if ipos<ins_pos:
-
 
     # First, seperate the disc reads to left and right
     # Second, check (left, right seperately) whether most of the disc reads (> ratio) will form cluster
-    def check_seprt_disc_consistency(self, m_repsnt_pos, m_disc, icorcord, ratio, ndisc_cutoff):
+    def check_seprt_disc_consistency(self, m_repsnt_pos, m_disc, icorcord, ratio, ndisc_cutoff, b_transduct=False):
         m_selected = {}
         ckcluster = ClusterChecker()
         for ins_chrm in m_repsnt_pos:
@@ -2185,7 +2513,7 @@ class XClipDiscFilter():
                 n_l_not_rc = 0
                 n_r_rc = 0
                 n_r_not_rc = 0
-                n_l_rc = n_l_non_rc = n_r_rc = n_r_non_rc = 0 #save # of left-(non)rc and right-(non)rc reads
+                n_l_rc2 = n_l_non_rc = n_r_rc2 = n_r_non_rc = 0 #save # of left-(non)rc and right-(non)rc reads
 ####Here, for anchor_pos, it's better to use the middle position as representative position
 ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                 if (ins_chrm not in m_disc) or (ins_pos not in m_disc[ins_chrm]):
@@ -2210,7 +2538,7 @@ class XClipDiscFilter():
                         else:
                             n_r_not_rc += 1
                         if b_anchor_rc==True:
-                            n_r_rc+=1
+                            n_r_rc2+=1
                         else:
                             n_r_non_rc+=1
 
@@ -2222,9 +2550,128 @@ class XClipDiscFilter():
                             n_l_not_rc += 1
 
                         if b_anchor_rc==True:
-                            n_l_rc+=1
+                            n_l_rc2+=1
                         else:
                             n_l_non_rc+=1
+                    else:
+                        if anchor_pos < clip_pos:
+                            l_l_cns_pos.append(cns_pos)
+                            if b_same_ori == True:
+                                n_l_rc += 1
+                            else:
+                                n_l_not_rc += 1
+
+                            if b_anchor_rc == True:
+                                n_l_rc2 += 1
+                            else:
+                                n_l_non_rc += 1
+                        else:
+                            l_r_cns_pos.append(cns_pos)
+                            if b_same_ori == True:
+                                n_r_rc += 1
+                            else:
+                                n_r_not_rc += 1
+
+                            if b_anchor_rc == True:
+                                n_r_rc2 += 1
+                            else:
+                                n_r_non_rc += 1
+                n_l_disc = len(l_l_cns_pos)
+                n_r_disc = len(l_r_cns_pos)
+
+                #if return false, cns_start and cns_end will be set to -1
+                b_lcluster, lcns_start, lcns_end = ckcluster._is_disc_cluster(l_l_cns_pos, icorcord, ratio)
+                b_rcluster, rcns_start, rcns_end = ckcluster._is_disc_cluster(l_r_cns_pos, icorcord, ratio)
+
+                ####Here require either left or right form the cluster
+                if b_lcluster == False and b_rcluster == False:
+                    continue
+                ####If have both side cluster, than require at least n_disc_cutoff support
+                if b_lcluster ==True and b_rcluster == True and (n_l_disc+n_r_disc)<ndisc_cutoff:
+                    continue
+                if b_transduct==True:
+                    if b_lcluster ==True and b_rcluster == False and n_l_disc<(ndisc_cutoff/2):
+                        continue
+                    elif b_lcluster == False and b_rcluster == True and n_r_disc<(ndisc_cutoff/2):
+                        continue
+                ####
+####should use a different cutoff
+####skip for now
+                # b_disc_dir_consist=ckcluster._is_disc_orientation_consistency(n_l_rc, n_l_non_rc, n_r_rc, n_r_non_rc, ratio)
+                # if b_disc_dir_consist==False:
+                #     continue
+
+                rc_rcd = (n_l_rc, n_l_not_rc, n_r_rc, n_r_not_rc) #this is the pair whether are of same orientation
+                anchor_rc_rcd=(n_l_rc2, n_l_non_rc, n_r_rc2, n_r_non_rc)
+                if ins_chrm not in m_selected:
+                    m_selected[ins_chrm] = {}
+                m_selected[ins_chrm][ins_pos] = (n_l_disc, lcns_start, lcns_end, n_r_disc, rcns_start, rcns_end,
+                                                rc_rcd, anchor_rc_rcd)
+        return m_selected
+
+####
+    # This version is for somatic filtering step, we will keep all sites, no matter whether it has disc cluster or not
+    # First, seperate the disc reads to left and right
+    # Second, check (left, right seperately) whether most of the disc reads (> ratio) will form cluster
+    def check_seprt_disc_consistency_for_somatic(self, m_repsnt_pos, m_disc, icorcord, ratio, ndisc_cutoff):
+        m_selected = {}
+        ckcluster = ClusterChecker()
+        for ins_chrm in m_repsnt_pos:
+            for ins_pos in m_repsnt_pos[ins_chrm]:
+                clip_pos = m_repsnt_pos[ins_chrm][ins_pos]
+                l_l_cns_pos = []
+                l_r_cns_pos = []
+                n_l_rc = 0
+                n_l_not_rc = 0
+                n_r_rc = 0
+                n_r_not_rc = 0
+                n_l_rc = n_l_non_rc = n_r_rc = n_r_non_rc = 0  # save # of left-(non)rc and right-(non)rc reads
+                ####Here, for anchor_pos, it's better to use the middle position as representative position
+                ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                if (ins_chrm not in m_disc) or (ins_pos not in m_disc[ins_chrm]):
+                    rc_rcd = (
+                    n_l_rc, n_l_not_rc, n_r_rc, n_r_not_rc)  # this is the pair whether are of same orientation
+                    anchor_rc_rcd = (n_l_rc, n_l_non_rc, n_r_rc, n_r_non_rc)
+                    if ins_chrm not in m_selected:
+                        m_selected[ins_chrm] = {}
+                    m_selected[ins_chrm][ins_pos] = (0, -1, -1, 0, -1, -1,
+                                                     rc_rcd, anchor_rc_rcd)
+                    continue
+
+                for (anchor_pos, is_anchor_lclip, is_anchor_rclip, cns_pos, b_same_ori, b_anchor_rc) \
+                        in m_disc[ins_chrm][ins_pos]:
+                    # here anchor_pos is the clip-position if the disc read is clipped at the same time
+                    # Otherwise, if the read is fully mapped, then is the left-most position mappable position
+                    b_lclip_disc = False  # left clip and also discordant
+                    b_rclip_disc = False  # right clip and also discordant
+                    if abs(anchor_pos - clip_pos) < global_values.NEARBY_CLIP:  #
+                        if is_anchor_lclip == True and is_anchor_rclip == False:
+                            b_lclip_disc = True
+                        if is_anchor_rclip == True and is_anchor_lclip == False:
+                            b_rclip_disc = True
+
+                    if b_lclip_disc == True:  # read is disc and left-clip
+                        l_r_cns_pos.append(cns_pos)
+                        if b_same_ori == True:
+                            n_r_rc += 1
+                        else:
+                            n_r_not_rc += 1
+                        if b_anchor_rc == True:
+                            n_r_rc += 1
+                        else:
+                            n_r_non_rc += 1
+
+                    elif b_rclip_disc == True:
+                        l_l_cns_pos.append(cns_pos)
+                        if b_same_ori == True:
+                            n_l_rc += 1
+                        else:
+                            n_l_not_rc += 1
+
+                        if b_anchor_rc == True:
+                            n_l_rc += 1
+                        else:
+                            n_l_non_rc += 1
                     else:
                         if anchor_pos < clip_pos:
                             l_l_cns_pos.append(cns_pos)
@@ -2251,37 +2698,26 @@ class XClipDiscFilter():
                 n_l_disc = len(l_l_cns_pos)
                 n_r_disc = len(l_r_cns_pos)
 
-                #if return false, cns_start and cns_end will be set to -1
+                # if return false, cns_start and cns_end will be set to -1
                 b_lcluster, lcns_start, lcns_end = ckcluster._is_disc_cluster(l_l_cns_pos, icorcord, ratio)
                 b_rcluster, rcns_start, rcns_end = ckcluster._is_disc_cluster(l_r_cns_pos, icorcord, ratio)
 
-                ####Here require either left or right form the cluster
-                if b_lcluster == False and b_rcluster == False:
-                    continue
-
-                ####If have both side cluster, than require at least n_disc_cutoff support
-                if b_lcluster ==True and b_rcluster == True and (n_l_disc+n_r_disc)<ndisc_cutoff:
-                    continue
-                # elif b_lcluster ==True and b_rcluster == False and n_l_disc<(ndisc_cutoff/2):
+                # ####Here require either left or right form the cluster
+                # if b_lcluster == False and b_rcluster == False:
                 #     continue
-                # elif b_lcluster == False and b_rcluster == True and n_r_disc<(ndisc_cutoff/2):
+                #
+                # ####If have both side cluster, than require at least n_disc_cutoff support
+                # if b_lcluster == True and b_rcluster == True and (n_l_disc + n_r_disc) < ndisc_cutoff:
                 #     continue
 
-                ####
-####should use a different cutoff
-####skip for now
-                # b_disc_dir_consist=ckcluster._is_disc_orientation_consistency(n_l_rc, n_l_non_rc, n_r_rc, n_r_non_rc, ratio)
-                # if b_disc_dir_consist==False:
-                #     continue
-
-                rc_rcd = (n_l_rc, n_l_not_rc, n_r_rc, n_r_not_rc) #this is the pair whether are of same orientation
-                anchor_rc_rcd=(n_l_rc, n_l_non_rc, n_r_rc, n_r_non_rc)
+                rc_rcd = (n_l_rc, n_l_not_rc, n_r_rc, n_r_not_rc)#this is the pair whether are of same orientation
+                anchor_rc_rcd = (n_l_rc, n_l_non_rc, n_r_rc, n_r_non_rc)
                 if ins_chrm not in m_selected:
                     m_selected[ins_chrm] = {}
                 m_selected[ins_chrm][ins_pos] = (n_l_disc, lcns_start, lcns_end, n_r_disc, rcns_start, rcns_end,
-                                                rc_rcd, anchor_rc_rcd)
+                                                 rc_rcd, anchor_rc_rcd)
         return m_selected
-####
+
     ####
     # check the clipped part is qualified aligned or not
     def is_clipped_part_qualified_algnmt(self, l_cigar, ratio_cutoff):
@@ -2546,18 +2982,32 @@ class XClipDiscFilter():
                 continue
 
             clipped_seq = algnmt.query_sequence
-
+            b_clip_part_rc = algnmt.is_reverse #whether the aligned clip part is reverse complementary
+####06-11-2019: bug here, didn't conosider whether the alignment is reverse-complementary or not
+####Now add module to check whether the aligmnment is reverse complementary or not
             s_clip_seq_ck = ""
-            if b_left == False:  # right clip
-                if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                    s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
-                else:
-                    s_clip_seq_ck = clipped_seq
-            else:  # left clip
-                if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                    s_clip_seq_ck = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
-                else:
-                    s_clip_seq_ck = clipped_seq
+            if b_clip_part_rc==False:#not reverse complementary
+                if b_left == False:  # right clip
+                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                    else:
+                        s_clip_seq_ck = clipped_seq
+                else:  # left clip
+                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
+                    else:
+                        s_clip_seq_ck = clipped_seq
+            else:# clip part is reverse complementary
+                if b_left == True:  # left clip
+                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                    else:
+                        s_clip_seq_ck = clipped_seq
+                else:  # right clip
+                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
+                    else:
+                        s_clip_seq_ck = clipped_seq
 
             ##if it is mapped to the left flank regions
             # here make sure it is not poly-A
@@ -2565,10 +3015,13 @@ class XClipDiscFilter():
             # b_polya = xpolyA.is_consecutive_polyA_T(s_clip_seq_ck)
             #b_polya = xpolyA.contain_enough_A_T(s_clip_seq_ck, int(len(s_clip_seq_ck) * global_values.POLYA_RATIO))
 
+
             ##if it is mapped to the left flank regions
             # here make sure it is not poly-A
             #b_polya = self.contain_poly_A_T(clipped_seq, global_values.N_MIN_A_T)  # by default, at least 5A or 5T
-            b_polya = xpolyA.is_consecutive_polyA_T(s_clip_seq_ck)
+##!!!!!!!!!!!!!!!!!!!!!!!
+####Note that: as this is aligned to consensus, only have AAAAA, but no TTTTTT
+            b_polya = xpolyA.is_consecutive_polyA(s_clip_seq_ck)
             if b_polya == True:
                 if ori_chrm not in m_polyA:
                     m_polyA[ori_chrm] = {}
@@ -2576,14 +3029,20 @@ class XClipDiscFilter():
                     m_polyA[ori_chrm][ori_insertion_pos] = []
                     m_polyA[ori_chrm][ori_insertion_pos].append(0)
                     m_polyA[ori_chrm][ori_insertion_pos].append(0)
+                    m_polyA[ori_chrm][ori_insertion_pos].append(0)
+                    m_polyA[ori_chrm][ori_insertion_pos].append(0)
                 if b_left == True:
                     m_polyA[ori_chrm][ori_insertion_pos][0] += 1
+                    if b_clip_part_rc==False:#False means polyA, True means polyT
+                        m_polyA[ori_chrm][ori_insertion_pos][2] += 1
                 else:
                     m_polyA[ori_chrm][ori_insertion_pos][1] += 1
+                    if b_clip_part_rc==False:#False means polyA, True means polyT
+                        m_polyA[ori_chrm][ori_insertion_pos][3] += 1
 
             # calculate the position in consensus
             pos_in_consensus = algnmt.reference_start  # map position on which repeat copy
-            b_clip_part_rc = algnmt.is_reverse
+
             # first, get the clip position on the copy
             if (b_clip_part_rc and b_left) or (b_clip_part_rc == False and b_left == False):
                 pos_in_consensus += n_map_bases
@@ -2735,6 +3194,7 @@ class XClipDiscFilter():
 
         samfile.close()
         return m_disc_pos, m_disc_sample, m_transduction_disc, m_polyA
+
 ####
     # For this version, reads are aligned to the consensus sequence
     # Note that the poly-A part in the consensus has been removed, so it's possible reads will be clipped mapped (at end)
@@ -2750,6 +3210,14 @@ class XClipDiscFilter():
             #     continue
             ####also, for clipped mapped reads, need to check the clipped parts whether can be split to two parts!!!!!!
             # fmt:read_id~is_first~is_anchor_rc~is_anchor_mate_rc~anchor_pos~s_insertion_chrm~s_insertion_pos~sample_id
+            if algnmt.is_unmapped == True:  ####skip the unmapped reads
+                continue
+            # first check whether read is qualified mapped
+            l_cigar = algnmt.cigar
+            b_clip_qualified_algned, n_map_bases = self.is_clipped_part_qualified_algnmt(l_cigar, bmapped_cutoff)
+            if b_clip_qualified_algned == False:  # skip the unqualified re-aligned parts
+                continue
+
             read_info = algnmt.query_name
             read_info_fields = read_info.split(global_values.SEPERATOR)
             s_anchor_lclip=read_info_fields[-8] #anchor read is left clip or not: 1 indicates clip
@@ -2760,16 +3228,7 @@ class XClipDiscFilter():
             ins_chrm = read_info_fields[-3]
             ins_pos = int(read_info_fields[-2])
             sample_id = read_info_fields[-1]
-
             read_seq = algnmt.query_sequence
-
-            if algnmt.is_unmapped == True:  ####skip the unmapped reads
-                continue
-            # first check whether read is qualified mapped
-            l_cigar = algnmt.cigar
-            b_clip_qualified_algned, n_map_bases = self.is_clipped_part_qualified_algnmt(l_cigar, bmapped_cutoff)
-            if b_clip_qualified_algned == False:  # skip the unqualified re-aligned parts
-                continue
 
             b_polya = xpolyA.is_consecutive_polyA_T(read_seq)
             if b_polya == True:
@@ -2824,7 +3283,6 @@ class XClipDiscFilter():
                 m_disc_sample[ins_chrm][ins_pos][sample_id] = 1
             else:
                 m_disc_sample[ins_chrm][ins_pos][sample_id] += 1
-
         samfile.close()
         return m_disc_pos, m_disc_sample, m_polyA
 
@@ -2837,7 +3295,10 @@ class XClipDiscFilter():
     # for given a lits of candidate sites, and a given list of bam files
     # get all the clipped and discordant reads
     # also add the sample id when merging the reads
-    def collect_clipped_disc_reads(self, sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa):
+    def collect_clipped_disc_reads(self, sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa, sf_raw_sites=""):
+        #sf_raw_clip_fq=sf_raw_sites+global_values.RAW_CLIP_FQ_SUFFIX
+        sf_raw_disc_fa=sf_raw_sites+global_values.RAW_DISC_FA_SUFFIX
+        m_lowq_clip = {}
         with open(sf_clip_fq, "w") as fout_clip_fq, open(sf_disc_fa, "w") as fout_disc_fa:
             # first collect all the clipped and discordant reads
             sample_cnt = 0
@@ -2850,8 +3311,19 @@ class XClipDiscFilter():
                     sf_clip_fa_tmp = self.working_folder + "temp_clip.fq" + str(sample_cnt)
 
                     ####collect clipped and disc reads
-                    xclip_disc.collect_clipped_disc_reads_of_given_list(sf_candidate_list, extnd, bin_size,
-                                                                        sf_clip_fa_tmp, sf_disc_fa_tmp)
+                    l_low_mapq_clip=xclip_disc.collect_clipped_disc_reads_of_given_list(sf_candidate_list, extnd,
+                                                                                        bin_size, sf_clip_fa_tmp,
+                                                                                        sf_disc_fa_tmp)
+                    for lowq_rcd in l_low_mapq_clip:
+                        tmp_chrm=lowq_rcd[0]
+                        tmp_pos=int(lowq_rcd[1])
+                        n_lowq_clip=int(lowq_rcd[2])
+                        if tmp_chrm not in m_lowq_clip:
+                            m_lowq_clip[tmp_chrm]={}
+                        if tmp_pos not in m_lowq_clip[tmp_chrm]:
+                            m_lowq_clip[tmp_chrm][tmp_pos]=0
+                        m_lowq_clip[tmp_chrm][tmp_pos] += n_lowq_clip
+
                     with open(sf_disc_fa_tmp) as fin_tmp_fa:
                         n_cnt = 0
                         for line in fin_tmp_fa:
@@ -2867,11 +3339,62 @@ class XClipDiscFilter():
                             fout_clip_fq.write(line)
                             n_cnt += 1
                     sample_cnt += 1
-
-
-    # check the consistency of clipped and discordant positions on realigned repeat copies
-    # this is based on the observation that: reads aligned to repeat copies also follow normal distribution
-    def check_clip_disc_pos_consistency_on_rep(self):
-        return
+                    #clean the temporary files
+                    self.clean_file_by_path(sf_disc_fa_tmp)
+                    self.clean_file_by_path(sf_clip_fa_tmp)
+        return m_lowq_clip
 
 ####
+    # for given a lits of candidate sites, and a given list of bam files
+    # get all the clipped and discordant reads
+    # also add the sample id when merging the reads
+    def collect_clipped_reads(self, sf_candidate_list, extnd, sf_clip_fq):
+        with open(sf_clip_fq, "w") as fout_clip_fq:
+            # first collect all the clipped and discordant reads
+            sample_cnt = 0
+            with open(self.sf_bam_list) as fin_bam_list:
+                for line in fin_bam_list:  # for each bam file
+                    fields=line.split()
+                    sf_bam = fields[0]
+                    xclip_disc = XClipDisc(sf_bam, self.working_folder, self.n_jobs, self.sf_reference)
+                    sf_clip_fa_tmp = self.working_folder + "temp_clip.fq" + str(sample_cnt)
+                    ####collect clipped and disc reads
+                    xclip_disc.collect_clipped_reads_of_given_list(sf_candidate_list, extnd, sf_clip_fa_tmp)
+                    with open(sf_clip_fa_tmp) as fin_clip_fq:
+                        n_cnt = 0
+                        for line in fin_clip_fq:
+                            if n_cnt % 4 == 0:
+                                line = line.rstrip() + global_values.SEPERATOR + str(sample_cnt) + "\n"
+                            fout_clip_fq.write(line)
+                            n_cnt += 1
+                    sample_cnt += 1
+                    #clean the temporary files
+                    self.clean_file_by_path(sf_clip_fa_tmp)
+
+    # for given a lits of candidate sites, and a given list of bam files
+    # get all the clipped and discordant reads
+    # also add the sample id when merging the reads
+    def collect_disc_reads(self, sf_candidate_list, extnd, bin_size, sf_disc_fa):
+        with open(sf_disc_fa, "w") as fout_disc_fa:
+            # first collect all the clipped and discordant reads
+            sample_cnt = 0
+            with open(self.sf_bam_list) as fin_bam_list:
+                for line in fin_bam_list:  # for each bam file
+                    fields=line.split()
+                    sf_bam = fields[0]
+                    xclip_disc = XClipDisc(sf_bam, self.working_folder, self.n_jobs, self.sf_reference)
+                    sf_disc_fa_tmp = self.working_folder + "temp_disc.fa" + str(sample_cnt)
+
+                    ####collect clipped and disc reads
+                    xclip_disc.collect_disc_reads_of_given_list(sf_candidate_list, extnd, bin_size, sf_disc_fa_tmp)
+                    with open(sf_disc_fa_tmp) as fin_tmp_fa:
+                        n_cnt = 0
+                        for line in fin_tmp_fa:
+                            if n_cnt % 2 == 0:
+                                line = line.rstrip() + global_values.SEPERATOR + str(sample_cnt) + "\n"  ###here add the sample id
+                            fout_disc_fa.write(line)
+                            n_cnt += 1
+                    sample_cnt += 1
+                    #clean the temporary files
+                    self.clean_file_by_path(sf_disc_fa_tmp)
+####clean the file

@@ -17,10 +17,10 @@ class IntersectionCaller():
                 pos=int(fields[1])
                 if chrm not in m_rslt:
                     m_rslt[chrm]={}
-                s_label="{0}~{1}~{2}".format(i_sample_id, chrm, pos)#the new lable
+                s_label="{0}~{1}~{2}".format(i_sample_id, chrm, pos)#the new label
                 m_rslt[chrm][pos]=s_label
 
-        m_rslt1 = {}#here we remove all the "chr" for each chrom if it exists
+        m_rslt1 = {}#here we remove all the "chr" for each chrm if it exists
         for chrm_tmp in m_rslt:
             chrm=chrm_tmp
             if len(chrm_tmp)>3 and chrm_tmp[:3]=="chr":

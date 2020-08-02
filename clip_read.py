@@ -397,10 +397,10 @@ class ClipReadInfo():
                         str(pos) + "\t" + str(m_clip_pos[pos][0]) + "\t" + str(m_clip_pos[pos][1]) + "\t" +
                         str(m_clip_pos[pos][2]) + "\n")
         samfile.close()
-####
+
 
     ####This function return:
-    ####1. dictionary of clip position, ##in format {chrm: {map_pos: (left_cnt, right_cnt)}}
+    ########1. dictionary of clip position, ##in format {chrm: {map_pos: (left_cnt, right_cnt)}}
     def collect_clip_positions(self, sf_annotation, i_clip_cutoff, b_se, sf_pub_folder):
         bam_info = BamInfo(self.sf_bam, self.sf_reference)
         b_with_chr = bam_info.is_chrm_contain_chr()
@@ -424,9 +424,10 @@ class ClipReadInfo():
         for rcd in l_chrm_records:
             sf_clip_pos = self.working_folder + rcd[0] + global_values.CLIP_POS_SUFFIX
             sf_pub_pos=sf_pub_folder + rcd[0] + global_values.CLIP_POS_SUFFIX
-            if os.path.isfile(sf_pub_pos)==False:
-                cmd="ln -s {0} {1}".format(sf_clip_pos, sf_pub_folder)
-                Popen(cmd, shell=True, stdout=PIPE).communicate()
+            if os.path.islink(sf_pub_pos)==True or os.path.isfile(sf_pub_pos)==True:
+                os.remove(sf_pub_pos)
+            cmd="ln -s {0} {1}".format(sf_clip_pos, sf_pub_folder)
+            Popen(cmd, shell=True, stdout=PIPE).communicate()
 
     ####given specific chrm, get all the related clipped reads
     #Here besides the long clipped parts, we keep the very short clipped parts that have dominant A or T
@@ -449,7 +450,7 @@ class ClipReadInfo():
         sf_clip_fq = working_folder + chrm + global_values.CLIP_FQ_SUFFIX  # this is to save the clipped part for re-alignment
         f_clip_fq = open(sf_clip_fq, "w")
         xpolyA=PolyA()
-        samfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference)
+        samfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference) #
         m_chrm_id=self._get_chrm_id_name(samfile)
         for algnmt in samfile.fetch(chrm):  ##fetch reads mapped to "chrm"
             ##here need to skip the secondary and supplementary alignments?
@@ -938,18 +939,31 @@ class ClipReadInfo():
                 b_left = False
 
             ################################################
+            b_clip_rc=algnmt.is_reverse
             clipped_seq = algnmt.query_sequence
             s_clip_seq_ck = ""
-            if b_left == False:  # right clip
-                if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                    s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
-                else:
-                    s_clip_seq_ck = clipped_seq
-            else:  # left clip
-                if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                    s_clip_seq_ck = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
-                else:
-                    s_clip_seq_ck = clipped_seq
+            if b_clip_rc==False:
+                if b_left == False:  # right clip
+                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                    else:
+                        s_clip_seq_ck = clipped_seq
+                else:  # left clip
+                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
+                    else:
+                        s_clip_seq_ck = clipped_seq
+            else:
+                if b_left == True:  # left clip
+                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                    else:
+                        s_clip_seq_ck = clipped_seq
+                else:  # right clip
+                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
+                    else:
+                        s_clip_seq_ck = clipped_seq
             b_polya = xpolyA.is_consecutive_polyA_T(s_clip_seq_ck)
             if ori_mpos not in m_polyA:
                 m_polyA[ori_mpos]=[]
@@ -1265,7 +1279,6 @@ class LContigClipReadInfo():
                 #####also to consider the case that totally contained in the long read
                 #####whole inserted ones
                 #####
-
         bamfile.close()
 
     ####This function:
@@ -1299,3 +1312,5 @@ class LContigClipReadInfo():
                 with open(sf_clip_fa) as fin_clip:
                     for line in fin_clip:
                         fout_all.write(line)
+
+####

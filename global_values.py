@@ -32,11 +32,17 @@ MINIMUM_CLIP_MAPQ=12 ####minimum mapping quality when checking a read is clipppe
 def set_min_clip_mapq(mapq):
     global MINIMUM_CLIP_MAPQ
     MINIMUM_CLIP_MAPQ=mapq
+CLIP_LOW_MAPQ=5 ####If the clip reads has mapq<=5, then view as low map quality clip read (counted as background reads)
+MAX_LOWQ_CLIP_RATIO=0.65 #if more thant this value of clipped reads are of lowq, then view as FP.
+NEARBY_LOW_Q_CLIP=35
 
 MINIMUM_DISC_MAPQ = 20 #####minimum mapping quality when collecting discordant reads
 def set_min_disc_mapq(mapq):
     global MINIMUM_DISC_MAPQ
     MINIMUM_DISC_MAPQ=mapq
+
+MAX_BKGRND_LOW_MAPQ = 10#if a read has lower than this value mapq, then view as backgroup low mapq read
+MAX_BKGRND_LOW_MAPQ_RATIO=0.1
 
 BWA_PATH = "bwa"
 SAMTOOLS_PATH = "samtools"
@@ -52,12 +58,14 @@ SEPERATOR = '~'
 ALL_DISC_SUFFIX = ".initial.all.disc"  # this is to save all the disc reads
 
 #only check polyA in a small region, not the whole clipped part
+CK_POLYA_CLIP_WIN=25 #only check whether contain polyA for those clipped reads in a 15bp window
 CK_POLYA_SEQ_MAX=20#at most check 10 bases region for polyA
 POLYA_RATIO=0.4 #at least 40% A or T
-
+###############
 ##############################################################################
 ####originally used in x_alignments.py
 BARCODE_COV_CUTOFF = 600
+MIN_RAW_DISC_CLUSTER_RATIO=0.3
 ##############################################################################
 ILLUMINA="illumina"
 X10="10X"
@@ -75,8 +83,11 @@ CLIP_FOLDER = "clip"
 DISC_FOLDER = "disc"
 DISC_SUFFIX = '.discord_pos.txt'
 DISC_SUFFIX_FILTER = '.discdt'
+RAW_DISC_SUFFIX_FILTER = '.raw.discdt'
 CLIP_TMP = "clip_reads_tmp"
 DISC_TMP = "discordant_reads_tmp"
+RAW_DISC_TMP = "raw_discordant_reads_tmp"#this is for any kind of discordant
+RAW_DISC_TMP_SUFFIX=".clip_sites_raw_disc.txt"
 ###############################################################################
 ###############################################################################
 ####originally used in x_clip_disc_filter.py
@@ -91,7 +102,7 @@ def turn_on_sva():
     IS_CALL_SVA=True
 SVA_ANNOTATION_EXTND=200
 
-##
+####
 DISC_THRESHOLD = 2000
 TSD_CUTOFF = 100
 TRANSDCT_UNIQ_MAPQ=50
@@ -100,11 +111,13 @@ N_MIN_A_T = 5  # minimu number of consecutive "A" or "T"
 NEARBY_CLIP = 50
 CLIP_SEARCH_WINDOW = 15
 CLIP_CONSISTENT_RATIO=0.4
-MAX_COV_TIMES=4 #if the coverage is larger than ave_cov*MAX_COV_TIMES, then view as abnormal
+MAX_COV_TIMES=3 #if the coverage is larger than ave_cov*MAX_COV_TIMES, then view as abnormal
 COV_SEARCH_WINDOW=1000
 COV_ISD_CHK_WIN=900 #check coverage island within this window
 LOCAL_COV_WIN=200
-
+MIN_CLIP_MAPPED_RATIO=0.65
+MIN_DISC_MAPPED_RATIO=0.7
+TWO_SIDE_CLIP_MIN_LEN=8 #to define a two side clip, then clip length should longer than 7bp
 ####
 DISC_NAME_SUFFIX = ".disc_names"
 DISC_POS_SUFFIX = ".disc_pos"
@@ -126,6 +139,8 @@ ONE_SIDE_WEAK="one_side_weak" #the other side has weak signal
 ONE_SIDE_OTHER="one_side_other"
 ONE_SIDE_SV="one_side_sv"
 ONE_SIDE_POLYA_DOMINANT="polyA_dominant_one-side_may_low_confident"
+
+ORPHAN_TRANSDUCTION="orphan_or_sibling_transduction"
 #
 TWO_SIDE_POLYA_DOMINANT="polyA_dominant_both-side_may_low_confident"
 HIGH_COV_ISD="high_coverage_island_low_confident"
@@ -135,22 +150,40 @@ HIT_END_OF_CNS="hit_end_of_consensus"
 NOT_HIT_END_OF_CNS="not_hit_end_of_consensus"
 BOTH_END_CONSISTNT="both_end_consistent"
 ONE_END_CONSISTNT="one_end_consistent"
-
 MAX_POLYA_RATIO=0.85
+RAW_DISC_FA_SUFFIX=".raw_disc.fa"#suffix of the raw disc reads (for collecting extra transduction)
+RAW_CLIP_FQ_SUFFIX=".raw_clip.fq"#suffix of the raw clip reads (for collecting extra transduction)
+HIGH_CONFIDENT_SUFFIX=".high_confident"
+FIVE_PRIME_INVERSION="5-prime-inversion"
+NOT_FIVE_PRIME_INV="Not-5prime-inversion"
 ####
 ####
 ###############################################################################
 ###############################################################################
 ####Originally used in x_transduction.py
 MIN_POLYMORPHIC_SOURCE_DIST=1000
-TRANSDCT_MULTI_SOURCE_MIN_RATIO=0.85#from algnment may show several possible sources, should have a dominant one
-TD_CLIP_QLFD_RATIO=0.85#if the clipped part have more than this ratio of bases are aligned, then view as qualified
+TRANSDCT_MULTI_SOURCE_MIN_RATIO=0.45#from algnment may show several possible sources, should have a dominant one
+TRANSDCT_OTHER_SIDE_CLUSTER_MIN_RATIO=0.1#For the other side, if also form a cluster, require at least this ratio of reads from the same cluster
+TRANSDCT_REGION_CLUSTER_MIN_RATIO=0.67 #at least this number of reads are in the region cluster
+TD_CLIP_QLFD_RATIO=0.8#if the clipped part have more than this ratio of bases are aligned, then view as qualified
 TD_DECOY_LINE="LINE1"
 TD_DECOY_SVA="SVA"
 TD_DECOY_ALU="ALU"
+TD_DECOY_HERV="HERV"
 S_POLYMORPHIC="polymerphic"
-F_MIN_TRSDCT_DISC_MAP_RATION=0.85
+F_MIN_TRSDCT_DISC_MAP_RATION=0.65
 F_MIN_RSC_DISC_MAP_RATION=0.6
+TWO_SITES_CLOSE_DIST=100
+MIN_HALF_SIBLING_DISC_RATIO=0.85
+TD_NON_SIBLING_SUFFIX=".all_non_sibling_td.txt"
+TD_NEW_SITES_SUFFIX=".new_sites"
+#####originally used in x_orphan_transdcution.py
+MIN_SIBLING_FLANK_LEN=15#minimal flank region length of sibling region
+MAX_SIBLING_FLANK_LEN=5000#maximum flank region length of sibling region
+MIN_ORPHAN_DISC_PAIR_INSERT_SIZE=100000 #0.1M
+MIN_CLUSTER_RC_RATIO=0.6 #at least this ratio of reads (each cluster) are reverse(or non)-complementary
+MIN_POLYA_CLIP_RATIO=0.1 #at least 20% of the clipped reads of one side are polyA/T
+DOMINANT_POLYA_T_MIN_RATIO=0.75 #if larger than this, then is dominant
 ###############################################################################
 ###############################################################################
 ######originally defined in x_annotation.py, x_reference.py
@@ -268,10 +301,10 @@ def set_read_length(rlth):
 BASIC_INFO_FILE="basic_cov_is_rlth_info.txt"
 MAX_NORMAL_INSERT_SIZE = 2000
 
-####originally used in x_insert_size.py########################################
+####originally used in x_insert_size.py#######################################
 ISIZE_MEAN_SUFFIX = ".mean_temp_is"
 ####
-####originally used in x_tprt_filter.py########################################
+####originally used in x_tprt_filter.py#######################################
 ONE_SIDE_POLYA_CUTOFF=0.75
 
 ####initially used at l_alignmt_breakpoints.py
@@ -283,7 +316,7 @@ LRD_BRKPNT_FOCAL_REGIN=75 #search breakpoints in [-/+] of this range, and if 85%
 LRD_BRKPNT_FOCAL_CLIP_RATIO=1
 LRD_BRKPNT_MAXIMUM_STD=250
 ####
-####initially used at l_polymorphic_rep.py
+####initially used at l_ghost_TE.py
 LRD_POLYMORPHIC_MIN_CLIP_LEN=1500
 LRD_POLYM_BRK_CHK_WIN=250
 def set_polymorphic_brk_chk_win(i_val):
@@ -302,6 +335,7 @@ LRD_MAX_TSD_LEN=80
 LRD_MIN_TSD_LEN=4
 LRD_MIN_TSD_MATCH_RATIO=0.85 ####at least 85% matched, then view as matched
 ####
+LRD_PSEUDOGENE_INPUT_SUF=".for_pseudogene.fa"#
 ####
 #originally used in x_post_filter.py
 TWO_CLIP_CLUSTER_DIFF_CUTOFF=300
@@ -310,4 +344,11 @@ def set_two_clip_cluster_diff_cutoff(i_cutoff):
     TWO_CLIP_CLUSTER_DIFF_CUTOFF=i_cutoff
 ####
 REP_DIVERGENT_CUTOFF=15#at least divergent rate is 15%
+REP_LOW_DIVERGENT_CUTOFF=7 #if lower than 7%, then directly filter out (by default for L1)
+####
+TD_REP_DIVERGENT_CUTOFF=5#at least divergent rate is 5%, as this is transduction region, tolerate the wrong discordant reads from repeats
+####
+#originally defined in l_ghost_TE.py
+ALPHA_SAT_RMSK="ALR/Alpha"
+HSATII_SAT_RMSK="HSATII"
 ####

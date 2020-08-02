@@ -2,14 +2,272 @@
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
 ##@@contact: chong_chu@hms.harvard.edu
 
-####This is a stand alone module can run by itself;
-####It has the "main" function at the bottom.
+#this module is designed for cancer (case-control) genomes
 
 import os
 from optparse import OptionParser
 from x_clip_disc_filter import *
+from x_genotype_feature import *
+from x_transduction import *
+from x_orphan_transduction import *
 
+####
 class CaseControlMode():
+    def __init__(self, sf_ref, s_wfolder, n_jobs):
+        self.s_wfolder=s_wfolder
+        if os.path.exists(s_wfolder)==False:
+            self.s_wfolder="./"
+        elif s_wfolder[-1]!="/":
+            s_wfolder+="/"
+        self.sf_ref=sf_ref
+        self.n_jobs=n_jobs
+
+        self.iextnd = 400  ###for each site, re-collect reads in range [-iextnd, iextnd], this around ins +- 3*derivation
+        self.bin_size = 50000000  # block size for parallelization
+        self.bmapped_cutoff = 0.65
+        self.i_concord_dist = 550  # this should be the 3*std_derivation, used to cluster disc reads on the consensus
+        self.f_concord_ratio = 0.45
+        self.CLIP_CONSIST_DIST=35
+        self.DISC_CONSIST_DIST=50
+
+####
+    def set_parameters(self, iextnd, bin_size, bmapped_cutoff, i_concord_dist, f_concord_ratio):
+        self.iextnd=iextnd
+        self.bin_size=bin_size
+        self.bmapped_cutoff=bmapped_cutoff
+        self.i_concord_dist=i_concord_dist
+        self.f_concord_ratio=f_concord_ratio
+####
+    ####nclip, ndisc are the cutoff when calling somatic events
+    #sf_bam_list is in format: s_id sf_control1 sf_control2
+    def call_somatic_TE_insertion(self, sf_bam_list, sf_case_candidates, extnd, nclip_cutoff, ndisc_cutoff,
+                                  npolyA_cutoff, sf_rep_cns, sf_flank, i_flk_len, bin_size, sf_out, b_tumor=False):
+        #separate the transduction and non-transduction cases
+        #for non-transduction cases:
+        xclip_disc = XClipDiscFilter(sf_bam_list, self.s_wfolder, self.n_jobs, self.sf_ref)
+        sf_non_td = sf_case_candidates + ".non_td.tmp"
+        sf_td=sf_case_candidates+".td.tmp"
+        sf_orphan=sf_case_candidates+".orphan.tmp"
+        xclip_disc.sprt_TEI_to_td_orphan_non_td(sf_case_candidates, sf_non_td, sf_td, sf_orphan)
+
+        #parse, realign, cluster clip and discordant reads to consensus, and save to a file
+        sf_tmp_cluster=sf_out+".candidate_somatic_cluster_from_ctrl.txt"
+        m_clip_cluster_non_td=xclip_disc.call_clip_disc_cluster(sf_non_td, self.iextnd, self.bin_size, sf_rep_cns,
+                                          self.bmapped_cutoff,self.i_concord_dist, self.f_concord_ratio, nclip_cutoff,
+                                          ndisc_cutoff, self.s_wfolder, sf_tmp_cluster)
+
+        #First round filter for TD cases
+        # parse, realign, cluster clip and discordant reads to consensus, and save to a file
+        sf_tmp_td_cluster = sf_out + ".candidate_somatic_td_cluster_from_ctrl.txt"
+        m_clip_cluster_td = xclip_disc.call_clip_disc_cluster(sf_td, self.iextnd, self.bin_size, sf_rep_cns,
+                                                                  self.bmapped_cutoff, self.i_concord_dist,
+                                                                  self.f_concord_ratio, nclip_cutoff,
+                                                                  ndisc_cutoff, self.s_wfolder, sf_tmp_td_cluster)#
+        #Second round filter for TD cases
+        #parse, realign to flanking sequences, and save to file
+        xtd=XTransduction(self.s_wfolder, self.n_jobs, self.sf_ref)
+        sf_tmp_cluster_td=sf_out+".candidate_somatic_cluster_from_ctrl_td.txt"
+        m_td_cluster, m_td_polyA=xtd.collect_realign_reads(sf_td, sf_case_candidates, xclip_disc, sf_flank,
+                                                           i_flk_len, extnd, bin_size, ndisc_cutoff, sf_rep_cns,
+                                                           sf_tmp_cluster_td)
+####
+        with open(sf_out+".tmp_ctrl_clip_polyA", "w") as fout_clip_polyA:
+            for ins_chrm in m_td_polyA:
+                for ins_pos in m_td_polyA[ins_chrm]:
+                    rcd=m_td_polyA[ins_chrm][ins_pos]
+                    sinfo="{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t\t{7}\n".format(ins_chrm, ins_pos, rcd[0], rcd[1], rcd[2],
+                                                                              rcd[3], rcd[4], rcd[5])
+                    fout_clip_polyA.write(sinfo)
+
+        #collect features for orphan cases from control bam
+        #check each sites and filter out germline cases
+        xorphan=XOrphanTransduction(self.s_wfolder, self.n_jobs, self.sf_ref)
+        m_need_filter_out=xorphan.check_features_for_given_sites(sf_orphan, sf_bam_list, nclip_cutoff, ndisc_cutoff)
+
+        #print m_clip_cluster
+        #parse out the somatic events
+        m_cluster_info=xclip_disc.load_TEI_info_from_file(sf_tmp_cluster)
+        with open(sf_out, "w") as fout_rslt:
+            with open(sf_non_td) as fin_sites:
+                for line in fin_sites:
+                    fields=line.split()
+                    if self.pass_cns_chk(m_cluster_info, m_clip_cluster_non_td, fields, npolyA_cutoff)==True:
+                        fout_rslt.write(line)
+            with open(sf_td) as fin_sites:
+                for line in fin_sites:
+                    l_fields=line.split()
+                    if self.pass_td_chk(m_td_cluster, m_td_polyA, l_fields, npolyA_cutoff)==True:
+                        if self.pass_cns_chk(m_cluster_info, m_clip_cluster_td, l_fields, npolyA_cutoff) == True:
+                            fout_rslt.write(line)
+            with open(sf_orphan) as fin_orphan:
+                for line in fin_orphan:
+                    fields=line.split()
+                    chrm=fields[0]
+                    pos=int(fields[1])
+                    if (chrm in m_need_filter_out) and (pos in m_need_filter_out[chrm]):
+                        continue
+                    fout_rslt.write(line)
+####
+####
+    #check by collect clip disc reads from control, and align them to consensus
+    #if: 1) disc reads form same cluster
+    #    2) clip reads form same cluster
+    #    3) polyA support
+    def pass_cns_chk(self, m_cluster, m_clip_cluster, l_case_site_info, n_polyA_cutoff):
+        ins_chrm=l_case_site_info[0]
+        ins_pos=int(l_case_site_info[1])
+        s_case_lclip_clst = l_case_site_info[19]
+        s_case_rclip_clst = l_case_site_info[20]
+        s_case_ldisc_clst = l_case_site_info[21]
+        s_case_rdisc_clst = l_case_site_info[22]
+
+        if (ins_chrm in m_clip_cluster) and (ins_pos in m_clip_cluster[ins_chrm]):
+            s_ctrl_lclip_clst = str(m_clip_cluster[ins_chrm][ins_pos][2]) + ":" + str(
+                m_clip_cluster[ins_chrm][ins_pos][3])
+            s_ctrl_rclip_clst = str(m_clip_cluster[ins_chrm][ins_pos][4]) + ":" + \
+                                str(m_clip_cluster[ins_chrm][ins_pos][5])
+            b_clip_consist = self._is_clip_cluster_consist(s_case_lclip_clst, s_case_rclip_clst,
+                                                           s_ctrl_lclip_clst, s_ctrl_rclip_clst)
+            if b_clip_consist == True:
+                return False
+
+        if (ins_chrm not in m_cluster) or (ins_pos not in m_cluster[ins_chrm]):
+            print "{0}:{1} doesn't form clip and disc cluster!".format(ins_chrm, ins_pos)
+            return True
+
+        (nlclip, nrclip, nldisc, nrdisc, nlpolyA, nrpolyA, s_cns_lclip, s_cns_rclip,
+         s_cns_ldisc, s_cns_rdisc)=m_cluster[ins_chrm][ins_pos]
+        b_polyA=False
+        if nlpolyA>n_polyA_cutoff and nrpolyA>n_polyA_cutoff:#both side polyA
+            b_polyA=True
+            return False
+
+        b_clip_consist=self._is_clip_cluster_consist(s_case_lclip_clst, s_case_rclip_clst, s_cns_lclip, s_cns_rclip)
+        b_disc_consist=self._is_disc_cluster_consist(s_case_ldisc_clst, s_case_rdisc_clst, s_cns_ldisc, s_cns_rdisc)
+
+        if b_clip_consist or b_disc_consist:
+            return False
+        return True
+
+    ####
+    def pass_td_chk(self, m_td_cluster, m_td_polyA, l_fields, n_polyA_cutoff):
+        #1. check whether they are of the same disc cluster
+        ins_chrm=l_fields[0]
+        ins_pos=int(l_fields[1])
+        s_case_src=l_fields[23]
+
+        if (ins_chrm not in m_td_cluster) or (ins_pos not in m_td_cluster[ins_chrm]):
+            return True
+        s_ctrl_src=m_td_cluster[ins_chrm][ins_pos][0]
+        if (s_ctrl_src in s_case_src) or (s_ctrl_src == s_case_src) or (s_case_src in s_ctrl_src):
+            print "{0}:{1} transduction is filtered out, as it has the same source as control".format(ins_chrm, ins_pos)
+            return False
+
+        #2. check polyA support
+        if (ins_chrm in m_td_polyA) and (ins_pos in m_td_polyA[ins_chrm]):
+            n_polyA=m_td_polyA[ins_chrm][ins_pos][0]+m_td_polyA[ins_chrm][ins_pos][1]
+            n_polyT=m_td_polyA[ins_chrm][ins_pos][2]+m_td_polyA[ins_chrm][ins_pos][3]
+            if n_polyA>=n_polyA_cutoff or n_polyT>=n_polyA_cutoff:
+                print "{0}:{1} transduction is filtered out, as there are polyA tails found in control".format(ins_chrm, ins_pos)
+                return False
+        return True
+####
+####
+    def _is_clip_cluster_consist(self, s_case_lclip_clst, s_case_rclip_clst, s_ctrl_lclip_clst, s_ctrl_rclip_clst):
+        l_ctrl_lclip=s_ctrl_lclip_clst.split(":")
+        l_ctrl_rclip=s_ctrl_rclip_clst.split(":")
+        l_case_lclip=s_case_lclip_clst.split(":")
+        l_case_rclip=s_case_rclip_clst.split(":")
+
+        b_l_consist=False
+        b_r_consist=False
+
+        if s_ctrl_rclip_clst != "-1:-1" and s_case_rclip_clst!="-1:-1":
+            if abs(int(l_case_rclip[0])-int(l_ctrl_rclip[0])) < self.CLIP_CONSIST_DIST or \
+                            abs(int(l_case_rclip[1])-int(l_ctrl_rclip[1])) < self.CLIP_CONSIST_DIST:
+                b_r_consist = True
+        if s_ctrl_lclip_clst != "-1:-1" and s_case_lclip_clst != "-1:-1":
+            if abs(int(l_case_lclip[0])-int(l_ctrl_lclip[0])) < self.CLIP_CONSIST_DIST or \
+                            abs(int(l_case_lclip[1])-int(l_ctrl_lclip[1])) < self.CLIP_CONSIST_DIST:
+                b_l_consist = True
+        if s_ctrl_rclip_clst != "-1:-1" and s_case_rclip_clst!="-1:-1":
+            if abs(int(l_case_rclip[0])-int(l_ctrl_rclip[1])) < self.CLIP_CONSIST_DIST or \
+                            abs(int(l_case_rclip[1])-int(l_ctrl_rclip[0])) < self.CLIP_CONSIST_DIST:
+                b_r_consist = True
+        if s_ctrl_lclip_clst != "-1:-1" and s_case_lclip_clst != "-1:-1":
+            if abs(int(l_case_lclip[0])-int(l_ctrl_lclip[1])) < self.CLIP_CONSIST_DIST or \
+                            abs(int(l_case_lclip[1])-int(l_ctrl_lclip[0])) < self.CLIP_CONSIST_DIST:
+                b_l_consist = True
+        return b_l_consist or b_r_consist
+
+####
+    def _is_disc_cluster_consist(self, s_case_ldisc_clst, s_case_rdisc_clst, s_ctrl_ldisc_clst, s_ctrl_rdisc_clst):
+        l_ctrl_ldisc = s_ctrl_ldisc_clst.split(":")
+        l_ctrl_rdisc = s_ctrl_rdisc_clst.split(":")
+        l_case_ldisc = s_case_ldisc_clst.split(":")
+        l_case_rdisc = s_case_rdisc_clst.split(":")
+
+        b_l_consist = False
+        b_r_consist = False
+
+        if s_ctrl_rdisc_clst != "-1:-1" and s_case_rdisc_clst != "-1:-1":
+            if abs(int(l_case_rdisc[0]) - int(l_ctrl_rdisc[0])) < self.DISC_CONSIST_DIST or \
+                            abs(int(l_case_rdisc[1]) - int(l_ctrl_rdisc[1])) < self.DISC_CONSIST_DIST:
+                b_r_consist = True
+        if s_ctrl_ldisc_clst != "-1:-1" and s_case_ldisc_clst != "-1:-1":
+            if abs(int(l_case_ldisc[0]) - int(l_ctrl_ldisc[0])) < self.DISC_CONSIST_DIST or \
+                            abs(int(l_case_ldisc[1]) - int(l_ctrl_ldisc[1])) < self.DISC_CONSIST_DIST:
+                b_l_consist = True
+        ####
+        if s_ctrl_rdisc_clst != "-1:-1" and s_case_rdisc_clst != "-1:-1":
+            if abs(int(l_case_rdisc[0]) - int(l_ctrl_rdisc[1])) < self.DISC_CONSIST_DIST or \
+                            abs(int(l_case_rdisc[1]) - int(l_ctrl_rdisc[1])) < self.DISC_CONSIST_DIST:
+                b_r_consist = True
+        if s_ctrl_ldisc_clst != "-1:-1" and s_case_ldisc_clst != "-1:-1":
+            if abs(int(l_case_ldisc[1]) - int(l_ctrl_ldisc[0])) < self.DISC_CONSIST_DIST or \
+                            abs(int(l_case_ldisc[1]) - int(l_ctrl_ldisc[1])) < self.DISC_CONSIST_DIST:
+                b_l_consist = True
+        return b_l_consist or b_r_consist
+
+    def pass_gntp_features_chk(self, m_gntp_features, ins_chrm, ins_pos, ndisc_cutoff, nclip_cutoff, npolyA_cutoff):
+        gntp_rcd = m_gntp_features[ins_chrm][ins_pos]
+        n_af_clip = gntp_rcd[0]
+        n_raw_clip = gntp_rcd[2] + gntp_rcd[3]
+        n_disc = gntp_rcd[4]
+        n_polyA = gntp_rcd[-2]
+        n_disc_chrms = gntp_rcd[-1]
+
+        ####potential issue is: if nearby there is another SV, may cause FN
+        if n_disc > ndisc_cutoff and n_disc_chrms > 2:
+            print "{0}:{1} is filtered out, as there are discordant reads in control".format(ins_chrm, ins_pos)
+            return False
+        if n_af_clip > nclip_cutoff and n_polyA > npolyA_cutoff:
+            print "{0}:{1} is filtered out, as there are clipped reads (with polyA) in control".format(ins_chrm,
+                                                                                                       ins_pos)
+            return False
+        return True
+
+    def parse_high_confident_somatic(self, sf_hc_sites, sf_raw_somatic, sf_out):
+        m_raw_somatic={}
+        with open(sf_raw_somatic) as fin_somatic:
+            for line in fin_somatic:
+                fields=line.split()
+                ins_chrm=fields[0]
+                ins_pos=int(fields[1])
+                if ins_chrm not in m_raw_somatic:
+                    m_raw_somatic[ins_chrm]={}
+                m_raw_somatic[ins_chrm][ins_pos]=1
+        with open(sf_out, "w") as fout, open(sf_hc_sites) as fin_sites:
+            for line in fin_sites:
+                fields=line.split()
+                ins_chrm = fields[0]
+                ins_pos = int(fields[1])
+                if (ins_chrm not in m_raw_somatic) or (ins_pos not in m_raw_somatic[ins_chrm]):
+                    continue
+                fout.write(line)
+####
+####
+class CaseControlMode_old():
     def __init__(self, s_wfolder):
         self.s_wfolder=s_wfolder
         if os.path.exists(s_wfolder)==False:
@@ -297,13 +555,12 @@ class SomaticMEICaller():#
                         fout_rslts.write(line)
 
 #awk -F "," '{cnt=$2+$3+$4+$5; if(cnt==1){print $0}}' intersect_picked_neuron.csv > intersect_picked_neuron_single.txt
-    #def call_mosaic_from_
 ##########################################################################
     #This version is to call
     def call_somatic_from_case_control(self, sf_case, sf_control, islack, sf_out):
         m_all_case = self.load_sites(sf_case)
 
-# ####
+#####
 # def parse_option():
 #     parser = OptionParser()
 #     parser.add_option("-i", "--input", dest="input",
@@ -331,3 +588,4 @@ class SomaticMEICaller():#
 #
 #     case_control_mode=CaseControlMode(s_wfolder)
 #     case_control_mode.call_somatic_cases(sf_vs_ids, sf_case_list, sf_control_list, i_slack)
+####

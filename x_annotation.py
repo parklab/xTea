@@ -36,9 +36,7 @@ class XAnnotation():
         b_chrm_with_chr = False
         if len(chrm) > 3 and chrm[:3] == "chr":  ##Here remove the "chr"
             b_chrm_with_chr = True
-
         # print chrm, self.b_with_chr, b_chrm_with_chr #################################################################
-
         if self.b_with_chr == True and b_chrm_with_chr == True:
             return chrm
         elif self.b_with_chr == True and b_chrm_with_chr == False:
@@ -49,7 +47,7 @@ class XAnnotation():
             return chrm
 
     def is_ref_chrm_with_chr(self, sf_ref):
-        f_fa = pysam.FastaFile(sf_ref)  ####
+        f_fa = pysam.FastaFile(sf_ref)
         m_ref_chrms = {}
         for tmp_chrm in f_fa.references:
             m_ref_chrms[tmp_chrm] = 1
@@ -126,7 +124,8 @@ class XAnnotation():
         chr_map['n'] = 'N'
 
     #
-    def collect_seqs_of_TE_from_ref_bed_fmt(self, sf_ref, sf_out_fa):
+    def collect_seqs_of_TE_from_ref_bed_fmt(self, sf_ref, sf_out_fa, flank_lth=0):
+        i_extnd=flank_lth
         f_ref = pysam.FastaFile(sf_ref)
         m_ref_chrms = {}
         for tmp_chrm in f_ref.references:
@@ -138,16 +137,21 @@ class XAnnotation():
                     chrm = fields[0]
                     pstart = int(fields[1])
                     pend = int(fields[2])
+                    s_type=fields[-1]
+                    if "SVA" not in s_type:
+                        s_type=""
                     if chrm not in m_ref_chrms:
                         continue
                     if pend <= 0:
                         continue  # skip the copies with exceed the regions
 
-                    s_reg = f_ref.fetch(chrm, pstart, pend)
-                    s_TE_fa_head = ">{0}{1}{2}{3}{4}".format(chrm, global_values.S_DELIM, pstart, global_values.S_DELIM, pend)
+                    s_reg = f_ref.fetch(chrm, pstart-i_extnd, pend+i_extnd)
+                    s_TE_fa_head = ">{0}{1}{2}{3}{4}{5}{6}".format(chrm, global_values.S_DELIM, pstart,
+                                                                   global_values.S_DELIM, pend, global_values.S_DELIM, s_type)
                     fout_fa.write(s_TE_fa_head + "\n")
                     fout_fa.write(s_reg + "\n")
         f_ref.close()
+####
 
     ####only collect the flank regions of the repeats
     def collect_flank_regions_of_TE_from_ref(self, sf_ref, flank_lth, sf_out_fa):
@@ -292,6 +296,33 @@ class XAnnotation():
                     self.m_rmsk_annotation[chrm][extd_start_pos] = []
                 self.m_rmsk_annotation[chrm][extd_start_pos].append(
                     (end_pos, b_rc, sub_type, csn_start, csn_end))
+
+    def load_annotation_no_extnd_from_bed(self):
+        with open(self.sf_annotation) as fin_rmsk:
+            for line in fin_rmsk:
+                fields = line.split()
+                tmp_chrm = fields[0]
+                chrm = self._process_chrm_name(tmp_chrm)
+                start_pos = int(fields[1])
+                end_pos = int(fields[2])
+                s_rc=fields[-2]
+                b_rc=False
+                if s_rc=="C":
+                    b_rc=True
+                sub_type=fields[-1]
+                if "SVA" not in sub_type:
+                    sub_type=""
+
+                if chrm not in self.m_rmsk_annotation:
+                    self.m_rmsk_annotation[chrm] = {}
+                if start_pos in self.m_rmsk_annotation[chrm]:  ##this is not allowed!!!!
+                    print "Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos)
+
+                extd_start_pos = start_pos
+                if extd_start_pos not in self.m_rmsk_annotation[chrm]:
+                    self.m_rmsk_annotation[chrm][extd_start_pos] = []
+                self.m_rmsk_annotation[chrm][extd_start_pos].append(
+                    (end_pos, b_rc, sub_type, None, None))
 ####
     # 7288   1.3  0.1  0.1  chr21     32213340 32214177 (15915718) +  L1HS LINE/L1 5312 6155    (0) 4482983
     # 4741   0.6  0.0  0.0  chr21     17916705 17917238 (30212657) C  L1HS LINE/L1 (0) 6155   5622 4462908
@@ -408,6 +439,7 @@ class XAnnotation():
                     self.m_rmsk_annotation[chrm][extd_start_pos] = []
                 self.m_rmsk_annotation[chrm][extd_start_pos].append(
                     (end_pos, mismatch_rate, b_rc, sub_type, family, csn_start, csn_end))
+
     ####this version allow the start and end position extend some distance
     ####also return the diverant rate
     def load_rmsk_annotation_with_divgnt_no_slack_with_extnd(self, iextnd):
@@ -450,6 +482,7 @@ class XAnnotation():
                     self.m_rmsk_annotation[chrm][extd_start_pos] = []
                 self.m_rmsk_annotation[chrm][extd_start_pos].append(
                     (end_pos, mismatch_rate, b_rc, sub_type, family, csn_start, csn_end))
+
     # 7288   1.3  0.1  0.1  chr21     32213340 32214177 (15915718) +  L1HS LINE/L1 5312 6155    (0) 4482983
     # 4741   0.6  0.0  0.0  chr21     17916705 17917238 (30212657) C  L1HS LINE/L1 (0) 6155   5622 4462908
     def load_rmsk_annotation_with_extnd_div_with_lenth_cutoff(self, i_extnd, i_min_len):
@@ -559,7 +592,7 @@ class XAnnotation():
             else:
                 hi = mid - 1
         return False, -1
-#
+####
     #Index by interval tree
     def index_rmsk_annotation_interval_tree(self):
         for chrm in self.m_rmsk_annotation:
@@ -582,8 +615,24 @@ class XAnnotation():
             return True, start_pos
         return False, -1
 
+    #this version will reture all the possible hits
+    def is_within_repeat_region_interval_tree2(self, chrm1, pos):
+        l_hits=[]
+        chrm=self._process_chrm_name(chrm1)
+        if chrm not in self.m_interval_tree:
+            return l_hits
+        tmp_tree = self.m_interval_tree[chrm]
+        set_rslt = tmp_tree[pos]
+        if len(set_rslt)==0:
+            return l_hits
+        for rcd in set_rslt:
+            start_pos=rcd[0]
+            l_hits.append((True, start_pos))
+        return l_hits
+
     ####get divergent rate and subfamily of the given repeat
-    def get_div_subfamily(self, chrm, pos):
+    def get_div_subfamily(self, chrm1, pos):
+        chrm = self._process_chrm_name(chrm1)
         if chrm not in self.m_rmsk_annotation:
             return -1, "", None, None, None
         if pos not in self.m_rmsk_annotation[chrm]:
@@ -598,6 +647,51 @@ class XAnnotation():
         pos_end=int(self.m_rmsk_annotation[chrm][pos][0][0])
         return div_rate, sub_family, family, pos, pos_end
 
+    ####get divergent rate and subfamily of the given repeat
+    ####If have several hits, then return them all
+    def get_div_subfamily_with_min_div(self, chrm1, pos):
+        chrm = self._process_chrm_name(chrm1)
+        if chrm not in self.m_rmsk_annotation:
+            return -1, "", None, None, None
+        if pos not in self.m_rmsk_annotation[chrm]:
+            return -1, "", None, None, None
+
+        div_rate = self.m_rmsk_annotation[chrm][pos][0][1]
+        sub_family = self.m_rmsk_annotation[chrm][pos][0][3]
+        family = self.m_rmsk_annotation[chrm][pos][0][4]
+        # cns_start=int(self.m_rmsk_annotation[chrm][pos][0][-2])
+        # cns_end=int(self.m_rmsk_annotation[chrm][pos][0][-1])
+        # rep_lenth=cns_end-cns_start
+        pos_end = int(self.m_rmsk_annotation[chrm][pos][0][0])
+        if len(self.m_rmsk_annotation[chrm][pos])>1:
+            for rcd in self.m_rmsk_annotation[chrm][pos][1:]:
+                tmp_div_rate = rcd[1]
+                if tmp_div_rate < div_rate:
+                    div_rate = tmp_div_rate
+                    sub_family = rcd[3]
+                    family = rcd[4]
+                    pos_end = int(rcd[0])
+        return div_rate, sub_family, family, pos, pos_end
+
+    ####this version will reture all the possible hits
+    ####get divergent rate and subfamily of the given repeat
+    ####If have several hits, then return them all
+    def get_div_subfamily_with_min_div2(self, chrm1, pos):
+        l_hits = []
+        chrm = self._process_chrm_name(chrm1)
+        if chrm not in self.m_rmsk_annotation:
+            return l_hits
+        if pos not in self.m_rmsk_annotation[chrm]:
+            return l_hits
+
+        for rcd in self.m_rmsk_annotation[chrm][pos]:
+            div_rate=rcd[1]
+            sub_family=rcd[3]
+            family=rcd[4]
+            pos_end=int(rcd[0])
+            l_hits.append((div_rate, sub_family, family, pos, pos_end))
+        return l_hits
+####
     def get_annotation_TE_region_lenth(self, chrm, start_pos):
         end_pos = self.m_rmsk_annotation[chrm][start_pos][0][0]
         return end_pos - start_pos
@@ -609,7 +703,6 @@ class XAnnotation():
     # #Given one position like: 4~135176492~135176779~L1MA4, get the position on consensus
     # def map_annotation_pos_to_consensus_pos(self, b_with_flank, flank_length, in_pos):
     #
-
 
     ####given the original repeatmasker file, generate the file contain the selected records
     def select_L1_annotation_from_rmsk(self, lth_cutoff, sf_out):
@@ -642,3 +735,4 @@ class XAnnotation():
 
                 if abs(csn_end-csn_start)>=lth_cutoff or sub_type=="L1HS":
                     fout_selected.write(line)
+####

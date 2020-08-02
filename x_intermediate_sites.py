@@ -122,7 +122,8 @@ class XIntemediateSites():
                         s_feature = str(m_candidate_list[chrm][pos][i])
                         fout_candidate_sites.write(s_feature + "\t")
                     fout_candidate_sites.write("\n")
-#
+
+####
     def is_decoy_contig_chrms(self, chrm):
         fields = chrm.split("_")
         if len(fields) > 1:
@@ -141,7 +142,7 @@ class XIntemediateSites():
             return True
         else:
             return False
-
+####
 
     def load_in_candidate_list(self, sf_candidate_list):
         m_list = {}
@@ -159,6 +160,22 @@ class XIntemediateSites():
                     m_list[chrm][pos] = []
                 for ivalue in fields[2:]:
                     m_list[chrm][pos].append(int(ivalue))
+        return m_list
+
+    ####
+    def load_in_candidate_list_one_line(self, sf_candidate_list):
+        m_list = {}
+        with open(sf_candidate_list) as fin_candidate_sites:
+            for line in fin_candidate_sites:
+                fields = line.split()
+                if len(fields)<3:
+                    print fields, "does not have enough fields"
+                    continue
+                chrm = fields[0]
+                pos = int(fields[1])
+                if chrm not in m_list:
+                    m_list[chrm] = {}
+                m_list[chrm][pos]=line.rstrip()
         return m_list
 
     ####
@@ -195,6 +212,14 @@ class XIntemediateSites():
                     m_list[chrm][pos].append(ivalue) #here save str
         return m_list
 
+    def is_in_existing_list(self, ins_chrm, ins_pos, m_sites, i_win):
+        if ins_chrm not in m_sites:
+            return False
+        for i in range(ins_pos-i_win, ins_pos+i_win):
+            if (i+ins_pos) in m_sites[ins_chrm]:
+                return True
+        return False
+
     # In the previous step (call_TEI_candidate_sites), some sites close to each other may be introduced together
     # If there are more than 1 site close to each other, than use the peak site as a representative
     def call_peak_candidate_sites(self, m_candidate_sites, peak_window):#
@@ -228,7 +253,7 @@ class XIntemediateSites():
                 pre_pos = pos
                 set_cluster.add(pre_pos)
 
-            # push out the last group
+            # push out the last group 
             max_clip = 0
             tmp_candidate_pos = 0
             ####check the standard derivation
@@ -295,8 +320,7 @@ class XIntemediateSites():
                         m_peak_candidate_sites[chrm][tmp_candidate_pos] = [max_clip, f_lclip_std, f_rclip_std, f_clip_std]
                 pre_pos = pos
                 set_cluster.add(pre_pos)
-
-
+####
             # push out the last group
             max_clip = 0
             tmp_candidate_pos = 0
@@ -606,6 +630,14 @@ class XIntemediateSites():
                 pos=int(fields[1])
                 if (chrm in m_peak_candidate_sites) and (pos in m_peak_candidate_sites[chrm]):
                     fout_sites.write(line)
+
+    def are_sites_close(self, pos1, pos2, iwin):
+        i_start=pos1-iwin
+        i_end=pos1+iwin
+        for i in range(i_start, i_end):
+            if i==pos2:
+                return True
+        return False
 
     ####calculate the std derivation of a list of positions
     def calc_std_derivation(self, l_pos):

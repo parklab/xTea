@@ -85,7 +85,6 @@ class ReadDepth(X_BasicInfo):
     #focal_win: calc the depth in this range
     def calc_coverage_of_sites(self, sf_sites, sf_bam_list, search_win, focal_win):
         m_site_cov = {}
-
         with open(sf_bam_list) as fin_bams:
             for line in fin_bams:
                 sf_bam=line.rstrip()
@@ -137,6 +136,7 @@ class ReadDepth(X_BasicInfo):
         start_pos = insertion_pos - search_win
         if start_pos <= 0:
             start_pos = 1
+            return (chrm, insertion_pos, 0, 0, 0, 0)
         end_pos = insertion_pos + search_win
 
         sf_bam = record[1]
@@ -146,8 +146,7 @@ class ReadDepth(X_BasicInfo):
         b_with_chr = bam_info.is_chrm_contain_chr()
         chrm_in_bam = self._process_chrm_name(b_with_chr, chrm)
         samfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference)
-        for algnmt in samfile.fetch(chrm_in_bam, start_pos,
-                                    end_pos):  ##fetch reads mapped to "chrm:start_pos-end_pos"
+        for algnmt in samfile.fetch(chrm_in_bam, start_pos, end_pos):  ##fetch reads mapped to "chrm:start_pos-end_pos"
             ##here need to skip the secondary and supplementary alignments
             # if algnmt.is_secondary or algnmt.is_supplementary:
             #     continue
@@ -155,7 +154,7 @@ class ReadDepth(X_BasicInfo):
                 continue
             if algnmt.is_unmapped == True:  ##unmapped
                 continue
-            map_pos = algnmt.reference_start  # mapping position
+            map_pos = algnmt.reference_start  ##mapping position
             l_cigar = algnmt.cigar
             tmp_end_pos = self._get_map_end_pos(l_cigar, map_pos)
             lfocal_start = insertion_pos - focal_win
@@ -200,7 +199,8 @@ class ReadDepth(X_BasicInfo):
         frcov2 = self.__calc_coverage(mrcov2, focal_win2)
 
         return (chrm, insertion_pos, flcov, frcov, flcov2, frcov2)
-#
+
+    ####
     #calculate the local read depth of given sites
     #sf_sites: the interested sites
     #search_win: collect reads in this range
@@ -228,7 +228,6 @@ class ReadDepth(X_BasicInfo):
                     ins_pos=record[1]
                     flcov=record[2]
                     frcov=record[3]
-
                     flcov2 = record[4]
                     frcov2 = record[5]
 
@@ -247,7 +246,7 @@ class ReadDepth(X_BasicInfo):
                     m_site_cov[ins_chrm][ins_pos][3] += frcov2
         return m_site_cov
 
-
+#
     def dump_coverage_info(self, m_site_cov, sf_out):
         with open(sf_out, "w") as fout_cov:
             for ins_chrm in m_site_cov:

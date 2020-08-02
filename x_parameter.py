@@ -111,4 +111,25 @@ class LRDParameters(PrototypeParameters):
         self.m_cov_par[140] = 18
         self.m_cov_par[150] = 19
         self.m_cov_par[200] = 20
+
+####
+class CaseControlFilterPars(PrototypeParameters):
+    def __init__(self):
+        PrototypeParameters.__init__(self)
+        self.m_cov_par[5] = (1, 1, 0)
+        self.m_cov_par[10] = (1, 2, 0)
+        self.m_cov_par[15] = (2, 2, 0)
+        self.m_cov_par[20] = (2, 3, 1)
+        self.m_cov_par[25] = (2, 4, 1)
+        self.m_cov_par[30] = (2, 4, 1)
+        self.m_cov_par[35] = (2, 5, 1)
+        self.m_cov_par[40] = (3, 5, 1)
+        self.m_cov_par[45] = (3, 6, 1)
+        self.m_cov_par[50] = (4, 6, 1)
+        self.m_cov_par[60] = (5, 7, 2)
+        self.m_cov_par[70] = (5, 8, 2)
+        self.m_cov_par[80] = (6, 8, 2)
+        self.m_cov_par[90] = (7, 9, 2)
+        self.m_cov_par[100] = (8, 10, 3)
+        self.m_cov_par[200] = (14, 20, 5)
 ####

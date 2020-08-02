@@ -1,7 +1,7 @@
 ##11/27/2017
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
 ##@@contact: chong_chu@hms.harvard.edu
-##
+
 '''
 Upgrade 11/04/2018
 1. Put all the pubic shared variables to a single file global_variables.py
@@ -133,7 +133,7 @@ from x_joint_calling import *
 from x_igv import *
 from x_gvcf import *
 from x_genotype_classify import *
-from x_orphan_transduction import *
+#from x_orphan_transduction import *
 
 ####
 ##parse the options
@@ -658,7 +658,7 @@ if __name__ == '__main__':
         i_flank_lenth = options.flklen
         sf_output = options.output
         sf_rmsk = options.annotation
-        i_rep_type = options.rep_type
+        i_rep_type = options.rep_type#
 ####
         if b_resume == False or os.path.isfile(sf_output) == False:
             if os.path.isfile(sf_flank)==True:#for Alu and many others, there is no transduction
@@ -704,148 +704,14 @@ if __name__ == '__main__':
                                                              sf_flank, sf_cns, i_flank_lenth, iextnd, bin_size, n_clip_cutoff,
                                                              n_disc_cutoff, i_concord_dist, f_concord_ratio, xannotation,
                                                              sf_bam_list, i_rep_type, i_max_cov, ave_cov, sf_output_tmp)
-####
-                xorphan=XOrphanTransduction(s_working_folder, n_jobs, sf_reference)
-                n_half_disc_cutoff=n_disc_cutoff/2
-                i_search_win=2000
-                sf_updated_cns=sf_output #this is the final updated
 
-                #1.Call out the sibling transduction events from the current list
-                sf_sibling_TD=sf_output+".sibling_transduction_from_existing_list"
-                xorphan.call_sibling_TD_from_existing_list(sf_output_tmp, sf_bam_list, iextnd, n_half_disc_cutoff,
-                                                           i_search_win, xannotation, i_rep_type, i_max_cov,
-                                                           sf_updated_cns, sf_sibling_TD)
-
-                # #2. Call orphan "sibling" transdcution from non_existing list
-                # sf_sibling_TD2 = sf_output + ".novel_sibling_transduction"
-                # b_with_original=False
-                # sf_tmp_slct2=sf_raw_disc+".slct2"
-                # #select the sites to exclude the already called out sites
-                # xorpha.re_slct_with_clip_raw_disc_sites(sf_raw_disc, sf_output_tmp, n_disc_cutoff, xannotation,
-                #                                                i_rep_type, b_tumor, sf_tmp_slct2, b_with_original)
-####
-                #update high confident ones (in "cns" filter step, two results are generated)
-                sf_ori_hc=sf_candidate_list+global_values.HIGH_CONFIDENT_SUFFIX
-                sf_new_hc=sf_output+global_values.HIGH_CONFIDENT_SUFFIX
-                xorphan.update_high_confident_callset(sf_ori_hc, sf_updated_cns, sf_new_hc)
-####
+# ####
             else:#rename the two files generated in previous step
                 copyfile(sf_candidate_list, sf_output)
                 sf_ori_hc = sf_candidate_list + global_values.HIGH_CONFIDENT_SUFFIX
                 sf_new_hc=sf_output+global_values.HIGH_CONFIDENT_SUFFIX
                 copyfile(sf_ori_hc, sf_new_hc)
 
-####
-    elif options.sibling:#sibling orphan transduction
-        '''
-        Todo: 09-29-2019: Add filtering modules:
-        1. using background low mapq reads (multiple mapped reads) for filtering
-        2. Set a upper-bound cutoff for discordant reads
-        3. using blacklist for filtering
-        '''
-        sf_bam_list = options.bam  ###read in a bam list file
-        sf_pre_step_out = options.input  # this is the output from the "cns" step.
-        sf_raw_disc = options.input2  # this is the raw disc file
-        iextnd = 400  ###for each site, re-collect reads in range [-iextnd, iextnd], this around ins +- 3*derivation
-        bin_size = 50000000  # block size for parallelization
-        sf_cns = options.reference  ####repeat copies/cns here
-        s_working_folder = options.wfolder
-        print "Current working folder is: {0}\n".format(s_working_folder)
-        n_jobs = options.cores
-        sf_reference = options.ref  ###reference genome, some cram file require this file to open
-        sf_flank = options.fflank  # this is the flanking region
-        i_flank_lenth = options.flklen
-        sf_output = options.output
-        sf_rmsk = options.annotation
-        i_rep_type = options.rep_type
-        sf_black_list = options.blacklist
-
-        if os.path.isfile(sf_flank) == True:  #for Alu and many others, there is no transduction
-            b_force = False
-            rcd, basic_rcd = automatic_gnrt_parameters(sf_bam_list, sf_reference, s_working_folder, n_jobs, b_force,
-                                                       b_tumor, f_purity)
-            ave_cov = basic_rcd[0]  # ave coverage
-            rlth = basic_rcd[1]  # read length
-            mean_is = basic_rcd[2]  # mean insert size
-            std_var = basic_rcd[3]  # standard derivation
-            print "Mean insert size is: {0}\n".format(mean_is)
-            print "Standard derivation is: {0}\n".format(std_var)
-            max_is = int(mean_is + 3 * std_var)
-
-            i_concord_dist = 550
-            f_concord_ratio = 0.25
-            if i_concord_dist < max_is:  # correct the bias
-                i_concord_dist = max_is
-            global_values.set_read_length(rlth)
-            global_values.set_insert_size(mean_is) #here set mean inset size
-            global_values.set_average_cov(ave_cov)
-
-            n_clip_cutoff = options.cliprep  # this is the sum of left and right clipped reads
-            n_disc_cutoff = options.ndisc  # each sample should have at least this number of discordant reads
-            if b_automatic == True:
-                n_clip_cutoff = rcd[0]
-                n_disc_cutoff = rcd[1]
-
-            xorphan = XOrphanTransduction(s_working_folder, n_jobs, sf_reference)
-            i_min_copy_len = 225
-            xorphan.set_boundary_extend(mean_is)
-            xannotation = xorphan.prep_annotation_interval_tree(sf_rmsk, i_min_copy_len)
-            # 2. Call orphan "sibling" transdcution from non_existing list
-            # sf_sibling_TD2 = sf_output + ".novel_sibling_transduction"
-            b_with_original = False
-            sf_tmp_slct2 = sf_raw_disc + ".slct2"
-            sf_output_tmp = sf_pre_step_out + global_values.TD_NON_SIBLING_SUFFIX
-            # select the sites to exclude the already called out sites, and filter out sites fall in black_list
-            xorphan.re_slct_with_clip_raw_disc_sites(sf_raw_disc, sf_output_tmp, n_disc_cutoff, xannotation,
-                                                    i_rep_type, b_tumor, sf_tmp_slct2, b_with_original)
-
-            #re-select transduction candidates based on disc-clip consistency (clip position encompass disc ones?)
-            m_failed_ori_td=xorphan.distinguish_source_from_insertion_for_td(sf_pre_step_out, sf_bam_list, i_concord_dist,
-                                                                           n_clip_cutoff, n_disc_cutoff, sf_black_list,
-                                                                           sf_rmsk)
-            sf_sibling_TD=sf_output
-            if os.path.isfile(sf_black_list)==False:
-                print "Blacklist file {0} does not exist!".format(sf_black_list)
-            xorphan.call_novel_sibling_TD_from_raw_list(sf_tmp_slct2, sf_bam_list, i_concord_dist, n_clip_cutoff,
-                                                        n_disc_cutoff, sf_black_list, sf_rmsk, sf_sibling_TD)
-
-            ####append the newly called events to existing list
-            xorphan.append_to_existing_list(sf_sibling_TD, sf_pre_step_out, m_failed_ori_td)
-            xorphan.append_to_existing_list(sf_sibling_TD, sf_pre_step_out+global_values.HIGH_CONFIDENT_SUFFIX,
-                                            m_failed_ori_td)
-        else:
-            #sf_output_tmp = sf_pre_step_out + global_values.TD_NON_SIBLING_SUFFIX
-            if os.path.isfile(sf_pre_step_out)==True:#do td filtering only
-                b_force = False
-                rcd, basic_rcd = automatic_gnrt_parameters(sf_bam_list, sf_reference, s_working_folder, n_jobs, b_force,
-                                                           b_tumor, f_purity)
-                ave_cov = basic_rcd[0]  # ave coverage
-                rlth = basic_rcd[1]  # read length
-                mean_is = basic_rcd[2]  # mean insert size
-                std_var = basic_rcd[3]  # standard derivation
-                print "Mean insert size is: {0}\n".format(mean_is)
-                print "Standard derivation is: {0}\n".format(std_var)
-                max_is = int(mean_is + 3 * std_var)
-
-                i_concord_dist = 550
-                f_concord_ratio = 0.25
-                if i_concord_dist < max_is:  # correct the bias
-                    i_concord_dist = max_is
-                global_values.set_read_length(rlth)
-                global_values.set_insert_size(mean_is)  # here set mean inset size
-                global_values.set_average_cov(ave_cov)
-                n_clip_cutoff = options.cliprep  # this is the sum of left and right clipped reads
-                n_disc_cutoff = options.ndisc  # each sample should have at least this number of discordant reads
-                if b_automatic == True:
-                    n_clip_cutoff = rcd[0]
-                    n_disc_cutoff = rcd[1]
-                xorphan = XOrphanTransduction(s_working_folder, n_jobs, sf_reference)
-                # re-select transduction candidates based on disc-clip consistency (clip position encompass disc ones?)
-                m_failed_ori_td = xorphan.distinguish_source_from_insertion_for_td(sf_pre_step_out, sf_bam_list,
-                                                                                   i_concord_dist, n_clip_cutoff,
-                                                                                   n_disc_cutoff, sf_black_list, sf_rmsk)
-                xorphan.update_existing_list_only(sf_pre_step_out, m_failed_ori_td)
-####
 ####
     ####this module for: 1) tumor case-control files;
     ####2) trio or quads to call de novo insertion

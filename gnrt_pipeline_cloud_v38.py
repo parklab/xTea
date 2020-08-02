@@ -75,6 +75,12 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
                    "--fflank ${{SF_FLANK}} --flklen {2} -n {3} -i ${{PREFIX}}\"candidate_list_from_disc.txt\" " \
                    "-r ${{L1_CNS}} --ref ${{REF}} -a ${{ANNOTATION}} " \
                    "-o ${{PREFIX}}\"candidate_disc_filtered_cns.txt\"\n".format(iflt_clip, iflt_disc, iflk_len, ncores)
+
+    sf_trsdct="python ${{XTEA_PATH}}\"x_TEA_main.py\" --transduction --cr {0} --nd {1} -b ${{BAM_LIST}} -p ${{TMP_TNSD}} " \
+               "--fflank ${{SF_FLANK}} --flklen {2} -n {3} -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
+               "-r ${{L1_CNS}} --ref ${{REF}} --input2 ${{PREFIX}}\"candidate_list_from_disc.txt.clip_sites_raw_disc.txt\" " \
+               "-o ${{PREFIX}}\"candidate_disc_filtered_cns2.txt\"\n".format(iflt_clip, iflt_disc, iflk_len, ncores)
+
     sf_collect = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -E --nb 500 -b ${{BAM1}} -d ${{BARCODE_BAM}} --ref ${{REF}} " \
                  "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" -p ${{TMP}} -a ${{ANNOTATION}} -n {0} " \
                  "--flklen {1}\n".format(ncores, iflk_len)
@@ -288,6 +294,10 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
             if os.path.exists(sf_tmp_cns)==False:
                 cmd = "mkdir {0}".format(sf_tmp_cns)
                 run_cmd(cmd)
+            sf_tmp_tsdct = sf_folder + "/tmp/transduction"
+            if os.path.exists(sf_tmp_cns) == False:
+                cmd = "mkdir {0}".format(sf_tmp_tsdct)
+                run_cmd(cmd)
     m_bams = {}
     if sf_bams != "null":
         with open(sf_bams) as fin_bams:
@@ -394,6 +404,8 @@ def gnrt_lib_config(l_rep_type, sf_folder_rep, sf_ref, sf_gene, sf_folder_xtea, 
     s_tmp = "TMP ${PREFIX}\"tmp/\"\n"
     s_tmp_clip = "TMP_CLIP ${PREFIX}\"tmp/clip/\"\n"
     s_tmp_cns = "TMP_CNS ${PREFIX}\"tmp/cns/\"\n"
+    s_tmp_tsdct="TMP_TNSD ${PREFIX}\"tmp/transduction/\"\n"
+    s_tmp_cns+=s_tmp_tsdct
     sf_ref = "REF " + sf_ref + "\n"
     sf_xtea = "XTEA_PATH " + sf_folder_xtea + "\n"
     sf_gene_anno = "GENE " + sf_gene + "\n"

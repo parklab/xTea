@@ -41,6 +41,7 @@ class GFF3():
             return chrm[3:]
         else:
             return chrm
+
 ####
     def _process_chrm_name2(self, chrm):
         if len(chrm) > 3 and chrm[:3] == "chr":
@@ -72,7 +73,7 @@ class GFF3():
                 start_pos = ori_start_pos - iextnd
                 end_pos = ori_end_pos + iextnd
 
-                region_type=fields[2]#gene, transcript, exon, UTR ...
+                region_type=fields[2]#gene, transcript, exon, UTR5, UTR3, downstream, upstream ...
                 if region_type=="transcript":#skip transcript
                     continue
                 b_rc = False
@@ -133,7 +134,7 @@ class GFF3():
     #         self.m_gene_chrm_regions[chrm] = l_tmp
 ###########################
         #print self.m_gene_chrm_regions
-
+#
     def index_gene_annotation_interval_tree(self):
         for chrm in self.m_gene_annotation:
             interval_tree=IntervalTree()
@@ -258,3 +259,4 @@ class GFF3():
                 s_info=line.rstrip()
                 s_info+=("\t"+s_hit_genes+"\n")
                 fout_rslt.write(s_info)
+####

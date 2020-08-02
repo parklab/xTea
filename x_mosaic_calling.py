@@ -3,8 +3,9 @@
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
 ##@@contact: chong_chu@hms.harvard.edu
 
-####Given the output exported from the prevous step, call out the mosaic candidates
-####This is assume the results is called from high coverage (say 200X) data
+#This module is designed for mosaic TE insertion calling from normal bulk tissue.
+# Assume the insertions happen at low AF (say <1%).
+# The data is sequenced at high coverage (say >200X), and low cutoff is set (say 2 disc and 2 clip)
 
 ####1. add blacklist, like gnomAD-SV
 ####2. filter with callset from other samples

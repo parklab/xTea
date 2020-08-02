@@ -48,6 +48,8 @@ class XChromosome():
 
 def unwrap_gnrt_flank_regions(arg, **kwarg):
     return XReference.run_gnrt_flank_region_for_chrm(*arg, **kwarg)
+def unwrap_gnrt_flank_regions_for_regions(arg, **kwarg):
+    return XReference.run_gnrt_flank_region_for_regions_by_chrm(*arg, **kwarg)
 
 def unwrap_gnrt_target_regions(arg, **kwarg):
     return XReference.run_gnrt_target_region_for_chrm(*arg, **kwarg)
@@ -74,15 +76,18 @@ class XReference():
         else:
             return chrm
 
+####
     # gnrt the left and right flank regions for each candidate site
     def run_gnrt_flank_region_for_chrm(self, record):
         chrm = record[0]
         sf_sites = record[1]
         sf_ref = record[2]
-        i_extend = int(record[3])
+        i_extend = abs(int(record[3]))
         working_folder = record[4]
         if working_folder[-1] != "/":
             working_folder += "/"
+        b_left=record[5]
+        b_right=record[6]
 
         xsites = XSites(sf_sites)
         m_sites = xsites.load_in_sites()
@@ -106,15 +111,58 @@ class XReference():
 
             sf_flank_fa = working_folder + "{0}{1}{2}_flanks.fa".format(chrm, global_values.SEPERATOR, pos)
             with open(sf_flank_fa, "w") as fout_flank:
-                fout_flank.write(">left\n")
-                fout_flank.write(s_left_region + "\n")
-                fout_flank.write(">right\n")
-                fout_flank.write(s_right_region + "\n")
+                if b_left==True:
+                    fout_flank.write(">{0}\n".format(global_values.LEFT_FLANK))
+                    fout_flank.write(s_left_region + "\n")
+                if b_right==True:
+                    fout_flank.write(">{0}\n".format(global_values.RIGHT_FLANK))
+                    fout_flank.write(s_right_region + "\n")
+        f_fa.close()
+
+    # gnrt the left and right flank regions for each candidate site
+    def run_gnrt_flank_region_for_regions_by_chrm(self, record):
+        chrm = record[0]
+        sf_sites = record[1]
+        sf_ref = record[2]
+        i_extend = abs(int(record[3]))
+        working_folder = record[4]
+        if working_folder[-1] != "/":
+            working_folder += "/"
+        b_left = record[5]
+        b_right = record[6]
+
+        xsites = XSites(sf_sites)
+        m_sites = xsites.load_in_sites_of_regions()
+        f_fa = pysam.FastaFile(sf_ref)
+        m_ref_chrms = {}
+        for tmp_chrm in f_fa.references:
+            m_ref_chrms[tmp_chrm] = 1
+        b_with_chr = False
+        if "chr1" in m_ref_chrms:
+            b_with_chr = True
+
+        for i_rg_start in m_sites[chrm]:
+            if i_rg_start - i_extend < 0:
+                continue
+            i_rg_end=m_sites[chrm][i_rg_start]
+
+            ref_chrm = self.process_chrm_name(chrm, b_with_chr)
+            s_left_region = f_fa.fetch(ref_chrm, i_rg_start - i_extend, i_rg_start)
+            s_right_region = f_fa.fetch(ref_chrm, i_rg_end, i_rg_end + i_extend)#
+
+            sf_flank_fa = working_folder + "{0}{1}{2}_flanks.fa".format(chrm, global_values.SEPERATOR, i_rg_start)
+            with open(sf_flank_fa, "w") as fout_flank:
+                if b_left == True:
+                    fout_flank.write(">{0}\n".format(global_values.LEFT_FLANK))
+                    fout_flank.write(s_left_region + "\n")
+                if b_right == True:
+                    fout_flank.write(">{0}\n".format(global_values.RIGHT_FLANK))
+                    fout_flank.write(s_right_region + "\n")
         f_fa.close()
 
     #this function is used to get flanks of candidate site, then align to the assembled contigs
     #to call out TE insertion or other SVs
-    def gnrt_flank_region_for_sites(self, sf_sites, i_extend, n_jobs, sf_ref, s_working_folder):
+    def gnrt_flank_region_for_sites(self, sf_sites, i_extend, n_jobs, sf_ref, s_working_folder, b_left=True, b_right=True):
         xsites = XSites(sf_sites)
         m_sites = xsites.load_in_sites()
 
@@ -128,13 +176,40 @@ class XReference():
 
         l_records = []
         for chrm in m_sites:
-            tmp_rcd=(chrm, sf_sites, sf_ref, i_extend, flank_folder)
+            tmp_rcd=(chrm, sf_sites, sf_ref, i_extend, flank_folder, b_left, b_right)
             l_records.append(tmp_rcd)
             #self.run_gnrt_flank_region_for_chrm(tmp_rcd) ################
         pool = Pool(n_jobs)
         pool.map(unwrap_gnrt_flank_regions, zip([self] * len(l_records), l_records), 1)
         pool.close()
         pool.join()
+
+    ####
+    ####generate flank regions for given regions
+    def gnrt_flank_region_for_regions(self, sf_sites, i_extend, n_jobs, sf_ref, s_working_folder,
+                                      b_left=True, b_right=True):
+        xsites = XSites(sf_sites)
+        m_sites = xsites.load_in_sites_of_regions()
+
+        if s_working_folder[-1] != "/":
+            s_working_folder += "/"
+        flank_folder = s_working_folder + global_values.FLANK_FOLDER
+        if os.path.exists(flank_folder) == False:
+            cmd = "mkdir {0}".format(flank_folder)
+            #Popen(cmd, shell=True, stdout=PIPE).communicate()
+            self.cmd_runner.run_cmd_small_output(cmd)
+
+        l_records = []
+        for chrm in m_sites:
+            tmp_rcd=(chrm, sf_sites, sf_ref, i_extend, flank_folder, b_left, b_right)
+            l_records.append(tmp_rcd)
+            #self.run_gnrt_flank_region_for_chrm(tmp_rcd) ################
+        pool = Pool(n_jobs)
+        pool.map(unwrap_gnrt_flank_regions_for_regions, zip([self] * len(l_records), l_records), 1)
+        pool.close()
+        pool.join()
+
+####
 
 ####
     # #this function is used to get flanks of candidate site, then align to the assembled contigs
@@ -172,7 +247,8 @@ class XReference():
 #####
 
     ####
-    def gnrt_flank_regions_of_polymerphic_insertions(self, l_sites, i_extend, sf_ref, sf_out):
+    def gnrt_flank_regions_of_polymerphic_insertions(self, l_sites, i_extend1, sf_ref, sf_out):
+        i_extend=abs(i_extend1)
         f_fa = pysam.FastaFile(sf_ref)
         m_ref_chrms = {}
         for tmp_chrm in f_fa.references:
@@ -212,7 +288,8 @@ class XReference():
 ####
 ####
     #generate the target sequence for given sites
-    def gnrt_target_flank_seq_for_sites(self, sf_sites, i_extend, n_jobs, sf_ref, s_working_folder):
+    def gnrt_target_flank_seq_for_sites(self, sf_sites, i_extend1, n_jobs, sf_ref, s_working_folder):
+        i_extend=abs(i_extend1)
         xsites = XSites(sf_sites)
         m_sites = xsites.load_in_sites()
 
@@ -241,7 +318,7 @@ class XReference():
         chrm = record[0]
         sf_sites = record[1]
         sf_ref = record[2]
-        i_extend = int(record[3])
+        i_extend = abs(int(record[3]))
         working_folder = record[4]
         if working_folder[-1] != "/":
             working_folder += "/"
@@ -295,3 +372,40 @@ class XReference():
         bin_index = pos/bin_size
         return m_bins[chrm][bin_index] #return [start, end) of the bin
 
+    #Given sites, get the seqs in ref of those sites
+    #record within l_sites in format: (chrm, istart, iend)
+    def get_ref_seqs_of_sites(self, sf_ref, l_sites):
+        l_seqs=[]
+        f_fa = pysam.FastaFile(sf_ref)
+        m_ref_chrms = {}
+        for tmp_chrm in f_fa.references:
+            m_ref_chrms[tmp_chrm] = 1
+        b_with_chr = False
+        if "chr1" in m_ref_chrms:
+            b_with_chr = True
+        for rcd in l_sites:
+            s_seq="."
+            ins_chrm=rcd[0]
+            lpos=int(rcd[1])
+            rpos=int(rcd[2])
+            if lpos<=0 or rpos<=0:
+                l_seqs.append(s_seq)
+                continue
+            ref_chrm = self.process_chrm_name(ins_chrm, b_with_chr)
+
+            #check whether the chromosome is consistent
+            istart=lpos
+            iend=rpos
+            if lpos>rpos:
+                istart=rpos
+                iend=lpos
+            if ref_chrm not in m_ref_chrms:
+                print("%s doesn't exist in reference!" % ref_chrm)
+                l_seqs.append(s_seq)
+                continue
+            s_seq = f_fa.fetch(ref_chrm, istart, iend)
+            l_seqs.append(s_seq)
+        f_fa.close()
+        return l_seqs
+
+####

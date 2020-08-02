@@ -2,9 +2,7 @@
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
 ##@@contact: chong_chu@hms.harvard.edu
 
-####1. extra filtering step for different type of repeats, especially Alu
-####2. calling genotype using machine learning module
-
+####
 ####
 import os
 
@@ -135,3 +133,5 @@ class MosaicJointCalling(XJointCalling):
         for test_chrm in m_not_slcted:
             for test_pos in m_not_slcted[test_chrm]:
                 print test_chrm, test_pos, m_not_slcted[test_chrm][test_pos]
+
+####

@@ -55,8 +55,8 @@ class TE_Multi_Locator():
 
     ####
     def call_TEI_candidate_sites_from_multiple_alignmts(self, sf_annotation, sf_rep_cns, sf_ref, b_se, cutoff_left_clip,
-                                                        cutoff_right_clip, cutoff_clip_mate_in_rep, sf_clip_folder,
-                                                        b_force, max_cov, sf_out):
+                                                        cutoff_right_clip, cutoff_clip_mate_in_rep, b_mosaic,
+                                                        sf_clip_folder, b_force, max_cov, sf_out):
         cnt = 0
         s_sample_bam = ""
         b_set = False
@@ -74,12 +74,12 @@ class TE_Multi_Locator():
                     print "10X bam! Set the initial cutoff as {0}".format(global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
                     global_values.set_initial_min_clip_cutoff(global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
                 else:
-                    if cutoff_left_clip<=2:#
+                    if cutoff_left_clip<=2 and b_mosaic==True:#
                         print "Clip cutoff is small (<=2) , we are using 1 for initial cutoff"
                         global_values.set_initial_min_clip_cutoff(1)#for low coverage data, set this to 1
                     else:
                         global_values.set_initial_min_clip_cutoff(global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
-#
+
                 if len(sf_ori_bam) <= 1:
                     continue
                 if b_set == False:
@@ -404,11 +404,11 @@ class TE_Multi_Locator():
     #                                                                       cutoff_right_clip,
     #                                                                       cutoff_clip_mate_in_rep)
     #
-####
+#####
     # For given candidate sites from clip reads,
     # sum the num of the discordant pairs from different alignments
     def filter_candidate_sites_by_discordant_pairs_multi_alignmts(self, m_sites, iext, i_is, f_dev, cutoff,
-                                                                  sf_annotation, sf_out):
+                                                                  sf_annotation, sf_out, sf_raw_disc="", b_tumor=False):
         with open(self.sf_list) as fin_list:
             cnt = 0
             for line in fin_list:
@@ -417,12 +417,14 @@ class TE_Multi_Locator():
 
                 caller = TELocator(sf_bam, sf_bam, self.working_folder, self.n_jobs, self.sf_ref)
                 tmp_cutoff = 1  # for here, not filtering #############################################################
-                m_sites_discord = caller.filter_candidate_sites_by_discordant_pairs_non_barcode(m_sites, iext, i_is,
-                                                                                                f_dev, sf_annotation,
-                                                                                                tmp_cutoff)
+                m_sites_discord, m_sites_raw_disc = caller.filter_candidate_sites_by_discordant_pairs_non_barcode(
+                    m_sites, iext, i_is, f_dev, sf_annotation, tmp_cutoff)
                 xfilter = XIntemediateSites()
                 sf_out_tmp = self.working_folder + global_values.DISC_TMP + '{0}'.format(cnt)
                 xfilter.output_candidate_sites(m_sites_discord, sf_out_tmp)
+
+                sf_raw_tmp=self.working_folder+global_values.RAW_DISC_TMP+'{0}'.format(cnt)
+                xfilter.output_candidate_sites(m_sites_raw_disc, sf_raw_tmp)
                 cnt += 1
 
         # merge the output by summing up all the alignments,
@@ -447,12 +449,98 @@ class TE_Multi_Locator():
                         m_merged_sites[chrm][pos][0] += n_left_disc
                         m_merged_sites[chrm][pos][1] += n_right_disc
         with open(sf_out, "w") as fout_sites:
+            n_half_cutoff=cutoff/2
             for chrm in m_merged_sites:
                 for pos in m_merged_sites[chrm]:
                     n_left = m_merged_sites[chrm][pos][0]
                     n_right = m_merged_sites[chrm][pos][1]
-                    if n_left > cutoff or n_right > cutoff:
-                        fout_sites.write(chrm + "\t" + str(pos) + "\t" + str(n_left) + "\t" + str(n_right) + "\n")
+                    #if n_left > cutoff or n_right > cutoff:
+                    if b_tumor==True:#tumor
+                        if (n_left + n_right) >= cutoff:
+                            fout_sites.write(chrm + "\t" + str(pos) + "\t" + str(n_left) + "\t" + str(n_right) + "\n")
+                    else:#non tumor cases
+                        if ((n_left > n_half_cutoff) and (n_right> n_half_cutoff)) or (n_left > cutoff) \
+                                or (n_right>cutoff):
+                            fout_sites.write(chrm + "\t" + str(pos) + "\t" + str(n_left) + "\t" + str(n_right) + "\n")
+####
+        if sf_raw_disc=="":
+            return
+        #####
+        # merge the output by summing up all the alignments,
+        #  and output in a single file
+        m_merged_raw_sites = {}
+        for i in range(cnt):
+            sf_tmp = self.working_folder + global_values.RAW_DISC_TMP + '{0}'.format(i)
+            with open(sf_tmp) as fin_tmp:
+                for line in fin_tmp:
+                    fields = line.split()
+                    chrm = fields[0]
+                    pos = int(fields[1])
+                    n_raw_left_disc = int(fields[2])
+                    n_raw_right_disc = int(fields[3])
+                    n_left_disc = int(fields[4])
+                    n_right_disc = int(fields[5])
+                    s_lcluster=fields[6]
+                    s_lc_chrm=fields[7]
+                    s_lc_pos=fields[8]
+                    s_rcluster=fields[9]
+                    s_rc_chrm=fields[10]
+                    s_rc_pos=fields[11]
+
+                    if chrm not in m_merged_raw_sites:
+                        m_merged_raw_sites[chrm] = {}
+                    if pos not in m_merged_raw_sites[chrm]:
+                        m_merged_raw_sites[chrm][pos] = []
+                        m_merged_raw_sites[chrm][pos].append(n_raw_left_disc)
+                        m_merged_raw_sites[chrm][pos].append(n_raw_right_disc)
+                        m_merged_raw_sites[chrm][pos].append(n_left_disc)
+                        m_merged_raw_sites[chrm][pos].append(n_right_disc)
+                        m_merged_raw_sites[chrm][pos].append([s_lcluster])
+                        m_merged_raw_sites[chrm][pos].append([s_lc_chrm])
+                        m_merged_raw_sites[chrm][pos].append([s_lc_pos])
+                        m_merged_raw_sites[chrm][pos].append([s_rcluster])
+                        m_merged_raw_sites[chrm][pos].append([s_rc_chrm])
+                        m_merged_raw_sites[chrm][pos].append([s_rc_pos])
+                    else:
+                        m_merged_raw_sites[chrm][pos][0] += n_raw_left_disc
+                        m_merged_raw_sites[chrm][pos][1] += n_raw_right_disc
+                        m_merged_raw_sites[chrm][pos][2] += n_left_disc
+                        m_merged_raw_sites[chrm][pos][3] += n_right_disc
+                        m_merged_raw_sites[chrm][pos][4].append(s_lcluster)
+                        m_merged_raw_sites[chrm][pos][5].append(s_lc_chrm)
+                        m_merged_raw_sites[chrm][pos][6].append(s_lc_pos)
+                        m_merged_raw_sites[chrm][pos][7].append(s_rcluster)
+                        m_merged_raw_sites[chrm][pos][8].append(s_rc_chrm)
+                        m_merged_raw_sites[chrm][pos][9].append(s_rc_pos)
+
+        i_half_cutoff=cutoff/2
+        if b_tumor==False:#for germline, set a little bit higer cutoff
+            i_half_cutoff= int(cutoff*3/4) + 1
+        if i_half_cutoff<1:
+            i_half_cutoff=1
+
+        with open(sf_raw_disc, "w") as fout_sites:
+            for chrm in m_merged_raw_sites:
+                for pos in m_merged_raw_sites[chrm]:
+                    n_raw_left = m_merged_raw_sites[chrm][pos][0]
+                    n_raw_right = m_merged_raw_sites[chrm][pos][1]
+                    n_left = m_merged_raw_sites[chrm][pos][2]#fall in repetitive region
+                    n_right = m_merged_raw_sites[chrm][pos][3]#fall in repetitive region
+
+                    #left consistent
+                    b_l_consistent=False
+                    #here "1" indicates True, which means
+                    if (n_raw_left>=i_half_cutoff) and ("1" in m_merged_raw_sites[chrm][pos][4]):
+                        b_l_consistent=True
+                    #right consistent
+                    b_r_consistent=False
+                    if (n_raw_right >= i_half_cutoff) and ("1" in m_merged_raw_sites[chrm][pos][7]):
+                        b_r_consistent=True
+                    if b_l_consistent or b_r_consistent:
+                        fout_sites.write(
+                            chrm + "\t" + str(pos) + "\t" + str(n_raw_left) + "\t" + str(n_raw_right) + "\t"
+                            + str(n_left) + "\t" + str(n_right) + "\n")
+####
 ####
     # This function is not used here
     # merge two dictionary
@@ -520,7 +608,7 @@ class TELocator():
         sf_bam_name = os.path.basename(self.sf_bam)
         sf_all_clip_fq = sf_pub_folder + sf_bam_name + CLIP_FQ_SUFFIX
         clip_info.set_working_folder(sf_clip_working_folder)
-        if os.path.isfile(sf_all_clip_fq)==False or b_force==True:
+        if os.path.islink(sf_all_clip_fq)==False or b_force==True:
             print "Collected clipped reads file {0} doesn't exist. Generate it now!".format(sf_all_clip_fq)
             ##collect the clip positions
             initial_clip_pos_freq_cutoff = global_values.INITIAL_MIN_CLIP_CUTOFF ##########################################################################
@@ -529,8 +617,8 @@ class TELocator():
             print "Output info: Collect clipped parts for file ", self.sf_bam
             sf_all_clip_fq_ori=sf_clip_working_folder+sf_bam_name + CLIP_FQ_SUFFIX
             clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
-
-            if os.path.isfile(sf_all_clip_fq)==True:
+####
+            if os.path.isfile(sf_all_clip_fq)==True or os.path.islink(sf_all_clip_fq)==True:
                 os.remove(sf_all_clip_fq)
             cmd="ln -s {0} {1}".format(sf_all_clip_fq_ori, sf_all_clip_fq)
             self.cmd_runner.run_cmd_small_output(cmd)
@@ -968,7 +1056,7 @@ class TELocator():
                         m_new_candidate_sites[chrm][pos] = (n_clip, n_barcode)
         return m_new_candidate_sites
 
-
+####
     def run_filter_by_discordant_pair_by_chrom_non_barcode(self, record):
         site_chrm1 = record[0]
         sf_bam = record[1]
@@ -1011,18 +1099,37 @@ class TELocator():
 
         bamfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference)
         m_new_candidate_sites = {}
+        m_raw_disc_sites={}
         m_chrm_ids=self._get_chrm_id_name(bamfile)
         for site_pos in m_candidate_pos:  ####candidate site position # structure: {barcode:[alignmts]}
             if site_pos < iextend:
                 continue
 
-            n_left_discdt = bam_info.cnt_discordant_pairs(bamfile, m_chrm_ids, site_chrm, site_pos - iextend,
+            n_left_discdt, n_lraw_disc, l_cluster = bam_info.cnt_discordant_pairs(bamfile, m_chrm_ids, site_chrm, site_pos - iextend,
                                                           site_pos, i_is, f_dev, xannotation)
-            n_right_discdt = bam_info.cnt_discordant_pairs(bamfile, m_chrm_ids, site_chrm, site_pos + 1,
+            n_right_discdt, n_rraw_disc, r_cluster = bam_info.cnt_discordant_pairs(bamfile, m_chrm_ids, site_chrm, site_pos + 1,
                                                            site_pos + iextend, i_is, f_dev, xannotation)
             m_new_candidate_sites[site_pos] = [str(n_left_discdt), str(n_right_discdt)]
-        bamfile.close()
+            #if l_cluster[0]==True or r_cluster[0]==True:#for transductions, require at least one side form cluster
+            s_lcluster="0"
+            s_lc_chrm="-1"
+            s_lc_pos="-1"
+            if l_cluster[0]==True:
+                s_lcluster="1"
+                s_lc_chrm=l_cluster[1]
+                s_lc_pos=str(l_cluster[2])
+            s_rcluster = "0"
+            s_rc_chrm = "-1"
+            s_rc_pos = "-1"
+            if r_cluster[0] == True:
+                s_rcluster = "1"
+                s_rc_chrm = r_cluster[1]
+                s_rc_pos = str(r_cluster[2])
 
+            m_raw_disc_sites[site_pos]=[str(n_lraw_disc), str(n_rraw_disc), str(n_left_discdt), str(n_right_discdt),
+                                        s_lcluster, s_lc_chrm, s_lc_pos, s_rcluster, s_rc_chrm, s_rc_pos]
+        bamfile.close()
+####
         ##write out the combined results
         sf_candidate_list_disc = sf_candidate_list + global_values.DISC_SUFFIX_FILTER
         with open(sf_candidate_list_disc, "w") as fout_disc:
@@ -1033,7 +1140,17 @@ class TELocator():
                 for i in range(lth):
                     fout_disc.write(str(m_new_candidate_sites[pos][i]) + "\t")
                 fout_disc.write("\n")
-
+        #save the raw disc results
+        sf_candidate_list_raw_disc=sf_candidate_list + global_values.RAW_DISC_SUFFIX_FILTER
+        with open(sf_candidate_list_raw_disc, "w") as fout_disc_raw:
+            for pos in m_raw_disc_sites:
+                fout_disc_raw.write(str(pos) + "\t")
+                # fout_disc.write(str(m_candidate_pos[pos]) + "\t")
+                lth = len(m_raw_disc_sites[pos])
+                for i in range(lth):
+                    fout_disc_raw.write(str(m_raw_disc_sites[pos][i]) + "\t")
+                fout_disc_raw.write("\n")
+####
     ###This one feed in the normal illumina data, and count the discordant pairs of the left and right regions
     def filter_candidate_sites_by_discordant_pairs_non_barcode(self, m_candidate_sites, iextend, i_is, f_dev,
                                                                sf_annotation, n_discordant_cutoff):
@@ -1083,7 +1200,36 @@ class TELocator():
                         # n_clip = m_candidate_sites[chrm][pos][0]
                         # m_new_candidate_sites[chrm][pos] = (n_clip, n_disc_left, n_disc_right)
                         m_new_candidate_sites[chrm][pos] = [n_disc_left, n_disc_right]
-        return m_new_candidate_sites
+
+        #RAW_DISC_SUFFIX_FILTER
+        m_raw_disc_sites = {}  # for each site, save the raw discordant reads
+        for chrm in m_candidate_sites:  ####candidate site chromosome # read in by chrm
+            sf_candidate_list_raw_disc = sf_disc_working_folder + chrm + global_values.DISC_SUFFIX + global_values.RAW_DISC_SUFFIX_FILTER
+            if os.path.exists(sf_candidate_list_raw_disc) == False:
+                continue
+            with open(sf_candidate_list_raw_disc) as fin_disc:
+                for line in fin_disc:
+                    fields = line.split()
+                    pos = int(fields[0])
+                    n_raw_disc_left = int(fields[1])
+                    n_raw_disc_right = int(fields[2])
+                    n_disc_left = int(fields[3])
+                    n_disc_right = int(fields[4])
+                    s_lcluster=fields[5]
+                    s_lc_chrm=fields[6]
+                    s_lc_pos=fields[7]
+                    s_rcluster=fields[8]
+                    s_rc_chrm=fields[9]
+                    s_rc_pos=fields[10]
+
+                    if chrm not in m_raw_disc_sites:
+                        m_raw_disc_sites[chrm] = {}
+                    if pos not in m_raw_disc_sites[chrm]:
+                        # n_clip = m_candidate_sites[chrm][pos][0]
+                        # m_new_candidate_sites[chrm][pos] = (n_clip, n_disc_left, n_disc_right)
+                        m_raw_disc_sites[chrm][pos] = [n_raw_disc_left, n_raw_disc_right, n_disc_left, n_disc_right,
+                                                       s_lcluster, s_lc_chrm, s_lc_pos, s_rcluster, s_rc_chrm, s_rc_pos]
+        return m_new_candidate_sites, m_raw_disc_sites
 
 
     def output_candidate_sites_by_chrm(self, m_candidate_list, sf_folder, s_suffix):
@@ -1168,4 +1314,43 @@ class TELocator():
             m_chrm[chrm_id] = schrm
         m_chrm[-1] = "*"
         return m_chrm
+
 ####
+    #import os, tempfile
+    # def symlink(self, target, link_name, overwrite=False):
+    #     '''
+    #     Create a symbolic link named link_name pointing to target.
+    #     If link_name exists then FileExistsError is raised, unless overwrite=True.
+    #     When trying to overwrite a directory, IsADirectoryError is raised.
+    #     '''
+    #
+    #     if not overwrite:
+    #         os.symlink(target, linkname)
+    #         return
+    #
+    #     # os.replace() may fail if files are on different filesystems
+    #     link_dir = os.path.dirname(link_name)
+    #
+    #     # Create link to target with temporary filename
+    #     while True:
+    #         temp_link_name = tempfile.mktemp(dir=link_dir)
+    #
+    #         # os.* functions mimic as closely as possible system functions
+    #         # The POSIX symlink() returns EEXIST if link_name already exists
+    #         # https://pubs.opengroup.org/onlinepubs/9699919799/functions/symlink.html
+    #         try:
+    #             os.symlink(target, temp_link_name)
+    #             break
+    #         except FileExistsError:
+    #             pass
+    #
+    #     # Replace link_name with temp_link_name
+    #     try:
+    #         # Pre-empt os.replace on a directory with a nicer message
+    #         if os.path.isdir(link_name):
+    #             raise IsADirectoryError(f"Cannot symlink over existing directory: '{link_name}'")
+    #         os.replace(temp_link_name, link_name)
+    #     except:
+    #         if os.path.islink(temp_link_name):
+    #             os.remove(temp_link_name)
+    #         raise

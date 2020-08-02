@@ -8,8 +8,9 @@ import pysam
 from x_intermediate_sites import *
 from x_reference import *
 import global_values
+from disc_cluster import *
 
-
+#
 def unwrap_self_extract_reads_for_region(arg, **kwarg):
     return BamInfo.extract_reads_for_region(*arg, **kwarg)
 
@@ -48,7 +49,7 @@ class BamInfo():
             chrm_name = record['SN']
             m_chrms[chrm_name] = 1
         return m_chrms
-
+####
     # get the chrom name and length in a dictionary
     def get_all_chrom_name_length(self):
         bamfile = pysam.AlignmentFile(self.sf_bam, "rb", reference_filename=self.sf_reference)
@@ -69,6 +70,7 @@ class BamInfo():
             return self.chrm_id_name[i_id]
         else:
             return "*"
+
 ####
     # else if in format: 1, then return false
     def is_chrm_contain_chr(self):
@@ -88,12 +90,19 @@ class BamInfo():
 
         self.b_with_chr = b_with_chr
         return b_with_chr
+
 ####
     ###Note: hard code here, use mapping quality 20 as cutoff for anchor reads
     def cnt_discordant_pairs(self, bamfile, m_chrm_ids, chrm, start, end, i_is, f_dev, xannotation):
         n_cnt = 0
+        n_raw_cnt=0 #this save the raw discordant PE pairs, including: abnormal insert size, abnormal direction
         iter_alignmts = bamfile.fetch(chrm, start, end)
         xchrom = XChromosome()
+        i_max_is=2500
+        if int(i_is+3*f_dev)>i_max_is:
+            i_max_is=int(i_is+3*f_dev)
+
+        m_mate_pos={}
         for algnmt in iter_alignmts:
             if algnmt.is_duplicate == True or algnmt.is_supplementary == True:  ##skip duplicate and supplementary ones
                 continue
@@ -101,11 +110,12 @@ class BamInfo():
                 continue
             if algnmt.is_secondary == True:  ##skip secondary alignment
                 continue
-            if algnmt.mapping_quality < global_values.MINIMUM_DISC_MAPQ:  ############################################################
+            if algnmt.mapping_quality < global_values.MINIMUM_DISC_MAPQ:###############anchor mapping quality
                 continue
             if algnmt.next_reference_id<0:
                 continue
 
+            map_pos=algnmt.reference_start
             if algnmt.next_reference_id not in m_chrm_ids:
                 continue
             mate_chrm = algnmt.next_reference_name
@@ -122,13 +132,23 @@ class BamInfo():
             #         n_cnt+=1
 
             #####This version only count the number of discordant pairs whose two reads aligned to different chroms
+
             #####Or on the same chromosome, but aligned quite far away (by default >1M)
+            #Note, here we use "start" to represent the "map_pos" of each read.
             if (chrm != mate_chrm) or (chrm == mate_chrm and abs(mate_pos - start) > i_is):
+                if (chrm != mate_chrm) or (chrm == mate_chrm and abs(mate_pos - start) > i_max_is):
+                    if mate_chrm not in m_mate_pos:
+                        m_mate_pos[mate_chrm]=[]
+                    m_mate_pos[mate_chrm].append(mate_pos)
+                    n_raw_cnt+=1
                 #b_mate_within_rep, rep_start_mate = xannotation.is_within_repeat_region(mate_chrm, mate_pos)
                 b_mate_within_rep, rep_start_mate = xannotation.is_within_repeat_region_interval_tree(mate_chrm, mate_pos)
                 if b_mate_within_rep:
                     n_cnt += 1
-        return n_cnt
+        dc = DiscCluster()
+        b_cluster, c_chrm, c_pos=dc.form_one_side_cluster(m_mate_pos, i_is, global_values.MIN_RAW_DISC_CLUSTER_RATIO)
+        return n_cnt, n_raw_cnt, (b_cluster, c_chrm, c_pos)
+
 
     ## "self.b_with_chr" is the format gotten from the alignment file
     ## all other format should be changed to consistent with the "self.b_with_chr"

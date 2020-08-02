@@ -88,6 +88,16 @@ class XTEContig():
         cmd = "samtools index {0}".format(sf_algnmt)
         self.run_cmd(cmd)
 
+    def splice_algn_contigs_2_ref_minimap2(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
+        cmd = "{0} -ax splice -t {1} {2} {3} " \
+              "| samtools view -hSb - | samtools sort -o {4} -" \
+            .format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
+        self.run_cmd(cmd)
+        cmd = "samtools index {0}".format(sf_algnmt)
+        self.run_cmd(cmd)
+
+####
+
     def align_contigs_2_reference_genome(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
         cmd = "{0} -ax asm5 " \
               "-t {1} {2} {3} " \
@@ -102,6 +112,17 @@ class XTEContig():
               "-m20 -s40 -g200 -2K50m --heap-sort=yes --secondary=yes --cs -a -t {1} {2} {3} " \
               "| samtools view -hSb - | samtools sort -o {4} -" \
             .format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
+        self.run_cmd(cmd)
+        cmd = "samtools index {0}".format(sf_algnmt)
+        self.run_cmd(cmd)
+
+    def align_short_contigs_with_secondary_supplementary2(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
+        sf_tmp=sf_algnmt+".sam"
+        sf_tmp2 = sf_algnmt + ".bam"
+        cmd = "{0} -k15 -w5 --sr --frag=yes -A2 -B8 -O12,32 -E2,1 -r150 -p.5 -N20 -f10000,50000 -n2 " \
+              "-m20 -s40 -g200 -2K50m --heap-sort=yes --secondary=yes --cs -a -t {1} {2} {3} > {4}" \
+              " && samtools view -hSb {5} > {6} && samtools sort -o {7} {8}" \
+            .format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_tmp, sf_tmp, sf_tmp2, sf_algnmt, sf_tmp2)
         self.run_cmd(cmd)
         cmd = "samtools index {0}".format(sf_algnmt)
         self.run_cmd(cmd)
@@ -383,7 +404,7 @@ class XTEContig():
         s_seq1 = ""
         s_seq2 = ""
         try:
-            pysam.faidx(sf_contig)  # index the fasta file index
+            pysam.faidx(sf_contig)# index the fasta file index
             f_fa = pysam.FastaFile(sf_contig)
             if s_contig_left == s_contig_right:  # aligned to the same contig
                 istart = i_left_pos + i_left_mapped
@@ -1094,7 +1115,7 @@ class XTEContig():
         sf_out_hap1 = s_seq_folder + global_values.HAP1 + ".candidate.list"  ###candidate list called from hap1
         sf_seqs_hap1 = s_seq_folder + global_values.HAP1 + ".seqs.fa"
         self.call_MEIs_from_group_contigs(sf_ref, sf_cns, s_working_folder, global_values.HAP1, sf_sites, sf_out_hap1, sf_seqs_hap1)
-        self.call_final_list_from_hap(sf_out_hap1, "1/0", m_final_list)####
+        self.call_final_list_from_hap(sf_out_hap1, "1/0", m_final_list)
 
         ####Hap2
         sf_out_hap2 = s_seq_folder + global_values.HAP2 + ".candidate.list"  ###candidate list called from hap2

@@ -15,6 +15,20 @@ class XSites():
                 m_sites[chrm][pos] = 1
         return m_sites
 
+    ####
+    def load_in_sites_of_regions(self):
+        m_sites = {}
+        with open(self.sf_sites) as fin_sites:
+            for line in fin_sites:
+                fields = line.split()
+                chrm = fields[0]
+                istart = int(fields[1])
+                iend=int(fields[2])
+                if chrm not in m_sites:
+                    m_sites[chrm] = {}
+                m_sites[chrm][istart] = iend
+        return m_sites
+
     ####load in the qualified sites from xTEA output
     ####1. length should be larger than imin_len
     ####2. should consider the transductions
