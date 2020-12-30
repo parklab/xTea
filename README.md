@@ -66,6 +66,17 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 
 4. Note: bwa and samtools need to be added to the $PATH.
 
+## Install
+
+1. **Use Conda**
+	```
+	conda install xTea
+	```
+2. **Install free**
+	```
+	git clone https://github.com/parklab/xTEA
+	```
+
 ## Run xTea
 1. **Input**
 	+ A sample id file, e.g. a file named `sample_id.txt` with content:
