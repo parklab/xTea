@@ -150,7 +150,7 @@ class XIntemediateSites():
             for line in fin_candidate_sites:
                 fields = line.split()
                 if len(fields)<3:
-                    print fields, "does not have enough fields"
+                    print(fields, "does not have enough fields")
                     continue
                 chrm = fields[0]
                 pos = int(fields[1])
@@ -169,7 +169,7 @@ class XIntemediateSites():
             for line in fin_candidate_sites:
                 fields = line.split()
                 if len(fields)<3:
-                    print fields, "does not have enough fields"
+                    print(fields, "does not have enough fields")
                     continue
                 chrm = fields[0]
                 pos = int(fields[1])
@@ -185,7 +185,7 @@ class XIntemediateSites():
             for line in fin_candidate_sites:
                 fields = line.split()
                 if len(fields)<3:
-                    print fields, "does not have enough fields"
+                    print(fields, "does not have enough fields")
                     continue
                 chrm = fields[0]
                 pos = int(fields[1])
@@ -519,7 +519,7 @@ class XIntemediateSites():
                     chrm=fields[0]
                     pos=fields[1]
                     if chrm not in m_disc:
-                        print "Error happen at merge clip and disc feature step: {0} not exist".format(chrm)
+                        print("Error happen at merge clip and disc feature step: {0} not exist".format(chrm))
                         continue
                     if pos not in m_disc[chrm]:
                         continue
@@ -548,7 +548,7 @@ class XIntemediateSites():
                     chrm=fields[0]
                     pos=fields[1]
                     if chrm not in m_barcode:
-                        print "Error happen at merge clip, disc and barcode step: {0} not exist".format(chrm)
+                        print("Error happen at merge clip, disc and barcode step: {0} not exist".format(chrm))
                         continue
                     if pos not in m_barcode[chrm]:
                         continue

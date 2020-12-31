@@ -140,7 +140,7 @@ class RsltCMP():
         n_hit, m_unhit2, m_hit2, m_hit_bcmk_pos2 = self.cmp_dict(m_input, m_bcmk)
         #n_hit_fp, m_unhit_fp, m_hit3 = self.cmp_dict(m_bcmk, m_input)
 
-        print("{0}/{1} hits/all".format(n_hit, n_bcmk)) 
+        print(("{0}/{1} hits/all".format(n_hit, n_bcmk))) 
         with open(sf_unhit, "w") as fout_unhit:
             for chrm in m_unhit2:
                 for pos in m_unhit2[chrm]:
@@ -181,7 +181,7 @@ class RsltCMP():
         n_hit, m_unhit2, m_hit2, m_hit_bcmk_pos2 = self.cmp_dict(m_input, m_bcmk)
         n_hit_fp, m_unhit_fp, m_hit3, m_hit_bcmk_pos3 = self.cmp_dict(m_bcmk, m_input)
 
-        print("{0}/{1} hits/all".format(n_hit, n_bcmk)) 
+        print(("{0}/{1} hits/all".format(n_hit, n_bcmk))) 
         with open(sf_unhit, "w") as fout_unhit:
             for chrm in m_unhit2:
                 for pos in m_unhit2[chrm]:
@@ -250,9 +250,9 @@ def check_one_sample_agnst_bcmk(sf_input, sf_bcmk, m_exclude_sites, sf_hc_bed, i
 
     n_ori_in = rslt_cmp.cnt_number_of_ins(sf_input)
     n_hc_in = rslt_cmp.cnt_number_of_ins(sf_hc_input)
-    print("##########{0}############".format(s_type))
-    print("Original call set size: {0}\n".format(n_ori_in)) 
-    print("Fall in high confident regions: {0}\n".format(n_hc_in)) 
+    print(("##########{0}############".format(s_type)))
+    print(("Original call set size: {0}\n".format(n_ori_in))) 
+    print(("Fall in high confident regions: {0}\n".format(n_hc_in))) 
     print("#########################") 
     n_hit=rslt_cmp.cmp_rslts(i_extd, sf_unhit, s_sample, m_exclude_sites)
     return n_ori_in, n_hc_in, n_hit
@@ -272,9 +272,9 @@ def check_one_sample_agnst_bcmk2(sf_input, sf_bcmk, sf_exclude, sf_hc_bed, i_ext
 
     n_ori_in = rslt_cmp.cnt_number_of_ins(sf_input)
     n_hc_in = rslt_cmp.cnt_number_of_ins(sf_hc_input)
-    print("##########{0}############".format(s_type)) 
-    print("Original call set size: {0}\n".format(n_ori_in)) 
-    print("Fall in high confident regions: {0}\n".format(n_hc_in)) 
+    print(("##########{0}############".format(s_type))) 
+    print(("Original call set size: {0}\n".format(n_ori_in))) 
+    print(("Fall in high confident regions: {0}\n".format(n_hc_in))) 
     print("#########################") 
 
     n_hit=rslt_cmp.cmp_rslts2(i_extd, sf_unhit, m_exclude_sites)#

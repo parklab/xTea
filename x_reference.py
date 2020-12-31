@@ -180,7 +180,7 @@ class XReference():
             l_records.append(tmp_rcd)
             #self.run_gnrt_flank_region_for_chrm(tmp_rcd) ################
         pool = Pool(n_jobs)
-        pool.map(unwrap_gnrt_flank_regions, zip([self] * len(l_records), l_records), 1)
+        pool.map(unwrap_gnrt_flank_regions, list(zip([self] * len(l_records), l_records)), 1)
         pool.close()
         pool.join()
 
@@ -205,7 +205,7 @@ class XReference():
             l_records.append(tmp_rcd)
             #self.run_gnrt_flank_region_for_chrm(tmp_rcd) ################
         pool = Pool(n_jobs)
-        pool.map(unwrap_gnrt_flank_regions_for_regions, zip([self] * len(l_records), l_records), 1)
+        pool.map(unwrap_gnrt_flank_regions_for_regions, list(zip([self] * len(l_records), l_records)), 1)
         pool.close()
         pool.join()
 
@@ -308,7 +308,7 @@ class XReference():
             # self.run_gnrt_flank_region_for_chrm(tmp_rcd) ################
 
         pool = Pool(n_jobs)
-        pool.map(unwrap_gnrt_target_regions, zip([self] * len(l_records), l_records), 1)
+        pool.map(unwrap_gnrt_target_regions, list(zip([self] * len(l_records), l_records)), 1)
         pool.close()
         pool.join()
 
@@ -400,7 +400,7 @@ class XReference():
                 istart=rpos
                 iend=lpos
             if ref_chrm not in m_ref_chrms:
-                print("%s doesn't exist in reference!" % ref_chrm)
+                print(("%s doesn't exist in reference!" % ref_chrm))
                 l_seqs.append(s_seq)
                 continue
             s_seq = f_fa.fetch(ref_chrm, istart, iend)

@@ -50,14 +50,14 @@ class XMutation():
     ####
     def align_reads_to_cns_in_parallel(self, l_records, n_jobs):
         pool = Pool(n_jobs)
-        pool.map(unwrap_self_algn_read, zip([self] * len(l_records), l_records), 1)
+        pool.map(unwrap_self_algn_read, list(zip([self] * len(l_records), l_records)), 1)
         pool.close()
         pool.join()
 
     ####
     def call_snp_in_parallel(self, l_records, n_jobs, sf_merged_vcf):
         pool = Pool(n_jobs)
-        pool.map(unwrap_self_call_snp, zip([self] * len(l_records), l_records), 1)
+        pool.map(unwrap_self_call_snp, list(zip([self] * len(l_records), l_records)), 1)
         pool.close()
         pool.join()
         #merge all the vcf.gz files, and then index it
@@ -222,10 +222,10 @@ class XMutation():
             l_mismatch = algnmt.get_aligned_pairs(False, True)
             if algnmt.has_tag("MD") == False:
                 continue
-            print algnmt.get_tag("MD")
-            print algnmt.cigarstring
-            print algnmt.query_sequence
-            print l_mismatch
+            print(algnmt.get_tag("MD"))
+            print(algnmt.cigarstring)
+            print(algnmt.query_sequence)
+            print(l_mismatch)
             if ncnt > 20:
                 break
             ncnt += 1

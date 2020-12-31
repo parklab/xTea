@@ -37,7 +37,7 @@ class gVCF():
         m_header = samfile.header
         shead = "##fileformat=VCFv4.2\n"
         if "SQ" not in m_header:#
-            print "No head information in bam file: {0}".format(sf_bam)
+            print("No head information in bam file: {0}".format(sf_bam))
             shead+="##reference=GCA_000001405.15_GRCh38_no_alt_analysis_set.fna\n"
             shead+=prepare_head_hg38(True)
         else:
@@ -228,7 +228,7 @@ class gVCF():
             fout_vcf.write(s_head)
             #for rcd in l_rslts:
             if len(l_rslts) != len(l_sites) or len(l_sites) != len(l_ref_seqs) or len(l_rslts) != len(l_ref_seqs):
-                print "[Error in x_vcf.py]: Arrzy size is different!\n"
+                print("[Error in x_vcf.py]: Arrzy size is different!\n")
             for (l_fields, s_tsd, s_site_seq) in zip(l_rslts, l_sTSD, l_ref_seqs):
                 sid="."
                 s_rcd=self._cvt_to_vcf_rcd(l_fields, s_rep_type, s_tsd, sid, s_site_seq)

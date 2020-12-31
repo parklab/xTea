@@ -65,17 +65,17 @@ class TE_Multi_Locator():
             for line in fin_bam_list:  ###for each bam file
                 fields=line.split()
                 if len(fields)<2:
-                    print "Error input bam file {0}!!!".format(line.rstrip())
+                    print("Error input bam file {0}!!!".format(line.rstrip()))
                     continue
                 sf_ori_bam = fields[0]
                 s_read_type=fields[1].rstrip()
-                print "Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)
+                print("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type))
                 if global_values.X10 == s_read_type:###for 10X, we use a larger cutoff, as more clipped reads
-                    print "10X bam! Set the initial cutoff as {0}".format(global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
+                    print("10X bam! Set the initial cutoff as {0}".format(global_values.INITIAL_MIN_CLIP_CUTOFF_X10))
                     global_values.set_initial_min_clip_cutoff(global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
                 else:
                     if cutoff_left_clip<=2 and b_mosaic==True:#
-                        print "Clip cutoff is small (<=2) , we are using 1 for initial cutoff"
+                        print("Clip cutoff is small (<=2) , we are using 1 for initial cutoff")
                         global_values.set_initial_min_clip_cutoff(1)#for low coverage data, set this to 1
                     else:
                         global_values.set_initial_min_clip_cutoff(global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
@@ -98,7 +98,7 @@ class TE_Multi_Locator():
                 # s_working_folder + global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
                 sf_new_pub=""
                 if len(sf_clip_folder)==0 or sf_clip_folder==None:
-                    print "public folder is null!!!!"
+                    print("public folder is null!!!!")
                     continue
                 if sf_clip_folder[-1]=="/":
                     sf_new_pub=sf_clip_folder+"{0}/".format(i_idx_bam)
@@ -125,7 +125,7 @@ class TE_Multi_Locator():
                 for i in range(cnt):
                     sf_tmp = self.working_folder + global_values.CLIP_TMP + "{0}".format(i)
                     if os.path.isfile(sf_tmp) == False:
-                        print "Errors happen, file {0} doens't exist!".format(sf_tmp)
+                        print("Errors happen, file {0} doens't exist!".format(sf_tmp))
                         continue
                     with open(sf_tmp) as fin_tmp:
                         for line in fin_tmp:
@@ -192,18 +192,18 @@ class TE_Multi_Locator():
             for line in fin_bam_list:  ###for each bam file
                 fields = line.split()
                 if len(fields) < 2:
-                    print "Error input bam file {0}!!!".format(line.rstrip())
+                    print("Error input bam file {0}!!!".format(line.rstrip()))
                     continue
                 sf_ori_bam = fields[0]
                 s_read_type = fields[1].rstrip()
-                print "Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)
+                print("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type))
                 if global_values.X10 == s_read_type:  ###for 10X, we use a larger cutoff, as more clipped reads
-                    print "10X bam! Set the initial cutoff as {0}".format(
-                        global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
+                    print("10X bam! Set the initial cutoff as {0}".format(
+                        global_values.INITIAL_MIN_CLIP_CUTOFF_X10))
                     global_values.set_initial_min_clip_cutoff(global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
                 else:
                     if cutoff_left_clip <= 3:#
-                        print "Clip cutoff is small (<=3), keep all the clipped reads (initial cutoff set as 1)!!!"
+                        print("Clip cutoff is small (<=3), keep all the clipped reads (initial cutoff set as 1)!!!")
                         global_values.set_initial_min_clip_cutoff(1)  # for low coverage data, set this to 1
                     else:
                         global_values.set_initial_min_clip_cutoff(
@@ -226,7 +226,7 @@ class TE_Multi_Locator():
                 # s_working_folder + global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
                 sf_new_pub = ""
                 if len(sf_clip_folder) == 0 or sf_clip_folder == None:
-                    print "public folder is null!!!!"
+                    print("public folder is null!!!!")
                     continue
                 if sf_clip_folder[-1] == "/":
                     sf_new_pub = sf_clip_folder + "{0}/".format(i_idx_bam)
@@ -254,7 +254,7 @@ class TE_Multi_Locator():
                 for i in range(cnt):
                     sf_tmp = self.working_folder + global_values.CLIP_TMP + "{0}".format(i)
                     if os.path.isfile(sf_tmp) == False:
-                        print "Errors happen, file {0} doens't exist!".format(sf_tmp)
+                        print("Errors happen, file {0} doens't exist!".format(sf_tmp))
                         continue
                     with open(sf_tmp) as fin_tmp:
                         for line in fin_tmp:
@@ -609,12 +609,12 @@ class TELocator():
         sf_all_clip_fq = sf_pub_folder + sf_bam_name + CLIP_FQ_SUFFIX
         clip_info.set_working_folder(sf_clip_working_folder)
         if os.path.islink(sf_all_clip_fq)==False or b_force==True:
-            print "Collected clipped reads file {0} doesn't exist. Generate it now!".format(sf_all_clip_fq)
+            print("Collected clipped reads file {0} doesn't exist. Generate it now!".format(sf_all_clip_fq))
             ##collect the clip positions
             initial_clip_pos_freq_cutoff = global_values.INITIAL_MIN_CLIP_CUTOFF ##########################################################################
-            print "Initial minimum clip cutoff is {0}".format(initial_clip_pos_freq_cutoff)
+            print("Initial minimum clip cutoff is {0}".format(initial_clip_pos_freq_cutoff))
             clip_info.collect_clip_positions(sf_annotation, initial_clip_pos_freq_cutoff, b_se, sf_pub_folder) ##save clip pos by chrm
-            print "Output info: Collect clipped parts for file ", self.sf_bam
+            print("Output info: Collect clipped parts for file ", self.sf_bam)
             sf_all_clip_fq_ori=sf_clip_working_folder+sf_bam_name + CLIP_FQ_SUFFIX
             clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
 ####
@@ -623,11 +623,11 @@ class TELocator():
             cmd="ln -s {0} {1}".format(sf_all_clip_fq_ori, sf_all_clip_fq)
             self.cmd_runner.run_cmd_small_output(cmd)
         else:
-            print "Collected clipped reads file {0} already exist!".format(sf_all_clip_fq)
+            print("Collected clipped reads file {0} already exist!".format(sf_all_clip_fq))
 ####
         ####align the clipped parts to repeat copies
         sf_algnmt = self.working_folder + sf_bam_name + CLIP_BAM_SUFFIX
-        print "Output info: Re-align clipped parts for file ", self.sf_bam
+        print("Output info: Re-align clipped parts for file ", self.sf_bam)
 
         bwa_align=BWAlign(global_values.BWA_PATH, global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
         bwa_align.two_stage_realign(sf_rep_cns, sf_ref, sf_all_clip_fq, sf_algnmt)
@@ -679,10 +679,10 @@ class TELocator():
 
         ##collect the clip positions
         initial_clip_pos_freq_cutoff = global_values.INITIAL_MIN_CLIP_CUTOFF  ##########################################################################
-        print "Initial minimum clip cutoff is {0}".format(initial_clip_pos_freq_cutoff)
+        print("Initial minimum clip cutoff is {0}".format(initial_clip_pos_freq_cutoff))
         clip_info.collect_clip_positions(sf_annotation, initial_clip_pos_freq_cutoff, b_se,
                                          sf_pub_folder)  ##save clip pos by chrm
-        print "Output info: Collect clipped parts for file ", self.sf_bam
+        print("Output info: Collect clipped parts for file ", self.sf_bam)
         sf_all_clip_fq_ori = sf_clip_working_folder + sf_bam_name + CLIP_FQ_SUFFIX
         clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
 
@@ -695,7 +695,7 @@ class TELocator():
 ####
         ####align the clipped parts to repeat copies
         sf_algnmt = self.working_folder + sf_bam_name + CLIP_BAM_SUFFIX
-        print "Output info: Re-align clipped parts for file ", self.sf_bam
+        print("Output info: Re-align clipped parts for file ", self.sf_bam)
 
         bwa_align = BWAlign(global_values.BWA_PATH, global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
         bwa_align.two_stage_realign(sf_rep_cns, sf_ref, sf_all_clip_fq, sf_algnmt)
@@ -726,7 +726,7 @@ class TELocator():
 
         ##collect the clip positions
         ##in format {chrm: {map_pos: [left_cnt, right_cnt, mate_within_rep_cnt]}}
-        print "Output info: Collect clip positions for file ", self.sf_bam
+        print("Output info: Collect clip positions for file ", self.sf_bam)
         initial_clip_pos_freq_cutoff = 2  ##############################################################################
         ##save clip pos by chrm
         clip_info.collect_clip_positions(sf_annotation, initial_clip_pos_freq_cutoff, b_se, wfolder_pub_clip)
@@ -735,7 +735,7 @@ class TELocator():
         ####gnrt the clipped parts file
         sf_bam_name = os.path.basename(self.sf_bam)
         sf_all_clip_fq = sf_clip_working_folder + sf_bam_name + CLIP_FQ_SUFFIX
-        print "Output info: Collect clipped parts for file ", self.sf_bam
+        print("Output info: Collect clipped parts for file ", self.sf_bam)
         # if os.path.isfile(sf_all_clip_fq)==False:
         clip_info.collect_clipped_parts(sf_all_clip_fq)
 ####
@@ -930,7 +930,7 @@ class TELocator():
             l_chrm_records.append(record)
             # self.run_filter_by_discordant_pair_by_chrom(record) ##########################################################
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_filter_by_discordant, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_filter_by_discordant, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 
@@ -1032,7 +1032,7 @@ class TELocator():
             l_chrm_records.append(record)
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_filter_by_barcode_coverage, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_filter_by_barcode_coverage, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 
@@ -1172,7 +1172,7 @@ class TELocator():
                 (chrm, self.sf_bam, iextend, i_is, f_dev, sf_annotation, sf_disc_working_folder, global_values.DISC_SUFFIX))
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_filter_by_discordant_non_barcode, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_filter_by_discordant_non_barcode, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 

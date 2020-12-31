@@ -85,7 +85,7 @@ class XTransduction():
                 b_match_rep = self.is_matched_rep_type(i_rep_type, sub_family)
                 # if fall in same type of repetitive region, then skip
                 if (b_in_rep is True) and (b_match_rep is True) and (div_rate < global_values.TD_REP_DIVERGENT_CUTOFF):
-                    print "[re-select step]:Filtered out: {0}:{1} fall in repetitive region.".format(ins_chrm, ins_pos)
+                    print("[re-select step]:Filtered out: {0}:{1} fall in repetitive region.".format(ins_chrm, ins_pos))
                     continue
                 # if xintmdt.is_in_existing_list(ins_chrm, ins_pos, m_te_candidates, i_win_size)==True:
                 #     continue
@@ -434,7 +434,7 @@ class XTransduction():
         for ins_chrm in m_ori_ins:
             for ins_pos in m_ori_ins[ins_chrm]:
                 if self.fall_in_low_div_same_type_rep(xannotation, ins_chrm, ins_pos, i_rep_type)==True:
-                    print "[Transduction filter]:Filtered out: {0}:{1} fall in repetitive region.".format(ins_chrm, ins_pos)
+                    print("[Transduction filter]:Filtered out: {0}:{1} fall in repetitive region.".format(ins_chrm, ins_pos))
                     continue
 
                 i_lcov1=m_read_depth[ins_chrm][ins_pos][0]
@@ -442,20 +442,20 @@ class XTransduction():
                 i_lcov2 = m_read_depth[ins_chrm][ins_pos][2]
                 i_rcov2 = m_read_depth[ins_chrm][ins_pos][3]
                 if i_lcov1>i_max_cov or i_rcov1>i_max_cov or i_lcov2>i_max_cov or i_rcov2>i_max_cov:
-                    print "[Transduction filter]:Filtered out: {0}:{1} fall in alignment island.".format(ins_chrm, ins_pos)
-                    print "{0}:{1}, Details {2} {3} {4} {5} {6}".format(ins_chrm, ins_pos, i_lcov1, i_rcov1, i_lcov2, i_rcov2, i_max_cov)
+                    print("[Transduction filter]:Filtered out: {0}:{1} fall in alignment island.".format(ins_chrm, ins_pos))
+                    print("{0}:{1}, Details {2} {3} {4} {5} {6}".format(ins_chrm, ins_pos, i_lcov1, i_rcov1, i_lcov2, i_rcov2, i_max_cov))
                     continue
                 #check polyA and polyT seperately
                 if (ins_chrm in m_clip_polyA) and (ins_pos in m_clip_polyA[ins_chrm]):
                     n_lpolyA=m_clip_polyA[ins_chrm][ins_pos][0]
                     n_rpolyA=m_clip_polyA[ins_chrm][ins_pos][1]
                     if n_lpolyA>n_half_clip and n_rpolyA>n_half_clip:
-                        print "[Transduction filter]:Filtered out: {0}:{1} has two sides polyA reads.".format(ins_chrm, ins_pos)
+                        print("[Transduction filter]:Filtered out: {0}:{1} has two sides polyA reads.".format(ins_chrm, ins_pos))
                         continue
                     n_lpolyT = m_clip_polyA[ins_chrm][ins_pos][2]
                     n_rpolyT = m_clip_polyA[ins_chrm][ins_pos][3]
                     if n_lpolyT > n_half_clip and n_rpolyT > n_half_clip:
-                        print "[Transduction filter]:Filtered out: {0}:{1} has two sides polyT reads.".format(ins_chrm, ins_pos)
+                        print("[Transduction filter]:Filtered out: {0}:{1} has two sides polyT reads.".format(ins_chrm, ins_pos))
                         continue
 
                 if ins_chrm not in m_new_ins:
@@ -1171,7 +1171,7 @@ class XTransduction():
             map_pos = algnmt.reference_start
             flank_id_fields = hit_flank_id.split(global_values.SEPERATOR) #e.g. 20~32719617~32721485~SVA_D~0R
             if len(flank_id_fields)<3:
-                print "[Error]: Wrong flanking/decoy id: {0}".format(hit_flank_id)
+                print("[Error]: Wrong flanking/decoy id: {0}".format(hit_flank_id))
                 continue
             chrm_fl_L1 = flank_id_fields[0]
             source_start = int(flank_id_fields[1])
@@ -1191,7 +1191,7 @@ class XTransduction():
             ####this is to rule out those polymerphic Fl-L1 cases, which aligned to themselves' flank regions
             if (ins_chrm==chrm_fl_L1) and (abs(ins_pos-source_start)<global_values.MIN_POLYMORPHIC_SOURCE_DIST
                                            or abs(ins_pos-source_end)<global_values.MIN_POLYMORPHIC_SOURCE_DIST):
-                print "[DISC-TD-STEP:] Filter out {0}:{1}, aligned to itself flanking regions".format(ins_chrm, ins_pos)
+                print("[DISC-TD-STEP:] Filter out {0}:{1}, aligned to itself flanking regions".format(ins_chrm, ins_pos))
                 continue
             s_source = "{0}:{1}-{2}~{3}".format(chrm_fl_L1, source_start, source_end, sourc_rc)
 
@@ -1320,7 +1320,7 @@ class XTransduction():
                         max_source = tmp_source
                 # first, the total number of discordant should pass the threshold (here require half the discordant)
                 if n_tmp_all_cnt < n_disc_cutoff:
-                    print "[DISC-TD-STEP:] Filter out {0}:{1}, no enough disc support!".format(ins_chrm, ins_pos)
+                    print("[DISC-TD-STEP:] Filter out {0}:{1}, no enough disc support!".format(ins_chrm, ins_pos))
                     continue
 
                 b_trsdct = False
@@ -1335,7 +1335,7 @@ class XTransduction():
                         and (float(max_cnt)/float(max_cnt+n_non_unique) > f_min_ratio):
                         b_trsdct = True
                 else:  # have seveal sources, then view as normal (in some cases like SVA, the annotation is not perfect, will cause this)
-                    print "[DISC-TD-STEP:] Filter out {0}:{1}, ratio is low!".format(ins_chrm, ins_pos)
+                    print("[DISC-TD-STEP:] Filter out {0}:{1}, ratio is low!".format(ins_chrm, ins_pos))
                     b_normal = True
 
                 if b_trsdct == True:
@@ -1551,7 +1551,7 @@ class XTransduction():
             for line in fin_candidate_sites:
                 fields = line.split()
                 if len(fields) < 2:
-                    print fields, "does not have enough fields"
+                    print(fields, "does not have enough fields")
                     continue
                 chrm = fields[0]
                 pos = int(fields[1])

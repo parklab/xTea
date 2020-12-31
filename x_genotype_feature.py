@@ -73,7 +73,7 @@ class XGenotyper():
                     #self.collect_features_one_site(tmp_rcd)
 ############
             pool = Pool(self.n_jobs)
-            pool.map(unwrap_self_collect_clip_disc_features, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+            pool.map(unwrap_self_collect_clip_disc_features, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
             pool.close()
             pool.join()
 

@@ -698,14 +698,14 @@ def cp_file(sf_from, sf_to):
     run_cmd(cmd)
 
 def run_cmd(cmd):
-    print cmd
+    print(cmd)
     Popen(cmd, shell=True, stdout=PIPE).communicate()
 
 def get_sample_id(sf_bam):
     fname = ntpath.basename(sf_bam)
     fname_fields = fname.split(".")
     if fname_fields[-1] != "bam" and fname_fields[-1] != "cram":
-        print "Alignment is not end with .bam"
+        print("Alignment is not end with .bam")
         return None
     sample_id = ".".join(fname_fields[:-1])
     return sample_id
@@ -974,7 +974,7 @@ def prepare_case_control_bam(sf_ori_bam, sf_sprt_bam, sf_control_bam):
         for line in fin_ori:
             fields = line.split()
             if len(fields) < 3:
-                print "Not in right format. Less fields: {0}".format(line)
+                print("Not in right format. Less fields: {0}".format(line))
                 continue
             s_id = fields[0]
             sf_case = fields[1]

@@ -824,7 +824,7 @@ class IntervalTree(MutableSet):
         bound_end = boundary_table.bisect_left(end)  # up to, but not including end
         result.update(root.search_overlap(
             # slice notation is slightly slower
-            boundary_table.keys()[index] for index in xrange(bound_begin, bound_end)
+            list(boundary_table.keys())[index] for index in range(bound_begin, bound_end)
         ))
 
         # TODO: improve envelop() to use node info instead of less-efficient filtering
@@ -858,7 +858,7 @@ class IntervalTree(MutableSet):
         bound_end = boundary_table.bisect_left(end)  # up to, but not including end
         result.update(root.search_overlap(
             # slice notation is slightly slower
-            boundary_table.keys()[index] for index in xrange(bound_begin, bound_end)
+            list(boundary_table.keys())[index] for index in range(bound_begin, bound_end)
         ))
         return result
 
@@ -870,7 +870,7 @@ class IntervalTree(MutableSet):
         """
         if not self.boundary_table:
             return 0
-        return self.boundary_table.keys()[0]
+        return list(self.boundary_table.keys())[0]
 
     def end(self):
         """
@@ -880,7 +880,7 @@ class IntervalTree(MutableSet):
         """
         if not self.boundary_table:
             return 0
-        return self.boundary_table.keys()[-1]
+        return list(self.boundary_table.keys())[-1]
 
     def range(self):
         """
@@ -974,7 +974,7 @@ class IntervalTree(MutableSet):
 
             # For efficiency reasons this should be iteritems in Py2, but we
             # don't care much for efficiency in debug methods anyway.
-            for key, val in self.boundary_table.items():
+            for key, val in list(self.boundary_table.items()):
                 assert bound_check[key] == val, \
                     'Error: boundary_table[{0}] should be {1},' \
                     ' but is {2}!'.format(

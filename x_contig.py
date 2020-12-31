@@ -182,7 +182,7 @@ class XTEContig():
             l_records.append((chrm, self.working_folder, sf_sites))
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_align_contig, zip([self] * len(l_records), l_records), 1)
+        pool.map(unwrap_align_contig, list(zip([self] * len(l_records), l_records)), 1)
         pool.close()
         pool.join()
 
@@ -211,7 +211,7 @@ class XTEContig():
                 ###all the reads
 
                 sf_asm_all = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos, global_values.ALL_HAP)
-                print sf_asm_all
+                print(sf_asm_all)
                 if os.path.exists(sf_asm_all) != False and os.stat(sf_asm_all).st_size != 0:  ####
                     sf_algnmt_all = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, global_values.ALL_HAP)
                     # print sf_asm_all
@@ -249,12 +249,12 @@ class XTEContig():
                 fields = line.split()
                 chrm = fields[0]
                 m_chrms[chrm] = 1
-        print m_chrms ###########################################################################
+        print(m_chrms) ###########################################################################
         for chrm in m_chrms:
             l_records.append((chrm, self.working_folder, sf_sites))
             #self.run_align_flank_to_phased_contig_by_chrm((chrm, self.working_folder, sf_sites))
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_align_phased_contig, zip([self] * len(l_records), l_records), 1)
+        pool.map(unwrap_align_phased_contig, list(zip([self] * len(l_records), l_records)), 1)
         pool.close()
         pool.join()
 
@@ -263,7 +263,7 @@ class XTEContig():
     #each record in format (sf_asm, sf_flanks, sf_algnmt, ins_chrm, ins_pos)
     def align_flanks_to_contig_2(self, l_rcds):
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_align_flanks_to_contig, zip([self] * len(l_rcds), l_rcds), 1)
+        pool.map(unwrap_align_flanks_to_contig, list(zip([self] * len(l_rcds), l_rcds)), 1)
         pool.close()
         pool.join()
 #
@@ -271,7 +271,7 @@ class XTEContig():
     #each record in format (sf_asm, sf_flanks, sf_algnmt, ins_chrm, ins_pos)
     def align_contig_to_target_ref(self, l_rcds):
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_align_contig_to_target_seq, zip([self] * len(l_rcds), l_rcds), 1)
+        pool.map(unwrap_self_align_contig_to_target_seq, list(zip([self] * len(l_rcds), l_rcds)), 1)
         pool.close()
         pool.join()
 
@@ -348,7 +348,7 @@ class XTEContig():
                             i_right_pos = int(mpos)
                             r_ref = algnmt.reference_name
                 except ValueError:
-                    print sf_algnmt, "is empty"
+                    print(sf_algnmt, "is empty")
 
                 if b_right_mapped == False or b_left_mapped == False:  ##both should be fully mapped
                     fout_chrm_true_positive.write(line)
@@ -383,7 +383,7 @@ class XTEContig():
             # self.run_filter_out_non_TE_from_asm_by_chrm(record) ######################################################
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_filter_by_asm, zip([self] * len(l_records), l_records), 1)
+        pool.map(unwrap_self_filter_by_asm, list(zip([self] * len(l_records), l_records)), 1)
         pool.close()
         pool.join()
 
@@ -413,7 +413,7 @@ class XTEContig():
                     istart = i_right_pos + i_right_mapped
                     iend = i_left_pos
                 if istart > iend:
-                    print "Error: start position {0} is larger than end position {1}".format(istart, iend)
+                    print("Error: start position {0} is larger than end position {1}".format(istart, iend))
                     return s_seq1, s_seq2
                 s_seq1 = f_fa.fetch(s_contig_left, istart, iend)
             else:
@@ -432,9 +432,9 @@ class XTEContig():
                         s_seq2 = f_fa.fetch(s_contig_right, 0, i_right_pos)
             f_fa.close()
         except pysam.SamtoolsError:
-            print '{0} cannot be indexed by samtools faidx\n'.format(sf_contig)
+            print('{0} cannot be indexed by samtools faidx\n'.format(sf_contig))
         except ValueError:
-            print 'Cannot open {0}\n'.format(sf_contig)
+            print('Cannot open {0}\n'.format(sf_contig))
         return s_seq1, s_seq2
 
 ####
@@ -505,7 +505,7 @@ class XTEContig():
                     r_ref = algnmt.reference_name
                     i_right_mapped = cnt_map
         except ValueError:
-            print sf_algnmt, "is empty"
+            print(sf_algnmt, "is empty")
 
         if b_right_mapped == False or b_left_mapped == False:  ##both should be fully mapped
             return False, "", ""
@@ -520,7 +520,7 @@ class XTEContig():
             istart = i_right_pos + i_right_mapped
             iend = i_left_pos
         if istart > iend:
-            print "Error: start position {0} is larger than end position {1}".format(istart, iend)
+            print("Error: start position {0} is larger than end position {1}".format(istart, iend))
             return False, "", ""
 
         if (iend - istart) < i_slack:  ##left and right are concatenate
@@ -598,7 +598,7 @@ class XTEContig():
                     r_ref = algnmt.reference_name
                     i_right_mapped = cnt_map
         except ValueError:
-            print sf_algnmt, "is empty"
+            print(sf_algnmt, "is empty")
 
         if b_right_mapped == False and b_left_mapped == False:  ##one of the flank should be fully mapped
             return False, "", "", b_same_contig
@@ -613,7 +613,7 @@ class XTEContig():
                     istart = i_right_pos + i_right_mapped
                     iend = i_left_pos
                 if istart > iend:
-                    print "Error: start position {0} is larger than end position {1}".format(istart, iend)
+                    print("Error: start position {0} is larger than end position {1}".format(istart, iend))
                     return False, "", "", b_same_contig
 
                 if (iend - istart) < i_slack:  ##left and right are concatenate
@@ -887,7 +887,7 @@ class XTEContig():
                                 m_selected[contig_id[:-1]] = m_selected_candidate[s_tmp] + cnt_map
                         m_selected_candidate[contig_id] = cnt_map
         except ValueError:
-            print sf_algnmt, "is empty"
+            print(sf_algnmt, "is empty")
         return m_selected, m_selected_candidate
 
     ####
@@ -920,7 +920,7 @@ class XTEContig():
             #self.run_select_TEI_from_algnmt_by_chrm(record)
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_validate_by_asm, zip([self] * len(l_records), l_records), 1)
+        pool.map(unwrap_self_validate_by_asm, list(zip([self] * len(l_records), l_records)), 1)
         pool.close()
         pool.join()
 

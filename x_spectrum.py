@@ -25,7 +25,7 @@ class XSpectrum():
         self.disc_bin_size = 20000000  # block size for parallelization
 
         if len(sf_wfolder)<=0:
-            print "Wrong working folder! Now set a ./"
+            print("Wrong working folder! Now set a ./")
             self.wfolder="./"
         else:
             self.wfolder=sf_wfolder
@@ -36,7 +36,7 @@ class XSpectrum():
 
     def collect_disc_reads_for_samples(self, sf_sample_ids, sf_bams, sf_rslt_folder, sf_disc_fa, b_force=False):
         if len(sf_rslt_folder)<=0:
-            print "Wrong results folder!"
+            print("Wrong results folder!")
             return
         if sf_rslt_folder[-1] != "/":
             sf_rslt_folder += "/"
@@ -50,13 +50,13 @@ class XSpectrum():
                     continue
 
                 if sample_id not in m_bams:
-                    print "Sample:{0} doesn't exist!".format(sample_id)
+                    print("Sample:{0} doesn't exist!".format(sample_id))
                     continue
                 sf_case_bam=m_bams[sample_id]
                 sf_tmp_fa=self.collect_disc_reads_one_sample(sf_sites, sample_id, sf_case_bam, b_force)
                 #print sf_sites, len(l_cns_fa)
                 if os.path.isfile(sf_tmp_fa)==False:
-                    print "File {0} doesn't exist!".format(sf_tmp_fa)
+                    print("File {0} doesn't exist!".format(sf_tmp_fa))
                     continue
                 with open(sf_tmp_fa) as fin_tmp_disc:
                     for line in fin_tmp_disc:
@@ -71,7 +71,7 @@ class XSpectrum():
     ####this is for population
     def merge_disc_reads_for_population(self, sf_sample_id, sf_xTEA_folder, i_max_dist_from_ins, bmapped_cutoff, sf_disc_fa):
         if len(sf_xTEA_folder)<=0:
-            print "Wrong results folder!"
+            print("Wrong results folder!")
             return
         if sf_xTEA_folder[-1]!="/":
             sf_xTEA_folder+="/"
@@ -81,7 +81,7 @@ class XSpectrum():
                 sample_id=line.rstrip()#sample id
                 sf_rslt=sf_xTEA_folder+sample_id+"/L1/candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt"
                 if os.path.isfile(sf_rslt)==False:
-                    print "File {0} does not exist!".format(sf_rslt)
+                    print("File {0} does not exist!".format(sf_rslt))
                     continue
                 m_sites=self.load_rslt_to_dict(sf_rslt)
                 sf_tmp_disc_sam=sf_xTEA_folder+sample_id+"/L1/tmp/cns/temp_disc.sam"

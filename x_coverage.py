@@ -98,7 +98,7 @@ class ReadDepth(X_BasicInfo):
                         l_records.append(((chrm, pos, search_win, focal_win), sf_bam, self.working_folder))
 
                 pool = Pool(self.n_jobs)
-                l_sites_cov=pool.map(unwrap_self_calc_depth_for_site, zip([self] * len(l_records), l_records), 1)
+                l_sites_cov=pool.map(unwrap_self_calc_depth_for_site, list(zip([self] * len(l_records), l_records)), 1)
                 pool.close()
                 pool.join()
 
@@ -219,7 +219,7 @@ class ReadDepth(X_BasicInfo):
                         l_records.append(((chrm, pos, search_win, focal_win, focal_win2), sf_bam, self.working_folder))
 
                 pool = Pool(self.n_jobs)
-                l_sites_cov=pool.map(unwrap_self_calc_depth_for_site2, zip([self] * len(l_records), l_records), 1)
+                l_sites_cov=pool.map(unwrap_self_calc_depth_for_site2, list(zip([self] * len(l_records), l_records)), 1)
                 pool.close()
                 pool.join()
 
@@ -269,7 +269,7 @@ class ReadDepth(X_BasicInfo):
             l_records.append(((chrm, pos, search_win, focal_win), sf_bam, self.working_folder))
 
         pool = Pool(self.n_jobs)
-        l_tmp_cov=pool.map(unwrap_self_calc_depth_for_site, zip([self] * len(l_records), l_records), 1)
+        l_tmp_cov=pool.map(unwrap_self_calc_depth_for_site, list(zip([self] * len(l_records), l_records)), 1)
         pool.close()
         pool.join()
 

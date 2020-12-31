@@ -130,7 +130,7 @@ class XLocalAssembly():
                 self._create_folder(sf_asm_folder)
                 l_chrm_records.append((sf_reads, sf_asm_folder))
         pool = Pool(n_jobs)
-        pool.map(unwrap_self_assembly, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_assembly, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 
@@ -175,7 +175,7 @@ class XLocalAssembly():
                     l_chrm_records.append((sf_reads_hap_discord, sf_asm_folder_hap_disc))
 
         pool = Pool(n_jobs)
-        pool.map(unwrap_self_assembly, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_assembly, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 
@@ -220,7 +220,7 @@ class XLocalAssembly():
                     l_chrm_records.append((sf_reads_hap_discord, sf_asm_folder_hap_disc))
 
         pool = Pool(n_jobs)
-        pool.map(unwrap_self_assembly, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_assembly, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
     ####

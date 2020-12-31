@@ -48,7 +48,7 @@ class XReadsCollection():
             l_chrm_records.append(record)
             #self.run_collect_phased_reads_for_one_chrm_v2(record)
         pool = Pool(n_jobs)
-        pool.map(unwrap_self_collect_phased_reads, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_collect_phased_reads, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 ####

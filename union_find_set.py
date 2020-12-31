@@ -45,7 +45,7 @@ class UnionFindSet(object):
             return False
 
     def outputIds(self):
-        print self.__id
+        print(self.__id)
 
     def outputComponents(self):
         dtemp={}
@@ -54,7 +54,7 @@ class UnionFindSet(object):
         components=[[] for i in range(self.__compNum)]
         for i in range(self.__size):
             rtemp=self.find(i)
-            if dtemp.has_key(rtemp)==False:
+            if (rtemp in dtemp)==False:
                 dtemp[rtemp]=cnt
                 components[cnt].append(i)
                 #print "Debug: ", cnt, self.__compNum

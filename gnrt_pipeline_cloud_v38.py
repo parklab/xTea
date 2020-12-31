@@ -521,14 +521,14 @@ def cp_file(sf_from, sf_to):
     run_cmd(cmd)
 
 def run_cmd(cmd):
-    print cmd
+    print(cmd)
     Popen(cmd, shell=True, stdout=PIPE).communicate()
 
 def get_sample_id(sf_bam):
     fname = ntpath.basename(sf_bam)
     fname_fields = fname.split(".")
     if fname_fields[-1] != "bam" and fname_fields[-1] != "cram":
-        print "Alignment is not end with .bam"
+        print("Alignment is not end with .bam")
         return None
     sample_id = ".".join(fname_fields[:-1])
     return sample_id
@@ -544,7 +544,7 @@ def gnrt_running_shell(l_rep_type, sf_bam, s_wfolder, ncores, sf_folder_rep, sf_
     fname=ntpath.basename(sf_bam)
     fname_fields=fname.split(".")
     if fname_fields[-1]!="bam" and fname_fields[-1]!="cram":
-        print "Alignment is not end with .bam"
+        print("Alignment is not end with .bam")
         return
 
     #get the sample_id

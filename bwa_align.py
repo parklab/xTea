@@ -103,7 +103,7 @@ class BWAlign():
         #                                                            self.BWA_REALIGN_CUTOFF,
         #                                                            self.BWA_REALIGN_CUTOFF, self.BWA_SEED_FREQ,
         #                                                            sf_head, sf_out_sam, sf_ref, sf_reads)
-        print "Run command: {0}".format(cmd)#
+        print("Run command: {0}".format(cmd))#
         # Popen(cmd, shell=True, stdout=PIPE).communicate()
         self.cmd_runner.run_cmd_to_file(cmd, sf_out_sam+".std_out")
         #self.cmd_runner.run_cmd_small_output(cmd)
@@ -113,7 +113,7 @@ class BWAlign():
     def align_exon_to_contig(self, sf_ref, sf_reads, sf_out_bam):
         cmd = "{0} mem -t {1} {2} {3} | samtools view -hSb - | {4} sort -o {5} - && samtools index {5}"\
             .format(self.BWA_PATH, self.n_jobs,  sf_ref, sf_reads, global_values.SAMTOOLS_PATH, sf_out_bam)
-        print("Run command: {0}".format(cmd))
+        print(("Run command: {0}".format(cmd)))
         self.cmd_runner.run_cmd_small_output(cmd)
 
     # re-align the collected clipped and discordant reads
@@ -136,7 +136,7 @@ class BWAlign():
     def realign_reads_to_bam(self, SAMTOOLS, sf_ref, sf_reads, sf_out_bam):
         cmd = "{0} mem -t {1} {2} {3} | {4} view -hSb - | {5} sort - ".format(
             self.BWA_PATH, self.n_jobs, sf_ref, sf_reads, SAMTOOLS, SAMTOOLS)
-        print "Run command: {0}".format(cmd)
+        print("Run command: {0}".format(cmd))
         str_err=self.cmd_runner.run_cmd_to_file(cmd, sf_out_bam)
 
         cmd2 = "{0} index {1}".format(SAMTOOLS, sf_out_bam)

@@ -132,7 +132,7 @@ class CaseControlMode():
                 return False
 
         if (ins_chrm not in m_cluster) or (ins_pos not in m_cluster[ins_chrm]):
-            print "{0}:{1} doesn't form clip and disc cluster!".format(ins_chrm, ins_pos)
+            print("{0}:{1} doesn't form clip and disc cluster!".format(ins_chrm, ins_pos))
             return True
 
         (nlclip, nrclip, nldisc, nrdisc, nlpolyA, nrpolyA, s_cns_lclip, s_cns_rclip,
@@ -160,7 +160,7 @@ class CaseControlMode():
             return True
         s_ctrl_src=m_td_cluster[ins_chrm][ins_pos][0]
         if (s_ctrl_src in s_case_src) or (s_ctrl_src == s_case_src) or (s_case_src in s_ctrl_src):
-            print "{0}:{1} transduction is filtered out, as it has the same source as control".format(ins_chrm, ins_pos)
+            print("{0}:{1} transduction is filtered out, as it has the same source as control".format(ins_chrm, ins_pos))
             return False
 
         #2. check polyA support
@@ -168,7 +168,7 @@ class CaseControlMode():
             n_polyA=m_td_polyA[ins_chrm][ins_pos][0]+m_td_polyA[ins_chrm][ins_pos][1]
             n_polyT=m_td_polyA[ins_chrm][ins_pos][2]+m_td_polyA[ins_chrm][ins_pos][3]
             if n_polyA>=n_polyA_cutoff or n_polyT>=n_polyA_cutoff:
-                print "{0}:{1} transduction is filtered out, as there are polyA tails found in control".format(ins_chrm, ins_pos)
+                print("{0}:{1} transduction is filtered out, as there are polyA tails found in control".format(ins_chrm, ins_pos))
                 return False
         return True
 ####
@@ -239,11 +239,11 @@ class CaseControlMode():
 
         ####potential issue is: if nearby there is another SV, may cause FN
         if n_disc > ndisc_cutoff and n_disc_chrms > 2:
-            print "{0}:{1} is filtered out, as there are discordant reads in control".format(ins_chrm, ins_pos)
+            print("{0}:{1} is filtered out, as there are discordant reads in control".format(ins_chrm, ins_pos))
             return False
         if n_af_clip > nclip_cutoff and n_polyA > npolyA_cutoff:
-            print "{0}:{1} is filtered out, as there are clipped reads (with polyA) in control".format(ins_chrm,
-                                                                                                       ins_pos)
+            print("{0}:{1} is filtered out, as there are clipped reads (with polyA) in control".format(ins_chrm,
+                                                                                                       ins_pos))
             return False
         return True
 
@@ -361,17 +361,17 @@ class CaseControlMode_old():
         m_case_list=self._load_in_rslt_list(slist_case_rslt, False)
         #print m_case_list
         m_control_list=self._load_in_rslt_list(slist_control_rslt, True)
-        print m_control_list
+        print(m_control_list)
         with open(sf_out_idx,"w") as fout_idx:
             for s_bam_id in m_bam_id_vs_indpdt:
                 if s_bam_id not in m_case_list:
-                    print s_bam_id, "do not have a case result!!!"
+                    print(s_bam_id, "do not have a case result!!!")
                     continue
                 sf_case=m_case_list[s_bam_id]
 
                 s_sample_id=m_bam_id_vs_indpdt[s_bam_id]
                 if s_sample_id not in m_control_list:
-                    print "{0} do not have a control!!!".format(s_sample_id)
+                    print("{0} do not have a control!!!".format(s_sample_id))
                     continue
                 sf_control=m_control_list[s_sample_id]
 

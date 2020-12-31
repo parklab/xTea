@@ -300,7 +300,7 @@ class XClipDisc():####
                 pos = int(fields[1])  # candidate insertion site
                 l_chrm_records.append(((chrm, pos, extnd), self.sf_bam, self.working_folder))
         pool = Pool(self.n_jobs)
-        l_low_mapq=pool.map(unwrap_self_collect_clip_disc_reads, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        l_low_mapq=pool.map(unwrap_self_collect_clip_disc_reads, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 
@@ -366,7 +366,7 @@ class XClipDisc():####
                 for pos in m_chrm_pos[chrm]:
                     l_chrm_records.append(((chrm, pos, extnd), self.sf_bam, self.working_folder))
                 pool = Pool(self.n_jobs)
-                pool.map(unwrap_self_collect_clip_disc_reads, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+                pool.map(unwrap_self_collect_clip_disc_reads, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
                 pool.close()
                 pool.join()
 
@@ -625,7 +625,7 @@ class XClipDisc():####
             l_chrm_records.append((chrm, sf_bam_list, sf_candidate_list, extnd, clip_slack, af, self.working_folder))
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_calc_AF_by_clip_reads, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_calc_AF_by_clip_reads, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 
@@ -652,7 +652,7 @@ class XClipDisc():####
             l_chrm_records.append((chrm, sf_bam_list, sf_candidate_list, extnd, clip_slack, self.working_folder))
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_collect_clip_disc_features, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_collect_clip_disc_features, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 ####
@@ -686,7 +686,7 @@ class XClipDiscFilter():
     def _cnt_clip_reads(self, ins_chrm, ins_pos, peak_clip_pos, m_clip_pos):
         nclip = 0
         if (ins_chrm not in m_clip_pos) or (ins_pos not in m_clip_pos[ins_chrm]):
-            print "Error in cnt clip step, {0}:{1} not in the dict!!!".format(ins_chrm, ins_pos)
+            print("Error in cnt clip step, {0}:{1} not in the dict!!!".format(ins_chrm, ins_pos))
             return nclip
         for tmp_pos in m_clip_pos[ins_chrm][ins_pos]:
             if abs(tmp_pos - peak_clip_pos) <= global_values.CLIP_SEARCH_WINDOW:
@@ -699,7 +699,7 @@ class XClipDiscFilter():
         nldisc = 0
         nrdisc = 0
         if (ins_chrm not in m_disc) or (ins_pos not in m_disc[ins_chrm]):
-            print "Error in cnt disc step, {0}:{1} not in the dict!!!".format(ins_chrm, ins_pos)
+            print("Error in cnt disc step, {0}:{1} not in the dict!!!".format(ins_chrm, ins_pos))
             return 0, 0
         # print ins_chrm, ins_pos, clip_pos, m_disc[ins_chrm][ins_pos] ####################################################
         for tmp_pos in m_disc[ins_chrm][ins_pos]:

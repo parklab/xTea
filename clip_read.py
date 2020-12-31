@@ -247,7 +247,7 @@ class ClipReadInfo():
         samfile.close()
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_cnt_clip, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_cnt_clip, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 
@@ -255,7 +255,7 @@ class ClipReadInfo():
         for chrm in references:#
             sf_clip_pos = self.working_folder + chrm + global_values.CLIP_POS_SUFFIX
             if os.path.isfile(sf_clip_pos) == False:
-                print "Error: Position file for chrom {0} doesn't exist!!!!".format(chrm)
+                print("Error: Position file for chrom {0} doesn't exist!!!!".format(chrm))
                 continue
 
             m_clip_pos_freq = {}
@@ -416,7 +416,7 @@ class ClipReadInfo():
         samfile.close()
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_cnt_clip_pos, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_cnt_clip_pos, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 
@@ -570,13 +570,13 @@ class ClipReadInfo():
         xchrom = XChromosome()
         for chrm in references:
             if xchrom.is_decoy_contig_chrms(chrm) == True:  ###Here filter out those aligned to decoy sequences
-                print "Skip chromosome {0}".format(chrm)  ##
+                print("Skip chromosome {0}".format(chrm))  ##
                 continue
             l_chrm_records.append((chrm, self.sf_bam, self.working_folder))
         samfile.close()
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_collect_clip_parts, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_collect_clip_parts, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 
@@ -654,7 +654,7 @@ class ClipReadInfo():
         ####clip positions for specific chrm
         sf_clip_pos = working_folder + ref_chrm + global_values.CLIP_POS_SUFFIX
         if os.path.isfile(sf_clip_pos) == False:
-            print "Error: Position file for chrom {0} doesn't exist!!!!".format(ref_chrm)
+            print("Error: Position file for chrom {0} doesn't exist!!!!".format(ref_chrm))
             return
         ###clip positions for specific chrm with extra #left_clip #right_clip (mapped parts)
         sf_out_clip_pos = working_folder + ref_chrm + global_values.CLIP_RE_ALIGN_POS_SUFFIX
@@ -823,7 +823,7 @@ class ClipReadInfo():
             if qname_fields[-2] == global_values.FLAG_RIGHT_CLIP:
                 b_left = False
 
-            if m_sites_chrm.has_key(ori_mpos) == False:
+            if (ori_mpos in m_sites_chrm) == False:
                 m_sites_chrm[ori_mpos] = []
                 if b_left == True:
                     m_sites_chrm[ori_mpos].append(1)
@@ -859,7 +859,7 @@ class ClipReadInfo():
         samfile.close()
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_cnt_clip_parts, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_cnt_clip_parts, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 
@@ -976,7 +976,7 @@ class ClipReadInfo():
                     m_polyA[ori_mpos][1] += 1
             ######################################################
 
-            if m_sites_chrm.has_key(ori_mpos) == False:
+            if (ori_mpos in m_sites_chrm) == False:
                 m_sites_chrm[ori_mpos] = []
                 if b_left == True:
                     m_sites_chrm[ori_mpos].append(1)
@@ -1014,7 +1014,7 @@ class ClipReadInfo():
         samfile.close()
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_cnt_clip_parts_mosaic, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_cnt_clip_parts_mosaic, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 
@@ -1293,13 +1293,13 @@ class LContigClipReadInfo():
         xchrom = XChromosome()
         for chrm in references:
             if xchrom.is_decoy_contig_chrms(chrm) == True:  ###Here filter out those aligned to decoy sequences
-                print "Skip chromosome {0}".format(chrm)  ##
+                print("Skip chromosome {0}".format(chrm))  ##
                 continue
             l_chrm_records.append((chrm, self.sf_bam, sf_sites, islack, self.working_folder))
         samfile.close()
 
         pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_collect_clip_parts_l, zip([self] * len(l_chrm_records), l_chrm_records), 1)
+        pool.map(unwrap_self_collect_clip_parts_l, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
         pool.close()
         pool.join()
 

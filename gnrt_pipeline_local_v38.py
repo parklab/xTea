@@ -683,14 +683,14 @@ def cp_file(sf_from, sf_to):
     run_cmd(cmd)
 
 def run_cmd(cmd):
-    print cmd
+    print(cmd)
     Popen(cmd, shell=True, stdout=PIPE).communicate()
 
 def get_sample_id(sf_bam):
     fname = ntpath.basename(sf_bam)
     fname_fields = fname.split(".")
     if fname_fields[-1] != "bam" and fname_fields[-1] != "cram":
-        print "Alignment is not end with .bam"
+        print("Alignment is not end with .bam")
         return None
     sample_id = ".".join(fname_fields[:-1])
     return sample_id
@@ -955,7 +955,7 @@ def prepare_case_control_bam(sf_ori_bam, sf_sprt_bam, sf_control_bam):
         for line in fin_ori:
             fields=line.split()
             if len(fields)<3:
-                print "Not in right format. Less fields: {0}".format(line)
+                print("Not in right format. Less fields: {0}".format(line))
                 continue
             s_id=fields[0]
             sf_case=fields[1]
@@ -1125,7 +1125,7 @@ if __name__ == '__main__':
         #thus need to prepare the files separately
         sf_sprt_bams=sf_bams + CASE_LIST_SUFFIX
         sf_control_bams=sf_bams + CTRL_LIST_SUFFIX
-        print sf_control_bams
+        print(sf_control_bams)
         prepare_case_control_bam(sf_bams, sf_sprt_bams, sf_control_bams)
         #first, run the jobs seperately for all the case and control samples
         gnrt_running_shell(sf_id, sf_sprt_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor,

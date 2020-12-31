@@ -9,7 +9,7 @@ class XIGV():
             for line in fin_bams:
                 fields = line.split()
                 if len(fields) < 2:
-                    print("Wrong bam file list ", line)
+                    print(("Wrong bam file list ", line))
                     continue
                 l_sf_bams=[]
                 for sf_tmp_bam in fields[1:]:
@@ -20,7 +20,7 @@ class XIGV():
             for line in fin_sites:
                 fields = line.split()
                 if len(fields) < 3:
-                    print("Wrong site ", line)
+                    print(("Wrong site ", line))
                     continue
                 s_id = fields[0]
                 ins_chrm = fields[1]
@@ -33,7 +33,7 @@ class XIGV():
 
             for s_id in m_sites:
                 if s_id not in m_bams:
-                    print(s_id, "not in provided bam list!")
+                    print((s_id, "not in provided bam list!"))
                     continue
                 l_sf_bam = m_bams[s_id]
                 s_out_folder = s_wfolder
@@ -80,7 +80,7 @@ class XIGV():
             for line in fin_bams:
                 fields = line.split()
                 if len(fields) < 2:
-                    print("Wrong bam file list ", line)
+                    print(("Wrong bam file list ", line))
                     continue
                 m_bams[fields[0]] = fields[1]
         with open(sf_sites) as fin_sites, open(sf_out, "w") as fout:
@@ -88,7 +88,7 @@ class XIGV():
             for line in fin_sites:
                 fields = line.split()
                 if len(fields) < 3:
-                    print("Wrong site ", line)
+                    print(("Wrong site ", line))
                     continue
                 s_id = fields[0]
                 ins_chrm = fields[1]
@@ -101,7 +101,7 @@ class XIGV():
 
             for s_id in m_sites:
                 if s_id not in m_bams:
-                    print(s_id, "not in provided bam list!")
+                    print((s_id, "not in provided bam list!"))
                     continue
                 sf_bam = m_bams[s_id]
                 s_out_folder = s_wfolder

@@ -32,7 +32,7 @@ class XInsertSize():
         return l_chrm_names
 
     def calc_insert_size_for_read_group_by_chrm(self, record):
-        print("[XInsertSize::calc_insert_size_for_read_group_by_chrm] start: ${0}".format(time.time()))
+        print(("[XInsertSize::calc_insert_size_for_read_group_by_chrm] start: ${0}".format(time.time())))
 
         sf_algnmt = record[0]
         chrm = record[1]
@@ -91,11 +91,11 @@ class XInsertSize():
                 s_mean = "{0}\t{1}\t{2}\t{3}\t{4}\n".format(rg, m_sum[rg], m_cnt[rg], m_sum_2[rg], m_rl[rg])
                 fout_mean.write(s_mean)
 
-        print("[XInsertSize::calc_insert_size_for_read_group_by_chrm] end: ${0}".format(time.time()))
+        print(("[XInsertSize::calc_insert_size_for_read_group_by_chrm] end: ${0}".format(time.time())))
 
     ###use small bin size (like 10M) will be more efficient
     def calc_insert_size_by_read_group(self, working_folder, n_jobs, bin_size, sf_out):
-        print("[XInsertSize::calc_insert_size_by_read_group] start: ${0}".format(time.time()))
+        print(("[XInsertSize::calc_insert_size_by_read_group] start: ${0}".format(time.time())))
 
         l_chrm_name_length = self.get_all_chrom_name_length_in_list()
 
@@ -129,7 +129,7 @@ class XInsertSize():
                     m_already_checked[sf_mean_is_chrm]=1
                     l_chrm_records0.append((self.sf_bam, chrm, pos_start, pos_end, sf_mean_is_chrm))
         pool = Pool(n_jobs)
-        pool.map(unwrap_self_calc_insert_size, zip([self] * len(l_chrm_records0), l_chrm_records0), 1)
+        pool.map(unwrap_self_calc_insert_size, list(zip([self] * len(l_chrm_records0), l_chrm_records0)), 1)
         pool.close()
         pool.join()
 
@@ -168,7 +168,7 @@ class XInsertSize():
         tmp_cnt_is=0
         for rg in m_sum_is:
             if rg not in m_cnt_is:
-                print("Error: No match count number for read group {0}".format(rg))
+                print(("Error: No match count number for read group {0}".format(rg)))
                 continue
             f_mean = float(m_sum_is[rg]) / float(m_cnt_is[rg])
             m_mean[rg] = f_mean
@@ -183,7 +183,7 @@ class XInsertSize():
         tmp_cnt_std=0
         for rg in m_sum2_is:
             if rg not in m_mean or rg not in m_cnt_is:
-                print("Error: No match count number or mean for read group {0}".format(rg))
+                print(("Error: No match count number or mean for read group {0}".format(rg)))
                 continue
             f2_mean = float(m_sum2_is[rg]) / float(m_cnt_is[rg])
             variance = f2_mean - m_mean[rg] ** 2
