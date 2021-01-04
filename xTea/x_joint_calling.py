@@ -132,6 +132,6 @@ class MosaicJointCalling(XJointCalling):
     def _export_rslt(self, m_not_slcted):
         for test_chrm in m_not_slcted:
             for test_pos in m_not_slcted[test_chrm]:
-                print(test_chrm, test_pos, m_not_slcted[test_chrm][test_pos])
+                print((test_chrm, test_pos, m_not_slcted[test_chrm][test_pos]))
 
 ####

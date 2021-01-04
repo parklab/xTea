@@ -36,7 +36,7 @@ class VCFMerger():#
                 biosample_id=fields[2]
                 pop_code=fields[3]
                 if len(pop_code)<=0:
-                    print("population sample file parse error: {0}".format(line.rstrip()))
+                    print(("population sample file parse error: {0}".format(line.rstrip())))
                     continue
                 if pop_code not in m_pop_cnt:
                     m_pop_cnt[pop_code]=0
@@ -86,7 +86,7 @@ class VCFMerger():#
     def load_vcf_head(self, sf_vcf):
         l_head=[]
         if os.path.isfile(sf_vcf)==False:
-            print("[Get VCF head]: File {0} doesn't exist!".format(sf_vcf))
+            print(("[Get VCF head]: File {0} doesn't exist!".format(sf_vcf)))
             return l_head
         with open(sf_vcf) as fin_vcf:
             for line in fin_vcf:
@@ -146,7 +146,7 @@ class PopVCFMerger(VCFMerger):
                     b_set_template=True
 
                 if os.path.isfile(sf_sample_vcf) == False:
-                    print("{0} doesn't exist!".format(sf_sample_vcf))
+                    print(("{0} doesn't exist!".format(sf_sample_vcf)))
                     continue
                 # then, merge all the samples to one single VCF
                 self.load_in_sample_vcf(s_sample, sf_sample_vcf, m_all_sites)
@@ -218,7 +218,7 @@ class PopVCFMerger(VCFMerger):
             fout.write(s_head)
             for sample in l_samples:
                 if sample not in m_sample_sites:
-                    print("{0} not in sample list".format(sample))
+                    print(("{0} not in sample list".format(sample)))
                     continue
                 s_pop=m_sample_info[sample][2]
                 sinfo="{0},{1}".format(sample,s_pop)
@@ -284,7 +284,7 @@ class PopVCFMerger(VCFMerger):
         m_td_src={}#transduction source regions
         for (sample_id, s_gvcf_rcd) in l_sample_rcd:
             if sample_id not in m_sample_info:
-                print("[Convert Error]: sample {0} not in dictionary".format(sample_id))
+                print(("[Convert Error]: sample {0} not in dictionary".format(sample_id)))
                 continue
             l_tmp_fields=s_gvcf_rcd.split()
             s_rep_type=l_tmp_fields[4]
@@ -526,7 +526,7 @@ class PopVCFMerger(VCFMerger):
 ####
     def load_in_sample_vcf(self, sample_id, sf_vcf, m_all_sites):
         if os.path.isfile(sf_vcf)==False:
-            print("File {0} doesn't exist!".format(sf_vcf))
+            print(("File {0} doesn't exist!".format(sf_vcf)))
             return
         with open(sf_vcf) as fin_vcf:
             for line in fin_vcf:
@@ -627,7 +627,7 @@ class SampleVCFMerger(VCFMerger):
 
     ####
     def merge_single_sample_ins(self, i_rep_type, sf_rslt_folder, s_sample_id, i_win, sf_merged):
-        print("Merging sub-type vcf of sample {0}".format(s_sample_id))
+        print(("Merging sub-type vcf of sample {0}".format(s_sample_id)))
         reptype = RepType()
         m_rep_types=reptype.get_all_rep_types(i_rep_type)
         m_all_sites={}
@@ -689,7 +689,7 @@ class SampleVCFMerger(VCFMerger):
 
     def load_in_sites_from_vcf(self, sf_vcf, m_sites):
         if os.path.isfile(sf_vcf)==False:
-            print("File {0} doesn't exist!".format(sf_vcf))
+            print(("File {0} doesn't exist!".format(sf_vcf)))
             return
         with open(sf_vcf) as fin_vcf:
             for line in fin_vcf:
@@ -706,7 +706,7 @@ class SampleVCFMerger(VCFMerger):
 
     def append_sites_from_vcf(self, sf_vcf, i_win, m_sites):
         if os.path.isfile(sf_vcf)==False:
-            print("File {0} doesn't exist!!".format(sf_vcf))
+            print(("File {0} doesn't exist!!".format(sf_vcf)))
             return
         with open(sf_vcf) as fin_vcf:
             for line in fin_vcf:
@@ -822,7 +822,7 @@ class XVCF():
             fout_rslt.write(s_head)
             for s_sample in m_sample_sites:
                 if s_sample not in m_sample_info:
-                    print(s_sample, "not found in dict")
+                    print((s_sample, "not found in dict"))
                     continue
                 sample_info_rcd = m_sample_info[s_sample]
                 s_region = sample_info_rcd[2]

@@ -50,13 +50,13 @@ class XSpectrum():
                     continue
 
                 if sample_id not in m_bams:
-                    print("Sample:{0} doesn't exist!".format(sample_id))
+                    print(("Sample:{0} doesn't exist!".format(sample_id)))
                     continue
                 sf_case_bam=m_bams[sample_id]
                 sf_tmp_fa=self.collect_disc_reads_one_sample(sf_sites, sample_id, sf_case_bam, b_force)
                 #print sf_sites, len(l_cns_fa)
                 if os.path.isfile(sf_tmp_fa)==False:
-                    print("File {0} doesn't exist!".format(sf_tmp_fa))
+                    print(("File {0} doesn't exist!".format(sf_tmp_fa)))
                     continue
                 with open(sf_tmp_fa) as fin_tmp_disc:
                     for line in fin_tmp_disc:
@@ -81,7 +81,7 @@ class XSpectrum():
                 sample_id=line.rstrip()#sample id
                 sf_rslt=sf_xTEA_folder+sample_id+"/L1/candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt"
                 if os.path.isfile(sf_rslt)==False:
-                    print("File {0} does not exist!".format(sf_rslt))
+                    print(("File {0} does not exist!".format(sf_rslt)))
                     continue
                 m_sites=self.load_rslt_to_dict(sf_rslt)
                 sf_tmp_disc_sam=sf_xTEA_folder+sample_id+"/L1/tmp/cns/temp_disc.sam"

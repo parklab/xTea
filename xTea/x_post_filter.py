@@ -220,7 +220,7 @@ class XPostFilter():
 
                 b_in_blacklist, tmp_pos=x_blklist.fall_in_region(ins_chrm, int(ins_pos))
                 if b_in_blacklist==True:
-                    print("{0}:{1} is filtered out, because fall in centromere region".format(ins_chrm, ins_pos))
+                    print(("{0}:{1} is filtered out, because fall in centromere region".format(ins_chrm, ins_pos)))
                     fout_log.write("{0}:{1} is filtered out, because fall in centromere region\n".format(
                         ins_chrm, ins_pos))
                     continue
@@ -279,7 +279,7 @@ class XPostFilter():
                 b_with_polyA = xtprt_filter.has_polyA_signal(rcd)
                 min_ins_len=200 #minimum insertion length
                 if (b_with_polyA is False) and (xtprt_filter.hit_end_of_cns(rcd)==False): #no polyA, and didn't hit end
-                    print("{0}:{1} is filtered out, because no any polyA signal detected!".format(ins_chrm, ins_pos))
+                    print(("{0}:{1} is filtered out, because no any polyA signal detected!".format(ins_chrm, ins_pos)))
                     fout_log.write("{0}:{1} is filtered out, because no any polyA signal detected!\n".format(
                         ins_chrm, ins_pos))
                     continue
@@ -287,17 +287,17 @@ class XPostFilter():
                     if xtprt_filter.is_polyA_dominant_two_side(rcd) == True \
                             and (xtprt_filter.is_two_side_polyA_same_orientation(rcd) == True) \
                             and xtprt_filter.is_two_side_consist_with_enough_ins_size(rcd, min_ins_len)==False:
-                        print("{0}:{1} is filtered out, because two side polyA dominant!".format(ins_chrm, ins_pos))
+                        print(("{0}:{1} is filtered out, because two side polyA dominant!".format(ins_chrm, ins_pos)))
                         fout_log.write("{0}:{1} is filtered out, because two side polyA dominant!\n".format(
                             ins_chrm, ins_pos))
                         continue
                     if xtprt_filter.hit_end_of_cns(rcd)==False:
-                        print("{0}:{1} is filtered out, because doesn't hit the end of consensus!".format(ins_chrm, ins_pos))
+                        print(("{0}:{1} is filtered out, because doesn't hit the end of consensus!".format(ins_chrm, ins_pos)))
                         fout_log.write("{0}:{1} is filtered out, because doesn't hit the end of consensus!\n".format(
                             ins_chrm, ins_pos))
                         continue
                     if af_filter.is_qualified_rcd(rcd[-1], m_cutoff) == False:
-                        print("{0}:{1} is filtered out, because AF is not qualified!".format(ins_chrm, ins_pos))
+                        print(("{0}:{1} is filtered out, because AF is not qualified!".format(ins_chrm, ins_pos)))
                         fout_log.write("{0}:{1} is filtered out, because AF is not qualified!\n".format(
                             ins_chrm, ins_pos))
                         continue
@@ -305,28 +305,28 @@ class XPostFilter():
                     if (div_rate >= 0) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
                         #unless "two-side-tprt-both" and "two-side-consistent", then filter out
                         if xtprt_filter.is_two_side_tprt_both_and_both_consistent(rcd, 6000, 200)==False:
-                            print("{0}:{1} is filtered out, because fall in low div L1 region".format(ins_chrm, ins_pos))
+                            print(("{0}:{1} is filtered out, because fall in low div L1 region".format(ins_chrm, ins_pos)))
                             fout_log.write("{0}:{1} is filtered out, because fall in low div L1 region\n".format(
                                 ins_chrm, ins_pos))
                             continue
                 elif s_rep_supt_type is self._one_half_side:  ##one and half side
                     # check whether fall in repetitive region of the same type
                     if (div_rate >=0) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
-                        print("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!".format(
-                            ins_chrm, ins_pos))
+                        print(("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!".format(
+                            ins_chrm, ins_pos)))
                         fout_log.write("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!\n".format(
                             ins_chrm, ins_pos))
                         continue#self.nclip_half_cutoff
                     if (xtprt_filter.is_polyA_dominant_two_side(rcd) == True) \
                             and (xtprt_filter.is_two_side_polyA_same_orientation(rcd)==True):#both polyA or polyT
-                        print("{0}:{1} is filtered out, because two side polyA dominant!".format(ins_chrm, ins_pos))#
+                        print(("{0}:{1} is filtered out, because two side polyA dominant!".format(ins_chrm, ins_pos)))#
                         fout_log.write("{0}:{1} is filtered out, because two side polyA dominant!\n".format(
                             ins_chrm, ins_pos))
                         continue
                 elif s_rep_supt_type is self._one_side:  ###one side
                     if (div_rate >=0) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
-                        print("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!".format(
-                            ins_chrm, ins_pos))
+                        print(("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!".format(
+                            ins_chrm, ins_pos)))
                         fout_log.write("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!\n".format(
                             ins_chrm, ins_pos))
                         continue
@@ -340,8 +340,8 @@ class XPostFilter():
                 if ((b_in_rep is True) or (b_cov_abnormal is True)) and \
                                 xtprt_filter.is_two_side_clip_and_both_hit_end(rcd, self.REP_LINE_POLYA_START)==True \
                     and (xtprt_filter.is_two_side_polyA_same_orientation(rcd) == True):  #both polyA or polyT:
-                    print("{0}:{1} is filtered out, because coverage is abnormal and also two side clip both hit end of consensus!".format(
-                        ins_chrm, ins_pos))
+                    print(("{0}:{1} is filtered out, because coverage is abnormal and also two side clip both hit end of consensus!".format(
+                        ins_chrm, ins_pos)))
                     fout_log.write("{0}:{1} is filtered out, because coverage is abnormal and also two side clip both hit end of consensus!\n".format(
                         ins_chrm, ins_pos))
                     continue
@@ -349,8 +349,8 @@ class XPostFilter():
                 #if within L1 repeat, but also neither clip side hit the end, then skip
                 #this is initially added for 10X
                 if (b_in_rep is True) and (xtprt_filter.hit_consensus_tail(rcd, self.REP_LINE_POLYA_START)==False):
-                    print("{0}:{1} is filtered out, because fall in repeat region, and none of clip side fall in repeat!".format(
-                        ins_chrm, ins_pos))
+                    print(("{0}:{1} is filtered out, because fall in repeat region, and none of clip side fall in repeat!".format(
+                        ins_chrm, ins_pos)))
                     fout_log.write("{0}:{1} is filtered out, because fall in repeat region, and none of clip side fall in repeat!\n".format(
                         ins_chrm, ins_pos))
                     continue
@@ -1209,13 +1209,13 @@ class AFConflictFilter():
                 n_total += 1
 
                 if n_ef_clip < n_clip_cutoff:
-                    print("ef_clip", line)
+                    print(("ef_clip", line))
                     continue
                 if n_ef_disc < n_disc_cutoff:
-                    print("ef_disc", line)
+                    print(("ef_disc", line))
                     continue
                 if n_lpolyA + n_rpolyA < 1:
-                    print("no polyA", line)
+                    print(("no polyA", line))
                     continue
 
                 n_hard_pass += 1
@@ -1241,6 +1241,6 @@ class AFConflictFilter():
                     fout_af_filter.write(line)
                 else:
                     s = 1
-                    print(line.rstrip())
-            print(n_hard_pass, n_pass, n_total)
+                    print((line.rstrip()))
+            print((n_hard_pass, n_pass, n_total))
 ####

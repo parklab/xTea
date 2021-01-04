@@ -157,7 +157,7 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
                     cmd="rm {0}".format(sf_10X_bam)
                     Popen(cmd, shell=True, stdout=PIPE).communicate()
                 cmd = "ln -s {0} {1}".format(s_bam, sf_10X_bam)
-                print("Run command: {0}\n".format(cmd))
+                print(("Run command: {0}\n".format(cmd)))
                 Popen(cmd, shell=True, stdout=PIPE).communicate()
 
                 sf_10X_barcode_bam = sf_working_folder + sid + "/10X_barcode_indexed.sorted.bam"
@@ -165,7 +165,7 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
                     cmd = "rm {0}".format(sf_10X_barcode_bam)
                     Popen(cmd, shell=True, stdout=PIPE).communicate()
                 cmd = "ln -s {0} {1}".format(s_barcode_bam, sf_10X_barcode_bam)
-                print("Run command: {0}\n".format(cmd))
+                print(("Run command: {0}\n".format(cmd)))
                 Popen(cmd, shell=True, stdout=PIPE).communicate()
                 # soft-link the bai
                 sf_10X_bai = sf_working_folder + sid + "/10X_phased_possorted_bam.bam.bai"
@@ -173,7 +173,7 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
                     cmd = "rm {0}".format(sf_10X_bai)
                     Popen(cmd, shell=True, stdout=PIPE).communicate()
                 cmd = "ln -s {0} {1}".format(s_bam + ".bai", sf_10X_bai)
-                print("Run command: {0}\n".format(cmd))
+                print(("Run command: {0}\n".format(cmd)))
                 Popen(cmd, shell=True, stdout=PIPE).communicate()
 
                 sf_10X_barcode_bai = sf_working_folder + sid + "/10X_barcode_indexed.sorted.bam.bai"
@@ -181,7 +181,7 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
                     cmd = "rm {0}".format(sf_10X_barcode_bai)
                     Popen(cmd, shell=True, stdout=PIPE).communicate()
                 cmd = "ln -s {0} {1}".format(s_barcode_bam + ".bai", sf_10X_barcode_bai)
-                print("Run command: {0}\n".format(cmd))
+                print(("Run command: {0}\n".format(cmd)))
                 Popen(cmd, shell=True, stdout=PIPE).communicate()
                 ####
     with open(sf_sbatch_sh, "w") as fout_sbatch:

@@ -83,7 +83,7 @@ class GntpClassifier():
             pickle.dump(clf, file)
         preds = clf.predict(X_test)
         accuracy = accuracy_score(y_test, preds)
-        print('Mean accuracy score: {0}'.format(round(accuracy)))
+        print(('Mean accuracy score: {0}'.format(round(accuracy))))
         tab = pd.crosstab(y_test, preds, rownames=['Actual Result'], colnames=['Predicted Result'])
         print(tab)
 

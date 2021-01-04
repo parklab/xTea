@@ -88,7 +88,7 @@ class InternalMutation():
                 q_end += ilen
                 ref_pos += ilen
             else:
-                print("Cigar contains unprocessed type!", l_cigar)
+                print(("Cigar contains unprocessed type!", l_cigar))
         return m_mut
 
     ####parse out the mismatch for a given region

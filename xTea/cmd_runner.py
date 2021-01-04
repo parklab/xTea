@@ -9,12 +9,12 @@ class CMD_RUNNER():
     ####Note: one issue for Popen.communicate() is: when output file is large, the process will be hanged, which will
     ####cause deadlock
     def run_cmd_small_output(self, cmd):
-        print("Running command: {0}\n".format(cmd))
+        print(("Running command: {0}\n".format(cmd)))
         subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).communicate()
 
     ####This is try to solve the issue mentioned previously with assumption that stderr is small
     def run_cmd_to_file(self, cmd, sf_out):
-        print("Running command with output: {0}\n".format(cmd))
+        print(("Running command with output: {0}\n".format(cmd)))
         sf_err=sf_out+".err"
         errcode=None
         with open(sf_out, "w") as f:

@@ -256,7 +256,7 @@ class XAnnotation():
                 if chrm not in self.m_rmsk_annotation:
                     self.m_rmsk_annotation[chrm] = {}
                 if start_pos in self.m_rmsk_annotation[chrm]:  ##this is not allowed!!!!
-                    print("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos))
+                    print(("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos)))
 
                 extd_start_pos = start_pos - global_values.LOAD_RMSK_LEFT_EXTND  ###here extend the left boundary a little bit
                 if extd_start_pos not in self.m_rmsk_annotation[chrm]:
@@ -289,7 +289,7 @@ class XAnnotation():
                 if chrm not in self.m_rmsk_annotation:
                     self.m_rmsk_annotation[chrm] = {}
                 if start_pos in self.m_rmsk_annotation[chrm]:  ##this is not allowed!!!!
-                    print("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos))
+                    print(("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos)))
 
                 extd_start_pos = start_pos
                 if extd_start_pos not in self.m_rmsk_annotation[chrm]:
@@ -316,7 +316,7 @@ class XAnnotation():
                 if chrm not in self.m_rmsk_annotation:
                     self.m_rmsk_annotation[chrm] = {}
                 if start_pos in self.m_rmsk_annotation[chrm]:  ##this is not allowed!!!!
-                    print("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos))
+                    print(("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos)))
 
                 extd_start_pos = start_pos
                 if extd_start_pos not in self.m_rmsk_annotation[chrm]:
@@ -353,7 +353,7 @@ class XAnnotation():
                 if chrm not in self.m_rmsk_annotation:
                     self.m_rmsk_annotation[chrm] = {}
                 if start_pos in self.m_rmsk_annotation[chrm]:  ##this is not allowed!!!!
-                    print("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos))
+                    print(("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos)))
 
                 extd_start_pos = start_pos - i_extnd
                 extd_end_pos=end_pos+i_extnd
@@ -389,7 +389,7 @@ class XAnnotation():
                 if chrm not in self.m_rmsk_annotation:
                     self.m_rmsk_annotation[chrm] = {}
                 if start_pos in self.m_rmsk_annotation[chrm]:  ##this is not allowed!!!!
-                    print("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos))
+                    print(("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos)))
 
                 extd_start_pos = start_pos - 100  ###here extend the left boundary a little bit
                 if extd_start_pos not in self.m_rmsk_annotation[chrm]:
@@ -432,7 +432,7 @@ class XAnnotation():
                 if chrm not in self.m_rmsk_annotation:
                     self.m_rmsk_annotation[chrm] = {}
                 if start_pos in self.m_rmsk_annotation[chrm]:  ##this is not allowed!!!!
-                    print("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos))
+                    print(("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos)))
 
                 extd_start_pos = start_pos - 100  ###here extend the left boundary a little bit
                 if extd_start_pos not in self.m_rmsk_annotation[chrm]:
@@ -475,7 +475,7 @@ class XAnnotation():
                 if chrm not in self.m_rmsk_annotation:
                     self.m_rmsk_annotation[chrm] = {}
                 if start_pos in self.m_rmsk_annotation[chrm]:  ##this is not allowed!!!!
-                    print("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos))
+                    print(("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos)))
 
                 extd_start_pos = start_pos
                 if extd_start_pos not in self.m_rmsk_annotation[chrm]:
@@ -521,7 +521,7 @@ class XAnnotation():
                 if chrm not in self.m_rmsk_annotation:
                     self.m_rmsk_annotation[chrm] = {}
                 if start_pos in self.m_rmsk_annotation[chrm]:  ##this is not allowed!!!!
-                    print("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos))
+                    print(("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos)))
 
                 extd_start_pos = start_pos - i_extnd
                 extd_end_pos = end_pos + i_extnd
@@ -557,7 +557,7 @@ class XAnnotation():
                 if chrm not in self.m_rmsk_annotation:
                     self.m_rmsk_annotation[chrm] = {}
                 if start_pos in self.m_rmsk_annotation[chrm]:  ##this is not allowed!!!!
-                    print("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos))
+                    print(("Position {0}:{1} has more than  1 annotation!!!!".format(chrm, start_pos)))
 
                 extd_start_pos=start_pos-100 ###here extend the left boundary a little bit
                 if extd_start_pos not in self.m_rmsk_annotation[chrm]:

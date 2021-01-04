@@ -45,7 +45,7 @@ class UnionFindSet(object):
             return False
 
     def outputIds(self):
-        print(self.__id)
+        print((self.__id))
 
     def outputComponents(self):
         dtemp={}

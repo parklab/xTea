@@ -37,7 +37,7 @@ class gVCF():
         m_header = samfile.header
         shead = "##fileformat=VCFv4.2\n"
         if "SQ" not in m_header:#
-            print("No head information in bam file: {0}".format(sf_bam))
+            print(("No head information in bam file: {0}".format(sf_bam)))
             shead+="##reference=GCA_000001405.15_GRCh38_no_alt_analysis_set.fna\n"
             shead+=prepare_head_hg38(True)
         else:

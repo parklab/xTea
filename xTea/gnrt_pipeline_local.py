@@ -974,7 +974,7 @@ def prepare_case_control_bam(sf_ori_bam, sf_sprt_bam, sf_control_bam):
         for line in fin_ori:
             fields = line.split()
             if len(fields) < 3:
-                print("Not in right format. Less fields: {0}".format(line))
+                print(("Not in right format. Less fields: {0}".format(line)))
                 continue
             s_id = fields[0]
             sf_case = fields[1]

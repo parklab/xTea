@@ -252,7 +252,7 @@ class XOrphanTransduction(XTransduction):
                         # filter out fall in black list ones
                         b_in_blacklist, tmp_pos2 = x_blklist.fall_in_region(chrm, int(pos))
                         if b_in_blacklist == True:
-                            print("{0}:{1} fall in black list region, filtered out!".format(chrm, pos))
+                            print(("{0}:{1} fall in black list region, filtered out!".format(chrm, pos)))
                             continue
 
                         m_chrms[chrm]=1
@@ -332,14 +332,14 @@ class XOrphanTransduction(XTransduction):
                     f_rcov=tmp_rcd[14]
 
                     if n_lclip<n_clip_cutoff/2 and n_rclip< n_clip_cutoff/2:
-                        print("{0}:{1} is filtered out, as no enough left or right clipped reads!".format(tmp_chrm, tmp_pos))
+                        print(("{0}:{1} is filtered out, as no enough left or right clipped reads!".format(tmp_chrm, tmp_pos)))
                         continue
                     if n_lpolyA < n_clip_cutoff/2 and n_rpolyA < n_clip_cutoff/2:#require one side polyA
-                        print("{0}:{1} is filtered out, as no enough polyA(T) reads!".format(tmp_chrm, tmp_pos))
+                        print(("{0}:{1} is filtered out, as no enough polyA(T) reads!".format(tmp_chrm, tmp_pos)))
                         continue
                     if nlspot < n_disc_cutoff/2 or nrspot< n_disc_cutoff/2:#require both side discordant reads
-                        print("{0}:{1} is filtered out, as no enough left ({2}) and right ({3}) disc reads!"\
-                            .format(tmp_chrm, tmp_pos, nlspot, nrspot))
+                        print(("{0}:{1} is filtered out, as no enough left ({2}) and right ({3}) disc reads!"\
+                            .format(tmp_chrm, tmp_pos, nlspot, nrspot)))
                         continue
                     src_chrm = tmp_rcd[0]
                     src_pos_start = tmp_rcd[1]#mid-position of left discordant pair
@@ -695,7 +695,7 @@ class XOrphanTransduction(XTransduction):
                         # filter out fall in black list ones
                         b_in_blacklist, tmp_pos2 = x_blklist.fall_in_region(chrm, int(pos))
                         if b_in_blacklist == True:
-                            print("{0}:{1} fall in black list region, filtered out!".format(chrm, pos))
+                            print(("{0}:{1} fall in black list region, filtered out!".format(chrm, pos)))
                             continue
 
                         m_chrms[chrm] = 1

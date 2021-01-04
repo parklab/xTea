@@ -372,8 +372,8 @@ def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_f
     if b_tumor==True:
         f_cov=f_cov*f_purity
     par_rcd=xpar.get_par_by_cov(f_cov) #in format (iclip, idisc, i_clip-disc)
-    print("Ave coverage is {0}: automatic parameters (clip, disc, clip-disc) " \
-          "with value ({1}, {2} ,{3})\n".format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2]))
+    print(("Ave coverage is {0}: automatic parameters (clip, disc, clip-disc) " \
+          "with value ({1}, {2} ,{3})\n".format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2])))
     return par_rcd, rcd
 
 ####
@@ -398,8 +398,8 @@ def automatic_gnrt_parameters_case_control(sf_bam_list, sf_ref, s_working_folder
     ####2. based on the coverage, set the parameters
     xpar=CaseControlFilterPars()
     par_rcd=xpar.get_par_by_cov(f_cov) #in format (iclip, idisc, i_clip-disc)
-    print("Ave coverage is {0}: automatic parameters (clip, disc, clip-disc) " \
-          "with value ({1}, {2} ,{3})\n".format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2]))
+    print(("Ave coverage is {0}: automatic parameters (clip, disc, clip-disc) " \
+          "with value ({1}, {2} ,{3})\n".format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2])))
     return par_rcd, rcd
 
 ####
@@ -510,7 +510,7 @@ if __name__ == '__main__':
                 #     cutoff_right_clip=adjust_cutoff_tumor(cutoff_right_clip)
                 cutoff_clip_mate_in_rep=rcd[2]
 
-            print("Clip cutoff: {0}, {1}, {2} are used!!!".format(cutoff_left_clip, cutoff_right_clip, cutoff_clip_mate_in_rep))
+            print(("Clip cutoff: {0}, {1}, {2} are used!!!".format(cutoff_left_clip, cutoff_right_clip, cutoff_clip_mate_in_rep)))
             tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
 
             ####by default, if number of clipped reads is larger than this value, then discard
@@ -566,7 +566,7 @@ if __name__ == '__main__':
                 n_disc_cutoff=rcd[1]
                 # if b_tumor==True:
                 #     n_disc_cutoff = adjust_cutoff_tumor(n_disc_cutoff, 0)
-            print("Discordant cutoff: {0} is used!!!".format(n_disc_cutoff))
+            print(("Discordant cutoff: {0} is used!!!".format(n_disc_cutoff)))
 
             sf_tmp = s_working_folder + "disc_tmp.list"
             sf_raw_disc=sf_out + global_values.RAW_DISC_TMP_SUFFIX #save the left and right raw disc for each site
@@ -582,7 +582,7 @@ if __name__ == '__main__':
         print("Working on \"clip-disc-filtering\" step!")
         sf_bam_list = options.bam  ###read in a bam list file
         s_working_folder = options.wfolder
-        print("Current working folder is: {0}\n".format(s_working_folder))
+        print(("Current working folder is: {0}\n".format(s_working_folder)))
         n_jobs = options.cores
         sf_ref = options.ref  ###reference genome, some cram file require this file to open
 
@@ -607,8 +607,8 @@ if __name__ == '__main__':
             rlth = basic_rcd[1]  # read length
             mean_is = basic_rcd[2]  # mean insert size
             std_var = basic_rcd[3]  # standard derivation
-            print("Mean insert size is: {0}\n".format(mean_is))
-            print("Standard derivation is: {0}\n".format(std_var))
+            print(("Mean insert size is: {0}\n".format(mean_is)))
+            print(("Standard derivation is: {0}\n".format(std_var)))
 
             max_is = int(mean_is + 3 * std_var)
             if iextnd < max_is: #correct the bias
@@ -618,9 +618,9 @@ if __name__ == '__main__':
             global_values.set_read_length(rlth)
             global_values.set_insert_size(max_is)
             global_values.set_average_cov(ave_cov)
-            print("Read length is: {0}\n".format(rlth))
-            print("Maximum insert size is: {0}\n".format(max_is))
-            print("Average coverage is: {0}\n".format(ave_cov))
+            print(("Read length is: {0}\n".format(rlth)))
+            print(("Maximum insert size is: {0}\n".format(max_is)))
+            print(("Average coverage is: {0}\n".format(ave_cov)))
 
             n_clip_cutoff = options.cliprep #this is the sum of left and right clipped reads
             n_disc_cutoff = options.ndisc  #each sample should have at least this number of discordant reads
@@ -630,7 +630,7 @@ if __name__ == '__main__':
                 # if b_tumor==True:
                 #     n_clip_cutoff = adjust_cutoff_tumor(n_clip_cutoff)
                 #     n_disc_cutoff = adjust_cutoff_tumor(n_disc_cutoff, 2)
-            print("Filter (on cns) cutoff: {0} and {1} are used!!!".format(n_clip_cutoff, n_disc_cutoff))
+            print(("Filter (on cns) cutoff: {0} and {1} are used!!!".format(n_clip_cutoff, n_disc_cutoff)))
 
             x_cd_filter = XClipDiscFilter(sf_bam_list, s_working_folder, n_jobs, sf_ref)
             x_cd_filter.call_MEIs_consensus(sf_candidate_list, sf_raw_disc, iextnd, bin_size, sf_cns, sf_flank,
@@ -651,7 +651,7 @@ if __name__ == '__main__':
         bin_size = 50000000  # block size for parallelization
         sf_cns = options.reference  ####repeat copies/cns here
         s_working_folder = options.wfolder
-        print("Current working folder is: {0}\n".format(s_working_folder))
+        print(("Current working folder is: {0}\n".format(s_working_folder)))
         n_jobs = options.cores
         sf_reference = options.ref  ###reference genome, some cram file require this file to open
         sf_flank = options.fflank  # this is the flanking region
@@ -669,8 +669,8 @@ if __name__ == '__main__':
                 rlth = basic_rcd[1]  # read length
                 mean_is = basic_rcd[2]  # mean insert size
                 std_var = basic_rcd[3]  # standard derivation
-                print("Mean insert size is: {0}\n".format(mean_is))
-                print("Standard derivation is: {0}\n".format(std_var))
+                print(("Mean insert size is: {0}\n".format(mean_is)))
+                print(("Standard derivation is: {0}\n".format(std_var)))
                 max_is = int(mean_is + 3 * std_var)
                 if iextnd < max_is:  # correct the bias
                     iextnd = max_is
@@ -750,7 +750,7 @@ if __name__ == '__main__':
         bin_size = 50000000  # block size for parallelization
         sf_cns = options.reference  ####repeat copies/cns here
         s_working_folder = options.wfolder
-        print("Current working folder is: {0}\n".format(s_working_folder))
+        print(("Current working folder is: {0}\n".format(s_working_folder)))
         n_jobs = options.cores
         sf_reference = options.ref  ###reference genome, some cram file require this file to open
         sf_flank = options.fflank  # this is the flanking region
@@ -768,8 +768,8 @@ if __name__ == '__main__':
             rlth = basic_rcd[1]  # read length
             mean_is = basic_rcd[2]  # mean insert size
             std_var = basic_rcd[3]  # standard derivation
-            print("Mean insert size is: {0}\n".format(mean_is))
-            print("Standard derivation is: {0}\n".format(std_var))
+            print(("Mean insert size is: {0}\n".format(mean_is)))
+            print(("Standard derivation is: {0}\n".format(std_var)))
             max_is = int(mean_is + 3 * std_var)
 
             i_concord_dist = 550
@@ -805,7 +805,7 @@ if __name__ == '__main__':
                                                                            sf_rmsk)
             sf_sibling_TD=sf_output
             if os.path.isfile(sf_black_list)==False:
-                print("Blacklist file {0} does not exist!".format(sf_black_list))
+                print(("Blacklist file {0} does not exist!".format(sf_black_list)))
             xorphan.call_novel_sibling_TD_from_raw_list(sf_tmp_slct2, sf_bam_list, i_concord_dist, n_clip_cutoff,
                                                         n_disc_cutoff, sf_black_list, sf_rmsk, sf_sibling_TD)
 
@@ -823,8 +823,8 @@ if __name__ == '__main__':
                 rlth = basic_rcd[1]  # read length
                 mean_is = basic_rcd[2]  # mean insert size
                 std_var = basic_rcd[3]  # standard derivation
-                print("Mean insert size is: {0}\n".format(mean_is))
-                print("Standard derivation is: {0}\n".format(std_var))
+                print(("Mean insert size is: {0}\n".format(mean_is)))
+                print(("Standard derivation is: {0}\n".format(std_var)))
                 max_is = int(mean_is + 3 * std_var)
 
                 i_concord_dist = 550
@@ -882,7 +882,7 @@ if __name__ == '__main__':
             max_is = int(mean_is + 3 * std_var) + int(rlth)
             extnd = max_is
             bin_size = 50000000  # block size for parallelization
-            print("clip,disc,polyA-cutoff is ({0}, {1}, {2})".format(nclip_cutoff, ndisc_cutoff, n_polyA_cutoff))
+            print(("clip,disc,polyA-cutoff is ({0}, {1}, {2})".format(nclip_cutoff, ndisc_cutoff, n_polyA_cutoff)))
             n_polyA_cutoff=ndisc_cutoff #if both sides have more than cutoff polyA, then filter out
             ccm.call_somatic_TE_insertion(sf_bam_list, sf_candidate_list, extnd, nclip_cutoff, ndisc_cutoff,
                                           n_polyA_cutoff, sf_rep_cns, sf_flank, i_flk_len, bin_size, sf_output, b_tumor)
@@ -925,8 +925,8 @@ if __name__ == '__main__':
             cutoff_left_clip = rcd[0]
             cutoff_right_clip = rcd[0]
             cutoff_clip_mate_in_rep = rcd[2]
-        print("Clip cutoff: {0}, {1}, {2} are used!!!".format(cutoff_left_clip, cutoff_right_clip,
-                                                              cutoff_clip_mate_in_rep))
+        print(("Clip cutoff: {0}, {1}, {2} are used!!!".format(cutoff_left_clip, cutoff_right_clip,
+                                                              cutoff_clip_mate_in_rep)))
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
 
         ####by default, if number of clipped reads is larger than this value, then discard
@@ -1064,7 +1064,7 @@ if __name__ == '__main__':
             sf_vcf=sf_prefix+s_sample_id+"_"+s_rep_type+".vcf"
             gvcf.cvt_raw_rslt_to_gvcf(s_sample_id, sf_bam, sf_raw_rslt, i_rep_type, sf_ref, sf_vcf)
         else:
-            print("Wrong bam file: {0}".format(sf_bam))
+            print(("Wrong bam file: {0}".format(sf_bam)))
 ####
     elif options.joint:
         s_working_folder = options.wfolder

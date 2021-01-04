@@ -255,7 +255,7 @@ class ClipReadInfo():
         for chrm in references:#
             sf_clip_pos = self.working_folder + chrm + global_values.CLIP_POS_SUFFIX
             if os.path.isfile(sf_clip_pos) == False:
-                print("Error: Position file for chrom {0} doesn't exist!!!!".format(chrm))
+                print(("Error: Position file for chrom {0} doesn't exist!!!!".format(chrm)))
                 continue
 
             m_clip_pos_freq = {}
@@ -570,7 +570,7 @@ class ClipReadInfo():
         xchrom = XChromosome()
         for chrm in references:
             if xchrom.is_decoy_contig_chrms(chrm) == True:  ###Here filter out those aligned to decoy sequences
-                print("Skip chromosome {0}".format(chrm))  ##
+                print(("Skip chromosome {0}".format(chrm)))  ##
                 continue
             l_chrm_records.append((chrm, self.sf_bam, self.working_folder))
         samfile.close()
@@ -654,7 +654,7 @@ class ClipReadInfo():
         ####clip positions for specific chrm
         sf_clip_pos = working_folder + ref_chrm + global_values.CLIP_POS_SUFFIX
         if os.path.isfile(sf_clip_pos) == False:
-            print("Error: Position file for chrom {0} doesn't exist!!!!".format(ref_chrm))
+            print(("Error: Position file for chrom {0} doesn't exist!!!!".format(ref_chrm)))
             return
         ###clip positions for specific chrm with extra #left_clip #right_clip (mapped parts)
         sf_out_clip_pos = working_folder + ref_chrm + global_values.CLIP_RE_ALIGN_POS_SUFFIX
@@ -1293,7 +1293,7 @@ class LContigClipReadInfo():
         xchrom = XChromosome()
         for chrm in references:
             if xchrom.is_decoy_contig_chrms(chrm) == True:  ###Here filter out those aligned to decoy sequences
-                print("Skip chromosome {0}".format(chrm))  ##
+                print(("Skip chromosome {0}".format(chrm)))  ##
                 continue
             l_chrm_records.append((chrm, self.sf_bam, sf_sites, islack, self.working_folder))
         samfile.close()

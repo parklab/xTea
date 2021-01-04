@@ -222,9 +222,9 @@ class XMutation():
             l_mismatch = algnmt.get_aligned_pairs(False, True)
             if algnmt.has_tag("MD") == False:
                 continue
-            print(algnmt.get_tag("MD"))
-            print(algnmt.cigarstring)
-            print(algnmt.query_sequence)
+            print((algnmt.get_tag("MD")))
+            print((algnmt.cigarstring))
+            print((algnmt.query_sequence))
             print(l_mismatch)
             if ncnt > 20:
                 break

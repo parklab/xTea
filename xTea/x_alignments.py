@@ -176,7 +176,7 @@ class BamInfo():
         elif fpath.lower().endswith(('.fastq.gz', 'fq.gz', 'gz')):
             cmd = "echo $(zcat {0} | wc -l)".format(fpath)
         else:
-            print("Something wrong with the raw reads files format:", fpath)
+            print(("Something wrong with the raw reads files format:", fpath))
 
         tp = tuple(Popen(cmd, shell=True, stdout=PIPE).communicate())
         lcnt = str(tp[0]).split()
@@ -306,7 +306,7 @@ class BamInfo():
                 iend = record[2]
                 sf_parsed_bam = sf_working_folder + "{0}_{1}_{2}.disc.bam".format(chrm, istart, iend)
                 if os.path.isfile(sf_parsed_bam)==False:
-                    print("Error: file {0} doesn't exist!".format(sf_parsed_bam))
+                    print(("Error: file {0} doesn't exist!".format(sf_parsed_bam)))
                     continue
 
                 #open each bam, and get the read, need to export the read_name~is_first~insertion_site
@@ -643,8 +643,8 @@ class XBamInfo(BamInfo):
                 continue
 
             if (alignment.next_reference_id<0) or (alignment.next_reference_id not in m_chrm_ids):##
-                print("[x_alignments:parse_phased_barcodes_for_one_site]abnormal mate reference id of read: {0}"\
-                    .format(alignment.query_name), alignment.reference_name, alignment.reference_start)
+                print(("[x_alignments:parse_phased_barcodes_for_one_site]abnormal mate reference id of read: {0}"\
+                    .format(alignment.query_name), alignment.reference_name, alignment.reference_start))
                 continue
 
             mate_chrm = alignment.next_reference_name
