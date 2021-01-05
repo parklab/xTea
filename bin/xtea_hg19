@@ -731,7 +731,7 @@ def get_sample_id(sf_bam):
 ####gnrt the running shell
 def gnrt_running_shell(sf_ids, sf_bams, sf_10X_bams, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor, f_purity, s_wfolder,
                        sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition, stime,
-                       smemory, ncores, sf_submit_sh, sf_case_control_bam_list="null", b_lsf=False, b_resume=False):
+                       smemory, ncores, sf_submit_sh, sf_case_control_bam_list="null", b_lsf=False, b_slurm=False, b_resume=False):
     if s_wfolder[-1] != "/":
         s_wfolder += "/"
     if os.path.exists(s_wfolder) == False:
@@ -778,9 +778,11 @@ def gnrt_running_shell(sf_ids, sf_bams, sf_10X_bams, l_rep_type, b_mosaic, b_use
             if os.path.exists(sf_rep_x10_bam)==False:
                 sf_rep_x10_bam="null"
 
-            s_head = gnrt_script_head(spartition, ncores, stime, smemory, sid_tmp)
+            s_head = ""
             if b_lsf==True:
                 s_head=gnrt_script_head_lsf(spartition, ncores, stime, smemory, sid_tmp)
+            elif b_slurm==True:
+                s_head = gnrt_script_head(spartition, ncores, stime, smemory, sid_tmp)
             l_libs = load_par_config(sf_config)
             s_libs = gnrt_parameters(l_libs)
             ####
@@ -1028,6 +1030,9 @@ def parse_option():
     parser.add_option("--lsf",
                       action="store_true", dest="lsf", default=False,
                       help="Indiates submit to LSF system")
+    parser.add_option("--slurm",
+                      action="store_true", dest="slurm", default=False,
+                      help="Indiates submit to slurm system")
     parser.add_option("--resume",
                       action="store_true", dest="resume", default=False,
                       help="Resume the running, which will skip the step if output file already exists!")
@@ -1111,6 +1116,7 @@ if __name__ == '__main__':
         b_tumor=options.tumor
         f_purity = options.purity
         b_lsf = options.lsf
+        b_slurm=options.slurm
         b_resume=options.resume
 
         if s_wfolder[-1]!="/":
@@ -1161,7 +1167,7 @@ if __name__ == '__main__':
         if b_case_control == False:
             gnrt_running_shell(sf_id, sf_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor, f_purity,
                                s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition, stime,
-                               smemory, ncores, sf_sbatch_sh, "null", b_lsf, b_resume)
+                               smemory, ncores, sf_sbatch_sh, "null", b_lsf, b_slurm, b_resume)
 
         else:
             # if in case-control mode, then need to separate to two steps
@@ -1172,7 +1178,7 @@ if __name__ == '__main__':
             # first, run the jobs seperately for all the case and control samples
             gnrt_running_shell(sf_id, sf_sprt_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor,
                                f_purity, s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition,
-                               stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_resume)
+                               stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_slurm, b_resume)
         #run_pipeline(l_rep_type, sample_id, s_wfolder)
         #cp_compress_results(s_wfolder, l_rep_type, sample_id)
 
