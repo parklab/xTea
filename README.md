@@ -57,9 +57,9 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 		+ Install sortedcontainers
 		`conda install sortedcontainers -y`
 
-	+ numpy, scikit-learn, and pandas
-			+ Install numpy, scikit-learn and pandas
-			`conda install numpy scikit-learn pandas -y`
+	+ numpy, scikit-learn, and pandas  
+		+ Install numpy, scikit-learn and pandas
+		`conda install numpy scikit-learn pandas -y`
 
 6. Note: bwa and samtools need to be added to the $PATH.
 
