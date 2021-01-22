@@ -116,11 +116,13 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 	+ Run on a slurm cluster or a single node (by default `xtea` assume the reference genome is **GRCh38** or **hg38**, for `hg19` or `GRCh37`, please use `xtea_hg19`)
 		+ Only with Illumina data
 			```
-			xtea -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xtea/ -f 5907 -y 7 			```
+			xtea -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xtea/ -f 5907 -y 7 			
+			```
 
 		+ Only with 10X data
 			```
-			xtea -i sample_id.txt -b null -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3  --xtea /home/ec2-user/xtea/ -y 7 -f 5907 			```
+			xtea -i sample_id.txt -b null -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3  --xtea /home/ec2-user/xtea/ -y 7 -f 5907 			
+			```
 		
 		+ Working with hybrid data of 10X and Illumina 
 			```
