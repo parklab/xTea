@@ -142,7 +142,12 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 				-p: working folder, where the results and temporary files will be saved;
 				-l: repeat library folder (folder contain files decompressed from the downloaded "rep_lib_annotation.tar.gz";
 				-r: reference genome fasta/fa file;
-				-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV; sum all selected as one value. For example, if want to check L1 and SVA only, then set `-y 5`. Each repeat type will be separately processed, however some of the early steps are shared. Thus, if the user has a large cohort, to improve the efficiency (and save money on cloud), we highly recommend to run on one repeat type first, and then on the rest. For example, first set '-y 1', and for the second run set '-y 6');
+				-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV; sum all selected as one value. 
+				    For example, if want to check L1 and SVA only, then set `-y 5`. 
+				    Each repeat type will be separately processed, however some of the early steps are shared. 
+				    Thus, if the user has a large cohort, to improve the efficiency (and save money on cloud), 
+				    we highly recommend to run on one repeat type first, and then on the rest. 
+				    For example, first set '-y 1', and for the second run set '-y 6');
 				-f: steps to run. (5907 means run all the steps);
 				--xtea: this is the full path of the xTea/xtea folder, where the python scripts reside in.
 				-g: gene annotation file in gff3 format;
@@ -160,7 +165,9 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 				--slurm: add script header for slurm system;
 				--lsf: add script header for LSF system
 			
-			Cutoffs will be automatically set based on the read depth (and also the purity if it is a tumor sample); parameters have been thoroughly tuned based on the test on benchmark data and also on large cohort analysis. For advanced users (optional major cutoffs):
+			Cutoffs will be automatically set based on the read depth (and also the purity if it is a tumor sample); 
+			parameters have been thoroughly tuned based on the test on benchmark data and also on large cohort analysis. 
+			For advanced users (optional major cutoffs):
 				--user: by default, this is turned off. If this option is set, then user specific cutoff will be used;
 				--nclip: minimum number of clipped reads;
 				--cr: minimum number of clipped reads whose mates map in repetitive regions;
