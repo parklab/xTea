@@ -94,7 +94,7 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 			NA12877 /path/na12877_illumina_1_sorted.bam
 			```
 		
-		+  A 10X bam/cram file (sorted and indexed, find [TXtools](https://github.com/parklab/TXtools) for barcode based index) list, e.g. a file named `10X_bam_list.txt` with content (three columns separated by space or tab: sample-id bam-path barcode-index-bam-path):
+		+  A 10X bam/cram file (sorted and indexed, find [BarcodeMate](https://github.com/simoncchu/BarcodeMate) for barcode based index) list, e.g. a file named `10X_bam_list.txt` with content (three columns separated by space or tab: sample-id bam-path barcode-index-bam-path):
 		
 			```
 			NA12878 /path/na12878_10X_1_sorted.bam /path/na12878_10X_1_barcode_indexed.bam
@@ -178,8 +178,10 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 				--nd: minimum number of discordant pair;
 
 			Specific parameters for long reads module:
-			    --rmsk: this is reference full length L1 annotation file from RepeatMasker only for the "ghost" L1 detection module. One file named "hg38_L1_larger2K_with_all_L1HS.out" within the downloaded library could be directly used;
-			    --cns: this is the L1 concensus sequence needed only by the "ghost" L1 detection module. One file named "LINE1.fa" within the downloaded library could be directly used;
+			    --rmsk: this is reference full length L1 annotation file from RepeatMasker only for the "ghost" L1 detection module. 
+			            One file named "hg38_L1_larger2K_with_all_L1HS.out" within the downloaded library could be directly used;
+			    --cns: this is the L1 concensus sequence needed only by the "ghost" L1 detection module. 
+			           One file named "LINE1.fa" within the downloaded library could be directly used;
 			    --rep: repeat library folder (folder contain files decompressed from the downloaded "rep_lib_annotation.tar.gz");
 			    --clean: clean the intermediate files
 
