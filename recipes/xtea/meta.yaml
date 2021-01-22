@@ -1,4 +1,4 @@
-{% set version = "0.1" %}
+{% set version = "0.1.3" %}
 
 package:
     name: xtea
@@ -6,7 +6,7 @@ package:
 
 source:
     url: https://github.com/parklab/xTea/archive/v{{ version }}.tar.gz
-    sha256: c6fce9fa60f3f53890e8552491eb5372224606998bb249dd6c186c4b9fd9239f
+    sha256: 165416e3ee860c489829da7310b1877fa3a49e6ac3caba94f4f3a638a2fa4979
 
 build:
   noarch: python
@@ -20,12 +20,14 @@ requirements:
       - bwa
       - minimap2
       - wtdbg
-
+      - numpy
+      - scikit-learn
+      - pandas
 test:
   commands:
     - xtea --version
     - xtea_hg19 --version
-
+    - xtea_long --version
 about:
     home: https://github.com/parklab/xTea
     license: AGPL
