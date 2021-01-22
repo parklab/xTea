@@ -130,7 +130,10 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 			```
 			xtea --case_ctrl --tumor -i sample_id.txt -b case_ctrl_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xtea/ -y 7 -f 5907
 			```
-
+		+ Working with long reads (non case-ctrl; more detailed steps please check the "xTea_long_release_v0.1.0" branch)
+			```
+			xtea_long -i sample_id.txt -b long_read_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -m 32 --rmsk ./rep_lib_annotation/LINE/hg38/hg38_L1_larger2K_with_all_L1HS.out -r /home/ec2-user/reference/genome.fa --cns ./rep_lib_annotation/consensus/LINE1.fa --rep /home/ec2-user/rep_lib_annotation/ -f 31 -y 7 --clean
+			```
 
 		+ Parameters:
 			
@@ -140,7 +143,7 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 				-b: Illumna bam/cram file list file (sorted and indexed, each file per line);
 				-x: 10X bam file list (sorted and indexed, each file per line);
 				-p: working folder, where the results and temporary files will be saved;
-				-l: repeat library folder (folder contain files decompressed from the downloaded "rep_lib_annotation.tar.gz";
+				-l: repeat library folder (folder contain files decompressed from the downloaded "rep_lib_annotation.tar.gz");
 				-r: reference genome fasta/fa file;
 				-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV; sum all selected as one value. 
 				    For example, if want to check L1 and SVA only, then set `-y 5`. 
@@ -149,7 +152,8 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 				    we highly recommend to run on one repeat type first, and then on the rest. 
 				    For example, first set '-y 1', and for the second run set '-y 6');
 				-f: steps to run. (5907 means run all the steps);
-				--xtea: this is the full path of the xTea/xtea folder, where the python scripts reside in.
+				--xtea: this is the full path of the xTea/xtea folder (or the xTea_long_release_v0.1.0 folder for long reads module), 
+				        where the python scripts reside in.
 				-g: gene annotation file in gff3 format;
 				-o: generated running scripts under the working folder;
 			Optional:
@@ -172,6 +176,12 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 				--nclip: minimum number of clipped reads;
 				--cr: minimum number of clipped reads whose mates map in repetitive regions;
 				--nd: minimum number of discordant pair;
+
+			Specific parameters for long reads module:
+			    --rmsk: this is reference full length L1 annotation file from RepeatMasker only for the "ghost" L1 detection module. One file named "hg38_L1_larger2K_with_all_L1HS.out" within the downloaded library could be directly used;
+			    --cns: this is the L1 concensus sequence needed only by the "ghost" L1 detection module. One file named "LINE1.fa" within the downloaded library could be directly used;
+			    --rep: repeat library folder (folder contain files decompressed from the downloaded "rep_lib_annotation.tar.gz");
+			    --clean: clean the intermediate files
 
 			```
 		
