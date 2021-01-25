@@ -132,16 +132,3 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 3. **Output**
 
 	For each TE/retroelement a result file with suffix "classified_results.txt" will be generated under the working folder.
-
-
-## Contact
-Copyright (c) 2019 - President and Fellows of Harvard College. All rights reserved.  
-Requests for use of the Software for or on behalf of for-profit entities or for any commercial purposes, please contact:
-
-Office of Technology Development  
-Harvard University  
-Smith Campus Center, Suite 727E  
-1350 Massachusetts Avenue  
-Cambridge, MA 02138 USA  
-Telephone: (617) 495-3067  
-E-mail: otd@harvard.edu
