@@ -10,31 +10,18 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 
 ## Download
 
-1. short reads (Illumina and Linked-Reads)
-
-	+ 1.1 Latest version (master branch)
-
-	```
-	git clone https://github.com/parklab/xTea.git
-	```
-
-	+ 1.2 cloud binary version (branch: release_xTea_cloud_1.0.0-beta)
-
-	```
-	git clone --single-branch --branch release_xTea_cloud_1.0.0-beta  https://github.com/parklab/xTea.git
-	```
-
-2. long reads (PacBio or Nanopore, branch to be merged: xTea_long_release_v0.1.0)
+1. long reads (PacBio or Nanopore, branch to be merged: xTea_long_release_v0.1.0)
 
 	```
 	git clone --single-branch --branch xTea_long_release_v0.1.0 https://github.com/parklab/xTea.git
 	```
-3. pre-processed repeat library used by xTea   
+2. pre-processed repeat library used by xTea   
 	The file size is large, and please use git lfs (https://git-lfs.github.com/)  
 	```
 	git lfs get 
 	```
-	(or directly click and then save) to download the library file. 
+	Or directly download through `wget https://github.com/parklab/xTea/raw/master/rep_lib_annotation.tar.gz`. 
+3. Gene annotation file are downloaded from GENCODE (https://www.gencodegenes.org/human/release_33.html)
 
 
 ## Dependency
@@ -43,16 +30,8 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 2. samtools (v1.0 or later), which can be downloaded from https://github.com/samtools.
 3. minimap2 (for long reads only), which can be downloaded from https://github.com/lh3/minimap2.
 4. wtdbg2 (for long reads only), which can be downloaded from https://github.com/ruanjue/wtdbg2.
-5. Python 2.7 or later version
+5. Python 2.7+/3.6+ 
 	+ pysam (https://github.com/pysam-developers/pysam, v0.12 or later) is required to be installed.
-
-		+ In detail, first install Anaconda:
-		
-			```
-			wget https://repo.anaconda.com/archive/Anaconda2-5.2.0-Linux-x86_64.sh
-			sh Anaconda2-5.2.0-Linux-x86_64.sh
-			```
-		
 		+ Install pysam:
 
 			```
@@ -65,6 +44,17 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 		`conda install sortedcontainers -y`
 
 4. Note: bwa, minimap2, wtdbg2 and samtools need to be added to the $PATH.
+
+## Install
+
+1. **Use Conda**
+	```
+	conda install xtea
+	```
+2. **Install free**
+	```
+	git clone --single-branch --branch xTea_long_release_v0.1.0 https://github.com/parklab/xTea.git
+	```
 
 ## Run xTea
 1. **Input**
@@ -102,8 +92,9 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 			CNS_L1=[prefix-abosolute-path]/rep_lib_annotation/consensus/LINE1.fa
 			REP_LIB=[prefix-abosolute-path]/rep_lib_annotation/
 			
-			python ${XTEA}"gnrt_pipeline_local_long_read_v38.py"  -i ${SAMPLE_ID} -b ${BAMS} -p ${WFOLDER} -o ${OUT_SCRTP} --xtea ${XTEA} -n 16 -m 16 -t ${TIME} -r ${REF} --rmsk ${RMSK} --cns ${CNS_L1} --rep ${REP_LIB}  --min 4000  -f 31 -y 7 --clean
+			python ${XTEA}"gnrt_pipeline_local_long_read_v38.py"  -i ${SAMPLE_ID} -b ${BAMS} -p ${WFOLDER} -o ${OUT_SCRTP} --xtea ${XTEA} -n 16 -m 48 -t ${TIME} -r ${REF} --rmsk ${RMSK} --cns ${CNS_L1} --rep ${REP_LIB}  --min 4000  -f 31 -y 7 --clean
 			```
+
 
 			
 		+ Parameters:
