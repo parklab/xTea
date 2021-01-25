@@ -331,11 +331,13 @@ class L_MEI_Caller():
                     continue
 
                 if b_call_seq == False:  # if this is only for call insertion from asm, then no need for asm
-                    l_passed_TE_kmer_filter=self.filter_by_TE_kmer_in_parallel(l_sites, n_min_non_polyA_kmer, n_min_polyA_kmer, n_cutoff)##
-                    with open(sf_sites+".passed","w") as fout_passed:
+                    l_passed_TE_kmer_filter=self.filter_by_TE_kmer_in_parallel(l_sites, i_ext_len, n_min_non_polyA_kmer,
+                                                                               n_min_polyA_kmer, n_cutoff)##
+                    sf_tmp_passed_sites=sf_sites+"_%d.passed" % i_ext_len
+                    with open(sf_tmp_passed_sites,"w") as fout_passed:
                         for rcd in l_passed_TE_kmer_filter:
                             fout_passed.write(str(rcd[1])+"\t"+str(rcd[2])+"\n")
-#return
+                    #return
                     self.asm_seq_for_sites_in_serial(l_passed_TE_kmer_filter)
                 # for comlex events, only collect and assembly, but do not call insertion seqs
                 if b_complex == True:#
@@ -620,12 +622,12 @@ class L_MEI_Caller():
                 fout_script.write(cmd2)
 ####
     #check
-    def filter_by_TE_kmer_in_parallel(self, l_sites, n_min_non_polyA_kmer_hit=1, n_min_polyA_kmer_hit=1, n_cutoff=1):
+    def filter_by_TE_kmer_in_parallel(self, l_sites, i_ext_len, n_min_non_polyA_kmer_hit=1, n_min_polyA_kmer_hit=1, n_cutoff=1):
         l_passed = []
         #l_for_pool=[]
         l_rslts=[]
         for rcd in l_sites:
-            new_rcd = (rcd[0], rcd[1], rcd[2], rcd[3], n_min_non_polyA_kmer_hit, n_min_polyA_kmer_hit, n_cutoff)
+            new_rcd = (rcd[0], rcd[1], rcd[2], rcd[3], n_min_non_polyA_kmer_hit, n_min_polyA_kmer_hit, n_cutoff, i_ext_len)
             #l_for_pool.append(new_rcd)
             t_tmp=self.filter_by_TE_kmer_one_site(new_rcd)
             l_rslts.append(t_tmp)
@@ -647,6 +649,7 @@ class L_MEI_Caller():
         n_min_non_polyA_kmer_hit = record[4]
         n_min_polyA_kmer_hit = record[5]
         n_cutoff = record[6]
+        i_ext_len=record[7]
         b_pass = self._chk_ins_by_TE_kmer_lib(record)
 
         return (sf_bam, ins_chrm, ins_pos, wfolder, b_pass)#
@@ -682,10 +685,11 @@ class L_MEI_Caller():
         n_min_non_polyA_kmer_hit = int(record[4])########################################################################################
         n_min_polyA_hit = int(record[5])####
         n_cutoff=int(record[6])####
+        i_extend = record[7]
         if wfolder[-1] != "/":
             wfolder += "/"
         s_id = "{0}{1}{2}".format(ins_chrm, global_values.SEPERATOR, ins_pos)
-        i_extend = global_values.LRD_EXTND_LEN
+        #i_extend = global_values.LRD_EXTND_LEN
         s_prefix = wfolder + s_id + "_{0}".format(i_extend)
         sf_fa = s_prefix + ".fa"
 

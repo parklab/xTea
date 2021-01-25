@@ -234,19 +234,22 @@ if __name__ == '__main__':
         #get the consensus file list, for the repeat kmer library
         l_sf_cns=lcaller.set_rep_lib_path_kmer_cnt(i_type, sf_rep_folder)
         sf_script=sf_out_fa+".run_asm_cmd"
+
+        l_extd_len_tmp=[-1000] #####temporarily set
+        lcaller.call_MEIs_for_sites_with_rep_kmer_filtering(sf_bam_list, sf_merged_sites, sf_ref, l_extd_len_tmp, sf_out_fa,
+                                                            sf_out_sites, l_sf_cns, n_cutoff, n_min_non_polyA_kmer, n_min_polyA_kmer,
+                                                            b_collect_asm, b_asm_cmd, sf_script, b_call_seq, b_skip_exist)
+
         # lcaller.call_MEIs_for_sites_with_cmd_version(sf_bam_list, sf_merged_sites, sf_ref, l_extd_len, sf_out_fa,
         #                                              sf_out_sites, b_collect_asm, b_asm_cmd, sf_script,
         #                                              b_call_seq, b_skip_exist)
-        lcaller.call_MEIs_for_sites_with_rep_kmer_filtering(sf_bam_list, sf_merged_sites, sf_ref, l_extd_len, sf_out_fa,
-                                                            sf_out_sites, l_sf_cns, n_cutoff, n_min_non_polyA_kmer, n_min_polyA_kmer,
-                                                            b_collect_asm, b_asm_cmd, sf_script, b_call_seq, b_skip_exist)
-        with open(sf_script+"_all_asm.sh", "w") as fmerged:
-            for i_extnd in l_extd_len:
-                sf_tmp_cmd=sf_script+"_{0}.sh".format(i_extnd)
-                if os.path.isfile(sf_tmp_cmd)==True:
-                    with open(sf_tmp_cmd) as fin_tmp:
-                        for line in fin_tmp:
-                            fmerged.write(line)
+        # with open(sf_script+"_all_asm.sh", "w") as fmerged:
+        #     for i_extnd in l_extd_len:
+        #         sf_tmp_cmd=sf_script+"_{0}.sh".format(i_extnd)
+        #         if os.path.isfile(sf_tmp_cmd)==True:
+        #             with open(sf_tmp_cmd) as fin_tmp:
+        #                 for line in fin_tmp:
+        #                     fmerged.write(line)
         lcaller.clean_intermediate_files2(l_extd_len, sf_merged_sites)##
         #align the contig to the target region (this is not used), this version not used for now
         #####lcaller.call_MEIs_for_sites_with_contig_2_ref(sf_bam_list, sf_sites, sf_ref, l_extd_len, sf_out_fa, sf_out_sites)
