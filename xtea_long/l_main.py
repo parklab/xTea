@@ -226,15 +226,17 @@ if __name__ == '__main__':
         nclip, fcov = automatic_gnrt_parameters_lrd(sf_bam_list, sf_ref, swfolder, n_cores)
         if options.user_specific == True:
             nclip = options.clip
-        n_cutoff=nclip#int(nclip*0.75)#set a cutoff for number of qualified reads (has kmer support)
+        n_cutoff=int(nclip*0.9)#set a cutoff for number of qualified reads (has kmer support)
         n_min_non_polyA_kmer=21
-        n_min_polyA_kmer=3#
-        print("clip cutoff is: "+str(nclip))
+        n_min_polyA_kmer=2#
+        print("clip cutoff is: "+str(n_cutoff))
 
         #get the consensus file list, for the repeat kmer library
         l_sf_cns=lcaller.set_rep_lib_path_kmer_cnt(i_type, sf_rep_folder)
+        print("Loaded consensus file list:",l_sf_cns)
         sf_script=sf_out_fa+".run_asm_cmd"
 
+#this is temporarily set to use -1000 only
         l_extd_len_tmp=[-1000] #####temporarily set
         lcaller.call_MEIs_for_sites_with_rep_kmer_filtering(sf_bam_list, sf_merged_sites, sf_ref, l_extd_len_tmp, sf_out_fa,
                                                             sf_out_sites, l_sf_cns, n_cutoff, n_min_non_polyA_kmer, n_min_polyA_kmer,

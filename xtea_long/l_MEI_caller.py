@@ -320,7 +320,7 @@ class L_MEI_Caller():
                 if len(l_sites) <= 0:
                     continue
 ####
-####uncomment temporarily ####
+####uncomment temporarily
                 # collect the clipped and contained reads for sites
                 if b_call_seq == False:#
                     self.collect_seq_for_sites_in_parallel(l_sites)#
@@ -337,7 +337,7 @@ class L_MEI_Caller():
                     with open(sf_tmp_passed_sites,"w") as fout_passed:
                         for rcd in l_passed_TE_kmer_filter:
                             fout_passed.write(str(rcd[1])+"\t"+str(rcd[2])+"\n")
-                    #return
+                    ##assemble each candidate insertion
                     self.asm_seq_for_sites_in_serial(l_passed_TE_kmer_filter)
                 # for comlex events, only collect and assembly, but do not call insertion seqs
                 if b_complex == True:#
@@ -631,6 +631,8 @@ class L_MEI_Caller():
             #l_for_pool.append(new_rcd)
             t_tmp=self.filter_by_TE_kmer_one_site(new_rcd)
             l_rslts.append(t_tmp)
+        print(l_rslts)
+
         # pool = Pool(self.n_jobs)
         # l_rslts=pool.map(unwrap_self_filter_by_TE_kmer, list(zip([self] * len(l_for_pool), l_for_pool)), 1)
         # pool.close()
@@ -696,7 +698,7 @@ class L_MEI_Caller():
         b_hit=False
         n_hit_cnt=0
         n_hit_cnt_rc=0
-        with open(sf_fa) as fin_fa:#
+        with open(sf_fa) as fin_fa:####
             for line in fin_fa:#
                 if len(line)>0 and line[0]==">":#
                     continue
@@ -714,6 +716,7 @@ class L_MEI_Caller():
                     if n_hit_cnt_rc>=n_cutoff:
                         b_hit=True
                         break
+            #print(sf_fa, "is checked!", str(n_hit_cnt), str(n_hit_cnt_rc), str(n_cutoff))
         return b_hit
 ####
 ####
