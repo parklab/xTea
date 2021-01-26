@@ -67,18 +67,19 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 ## Install
 
 1. **Use Conda**
+
 	xtea is a bioconda package, to install first make sure the bioconda channel has been added:
 	```
 	conda config --add channels defaults
 	conda config --add channels bioconda
 	conda config --add channels conda-forge
-
 	```
-	Then, install xtea (here create a new enviroment):
 
+	Then, install xtea (here create a new enviroment):
 	```
 	conda create -n your_env xtea
 	```
+	
 	Or directly `conda install -y xtea`
 	
 2. **Install free**
