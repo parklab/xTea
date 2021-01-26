@@ -118,6 +118,7 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 				-q: partition name for a cluster;
 				-t: job running time;
 				--lsf: add this option if this is for LSF system (by default slurm system);
+				--fast: if set then the running will be more efficient; but the sensitivity may be sacrificed.
 				
 			Other parameters can be keep unchanged or adjust accordingly.
 			```
