@@ -80,29 +80,29 @@ def gnrt_calling_command(ncores, iflag, i_rep_type, sf_rmsk, sf_rep_cns, i_min_c
 
     s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                  "-i ${{PREFIX}}\"candidate_list_from_clip.txt\" -o ${{PREFIX}}\"all_ins_seqs.fa\"" \
-                 " -n {0}\n".format(ncores)
+                 " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
     if b_complex==True:
         s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt.left_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_left.fa\"" \
-                     " -n {0}\n".format(ncores)
+                     " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
         s_asm_step += "python ${{XTEA_PATH}}\"l_main.py\" -A --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt.right_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_right.fa\"" \
-                     " -n {0}\n".format(ncores)
+                     " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
     if b_asm_cmd==True and b_call_seq==False:
         s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --cmd -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt\" -o ${{PREFIX}}\"all_ins_seqs.fa\"" \
-                     " -n {0}\n".format(ncores)
+                     " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
         if b_complex==True:
             s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --cmd --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                          "-i ${{PREFIX}}\"candidate_list_from_clip.txt.left_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_left.fa\"" \
-                         " -n {0}\n".format(ncores)
+                         " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
             s_asm_step += "python ${{XTEA_PATH}}\"l_main.py\" -A --cmd --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                          "-i ${{PREFIX}}\"candidate_list_from_clip.txt.right_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_right.fa\"" \
-                         " -n {0}\n".format(ncores)
+                         " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
     elif b_asm_cmd==False and b_call_seq==True:
         s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --mei_no_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt\" -o ${{PREFIX}}\"all_ins_seqs.fa\"" \
-                     " -n {0}\n".format(ncores)
+                     " --rep ${{REP_LIB}}  -n {0}\n".format(ncores)
 
     s_ghost_step="python ${{XTEA_PATH}}\"l_main.py\" -N -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}}\"ghost\" " \
                  "-o ${{PREFIX}}\"ghost_reads.fa\" --rmsk {0} --cns {1} --min {2}" \
