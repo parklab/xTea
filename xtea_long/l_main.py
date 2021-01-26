@@ -100,6 +100,9 @@ def parse_option():
                       help="Working on reference genome hg19")
     parser.add_option("--cns", dest="consensus",
                       help="repeat consensus file", metavar="FILE")
+    parser.add_option("--fast",
+                      action="store_true", dest="fast", default=False,
+                      help="This is the fast mode, which may sacrifice the sensitivity")
 
     parser.add_option("-p", "--path", dest="wfolder", type="string",
                       help="Working folder")
@@ -200,6 +203,7 @@ if __name__ == '__main__':
             swfolder+="/"
         sf_rep_folder = options.rep_lib  # repeat folder
         i_type = options.type
+        b_fast_mode = options.fast
 ####
         lcaller=L_MEI_Caller(swfolder, n_cores, sf_ref)
         i_slack=150# will be merged if distance is smaller than this value
@@ -237,7 +241,9 @@ if __name__ == '__main__':
         sf_script=sf_out_fa+".run_asm_cmd"
 
 #this is temporarily set to use -1000 only
-        l_extd_len_tmp=[-1000] #####temporarily set
+        l_extd_len_tmp = [-1000]  #####temporarily set
+        if b_fast_mode==False:
+            l_extd_len_tmp=l_extd_len
         lcaller.call_MEIs_for_sites_with_rep_kmer_filtering(sf_bam_list, sf_merged_sites, sf_ref, l_extd_len_tmp, sf_out_fa,
                                                             sf_out_sites, l_sf_cns, n_cutoff, n_min_non_polyA_kmer, n_min_polyA_kmer,
                                                             b_collect_asm, b_asm_cmd, sf_script, b_call_seq, b_skip_exist)

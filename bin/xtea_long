@@ -74,35 +74,39 @@ def gnrt_parameters(l_pars):
 ####
 ####
 def gnrt_calling_command(ncores, iflag, i_rep_type, sf_rmsk, sf_rep_cns, i_min_copy_len, i_peak_win, b_complex,
-                         b_asm_cmd=False, b_call_seq=False, b_clean=False):
+                         b_fast_mode=False, b_asm_cmd=False, b_call_seq=False, b_clean=False):
+
     sclip_step = "python ${{XTEA_PATH}}\"l_main.py\" -C -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                  "-o ${{PREFIX}}\"candidate_list_from_clip.txt\"  -n {0} -w {1} \n".format(ncores, i_peak_win)
 
+    s_fast_mode="--fast"
+    if b_fast_mode==False:
+        s_fast_mode=""
     s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                  "-i ${{PREFIX}}\"candidate_list_from_clip.txt\" -o ${{PREFIX}}\"all_ins_seqs.fa\"" \
-                 " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
+                 " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
     if b_complex==True:
         s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt.left_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_left.fa\"" \
-                     " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
+                     " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
         s_asm_step += "python ${{XTEA_PATH}}\"l_main.py\" -A --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt.right_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_right.fa\"" \
-                     " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
+                     " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
     if b_asm_cmd==True and b_call_seq==False:
         s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --cmd -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt\" -o ${{PREFIX}}\"all_ins_seqs.fa\"" \
-                     " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
+                     " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
         if b_complex==True:
             s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --cmd --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                          "-i ${{PREFIX}}\"candidate_list_from_clip.txt.left_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_left.fa\"" \
-                         " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
+                         " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
             s_asm_step += "python ${{XTEA_PATH}}\"l_main.py\" -A --cmd --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                          "-i ${{PREFIX}}\"candidate_list_from_clip.txt.right_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_right.fa\"" \
-                         " --rep ${{REP_LIB}} -n {0}\n".format(ncores)
+                         " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
     elif b_asm_cmd==False and b_call_seq==True:
         s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --mei_no_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt\" -o ${{PREFIX}}\"all_ins_seqs.fa\"" \
-                     " --rep ${{REP_LIB}}  -n {0}\n".format(ncores)
+                     " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
 
     s_ghost_step="python ${{XTEA_PATH}}\"l_main.py\" -N -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}}\"ghost\" " \
                  "-o ${{PREFIX}}\"ghost_reads.fa\" --rmsk {0} --cns {1} --min {2}" \
@@ -285,7 +289,7 @@ def get_sample_id(sf_bam):
 ####gnrt the running shell
 def gnrt_running_shell(sf_ids, sf_bams, s_wfolder, sf_ref, sf_folder_xtea, sf_rep_folder, spartition, stime, smemory,
                        ncores, sf_rmsk, sf_rep_cns, sf_ref_sva, i_min_copy_len, i_peak_win, sf_submit_sh, b_complex,
-                       b_lsf=False, b_slurm=False, b_asm_cmd=False, b_call_seq=False, b_clean=False):
+                       b_fast_mode=False, b_lsf=False, b_slurm=False, b_asm_cmd=False, b_call_seq=False, b_clean=False):
     if s_wfolder[-1] != "/":
         s_wfolder += "/"
     if os.path.exists(s_wfolder) == False:
@@ -425,6 +429,10 @@ def parse_option():
     parser.add_option("-V", "--version",
                       action="store_true", dest="version", default=False,
                       help="Print xTea version")
+    parser.add_option("--fast",
+                      action="store_true", dest="fast", default=False,
+                      help="This is the fast mode, which may sacrifice the sensitivity")
+
 
     parser.add_option("-p", "--path", dest="wfolder", type="string", default="./",
                       help="Working folder")
@@ -498,6 +506,7 @@ if __name__ == '__main__':
         sf_rep_cns = options.consensus  # repeat consensus
         sf_rep_folder=options.rep_lib#repeat library folder
         sf_ref_sva=options.ref_sva
+        b_fast_mode=options.fast
     ####
         gnrt_running_shell(sf_id, sf_bams, s_wfolder, sf_ref, sf_folder_xtea, sf_rep_folder, spartition, stime, smemory,
                            ncores, sf_rmsk, sf_rep_cns, sf_ref_sva, i_min_copy_len, i_peak_win, sf_sbatch_sh, b_complex,
