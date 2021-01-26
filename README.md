@@ -79,10 +79,12 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 	```
 	conda create -n your_env xtea
 	```
-	
+
 	Or directly `conda install -y xtea`
 	
 2. **Install free**
+	
+	If the dependencies have been install already, then install-free mode is recommended:
 	```
 	git clone https://github.com/parklab/xTea
 	```
