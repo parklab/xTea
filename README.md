@@ -87,7 +87,7 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 			OUT_SCRTP=submit_jobs.sh
 			TIME=60:00
 			REF=[prefix-abosolute-path]/reference/hg38/GCA_000001405.15_GRCh38_no_alt_analysis_set.fna
-			XTEA=[replace with abosolute-path-of-xTea-folder]
+			XTEA=[replace with abosolute-path-of-xTea-folder contain the *.py code; for example ./xTea_long_release_v0.1.0/xtea_long/]
 			RMSK=[prefix-abosolute-path]/rep_lib_annotation/LINE/hg38/hg38_L1_larger2K_with_all_L1HS.out
 			CNS_L1=[prefix-abosolute-path]/rep_lib_annotation/consensus/LINE1.fa
 			REP_LIB=[prefix-abosolute-path]/rep_lib_annotation/
