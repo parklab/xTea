@@ -26,7 +26,7 @@ from x_gene_annotation import *
 from l_ref_SVA_extractor import *
 
 ####
-# wfolder="/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/NA12878_10x_v2/promoted_SV/"
+#
 # construct_cns_minimap2(ins_chrm, ins_pos, wfolder)
 ####res
 ###for short clipped reads and low coverage regions:
@@ -231,8 +231,8 @@ if __name__ == '__main__':
         if options.user_specific == True:
             nclip = options.clip
         n_cutoff=int(nclip*0.9)#set a cutoff for number of qualified reads (has kmer support)
-        n_min_non_polyA_kmer=21
-        n_min_polyA_kmer=2#
+        n_min_non_polyA_kmer=21 #this is the minimum # of kmers contained in the clipped part
+        n_min_polyA_kmer=2#this is the minimum # of polyA kmers contained in the clipped part
         print("clip cutoff is: "+str(n_cutoff))
 
         #get the consensus file list, for the repeat kmer library
@@ -240,7 +240,6 @@ if __name__ == '__main__':
         print("Loaded consensus file list:",l_sf_cns)
         sf_script=sf_out_fa+".run_asm_cmd"
 
-#this is temporarily set to use -1000 only
         l_extd_len_tmp = [-1000]  #####temporarily set
         if b_fast_mode==False:
             l_extd_len_tmp=l_extd_len
@@ -258,7 +257,8 @@ if __name__ == '__main__':
         #             with open(sf_tmp_cmd) as fin_tmp:
         #                 for line in fin_tmp:
         #                     fmerged.write(line)
-        lcaller.clean_intermediate_files2(l_extd_len, sf_merged_sites)##
+        if b_fast_mode==False:
+            lcaller.clean_intermediate_files2(l_extd_len, sf_merged_sites)##
         #align the contig to the target region (this is not used), this version not used for now
         #####lcaller.call_MEIs_for_sites_with_contig_2_ref(sf_bam_list, sf_sites, sf_ref, l_extd_len, sf_out_fa, sf_out_sites)
 ####
