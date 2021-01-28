@@ -257,8 +257,11 @@ if __name__ == '__main__':
         #             with open(sf_tmp_cmd) as fin_tmp:
         #                 for line in fin_tmp:
         #                     fmerged.write(line)
-        if b_fast_mode==False:
-            lcaller.clean_intermediate_files2(l_extd_len, sf_merged_sites)##
+
+#it seems the program will hang here!!!!
+#if b_fast_mode==False:
+#    lcaller.clean_intermediate_files2(l_extd_len, sf_merged_sites)##
+
         #align the contig to the target region (this is not used), this version not used for now
         #####lcaller.call_MEIs_for_sites_with_contig_2_ref(sf_bam_list, sf_sites, sf_ref, l_extd_len, sf_out_fa, sf_out_sites)
 ####

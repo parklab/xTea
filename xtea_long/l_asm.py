@@ -21,33 +21,6 @@ class L_Local_ASM():
     def __init__(self):
         self.cmd_runner=CMD_RUNNER()
 
-    #this is to use wtdbg2 to asm the clipped long reads
-    def construct_cns_wtdbg2(self, chrm, pos, wfolder):
-        if wfolder[-1] != "/":
-            wfolder += "/"
-        s_id = "{0}_{1}".format(chrm, pos)
-        s_prefix = wfolder + s_id
-
-        sf_fa=s_prefix+".fa"
-        if os.path.isfile(sf_fa)==False:
-            return global_values.FAIL_CLP
-        sf_std_out = sf_fa + ".std_out"
-        cmd = "{0} -i {1}.fa  -fo {2}_wtdbg2".format(global_values.WTDBG2, s_prefix, s_prefix)
-        print(cmd)
-        self.cmd_runner.run_cmd_to_file(cmd, sf_std_out)
-
-        ####
-        sf_lay="{0}_wtdbg2.ctg.lay".format(s_prefix)
-        if os.path.isfile(sf_lay)==False:
-            return global_values.FAIL_ASM
-        cmd = "{0} -i {1}_wtdbg2.ctg.lay -fo {2}_wtdbg2.ctg.lay.fa".format(global_values.WTPOA, s_prefix, s_prefix)
-        print(cmd)
-        self.cmd_runner.run_cmd_to_file(cmd, sf_std_out)
-        sf_lay_fa="{0}_wtdbg2.ctg.lay.fa".format(s_prefix)
-        if os.path.isfile(sf_lay_fa)==False:
-            return global_values.FAIL_CNS
-        return global_values.SUCCD
-
     ##this is to construct the consensus
     def construct_short_cns_wtdbg2(self, chrm, pos, ncores, wfolder):
         if wfolder[-1] != "/":
