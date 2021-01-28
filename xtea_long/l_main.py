@@ -257,7 +257,7 @@ if __name__ == '__main__':
         #             with open(sf_tmp_cmd) as fin_tmp:
         #                 for line in fin_tmp:
         #                     fmerged.write(line)
-
+#
 #it seems the program will hang here!!!!
 #if b_fast_mode==False:
 #    lcaller.clean_intermediate_files2(l_extd_len, sf_merged_sites)##

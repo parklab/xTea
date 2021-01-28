@@ -765,11 +765,12 @@ class L_MEI_Caller():
         # 3.3. parse out the insertion from asm alignments
         m_constructed, m_refined_pos = xctg.call_MEI_from_long_read_contig_flank_algnmt(l_rcd, sf_mei)
 
-        # 4. clean the intermediate files
-        self._clean_intermediate_files_in_parallel(l_prefix_clean, l_site_flanks)
-        # clean the folder
-        if not os.listdir(sflank_folder):
-            os.rmdir(sflank_folder)  # only remove empty folder
+####comment out first
+# 4. clean the intermediate files
+#self._clean_intermediate_files_in_parallel(l_prefix_clean, l_site_flanks)
+# clean the folder
+#if not os.listdir(sflank_folder):
+#os.rmdir(sflank_folder)  # only remove empty folder
         return m_constructed, m_refined_pos
 ####
 ####
