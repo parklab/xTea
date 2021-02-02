@@ -79,6 +79,38 @@ class X_BasicInfo():
             f_cov += m_info[s_bam][0]
         n_sample = len(m_info)
         return f_cov, f_cov/float(n_sample)
+#
+    # for now, coverage is merged if there are several bams in the list
+    def get_cov_is_rlth_one_sample(self, sf_bam, s_sample_name, sf_ref, search_win, b_force=False):#
+        f_cov = 0
+        rlth = 0
+        mean_is = 0
+        std_var = 0
+        n_sample = 1
+        sf_basic_info = self.working_folder + s_sample_name+"."+global_values.BASIC_INFO_FILE
+        m_info = {}
+        b_gnrt = True
+        if os.path.isfile(sf_basic_info) == True and b_force == False:
+            # first already exist, and is not forced to re-calc
+            m_tmp_info = self.load_basic_info_from_file(sf_basic_info)
+            if len(m_tmp_info) > 0:  # load successfully
+                m_info = m_tmp_info
+                b_gnrt = False
+        for s_bam in m_info:
+            f_cov += m_info[s_bam][0]
+            rlth += m_info[s_bam][1]
+            mean_is += m_info[s_bam][2]
+            std_var += m_info[s_bam][3]
+
+        if b_gnrt == True:
+            (f_cov, rlth, mean_is, std_var)=self.collect_basic_info_one_sample(sf_bam, sf_ref, search_win)
+            m_tmp_info={}
+            m_tmp_info[s_sample_name]=(f_cov, rlth, mean_is, std_var)
+            self.dump_basic_info_to_file(m_tmp_info, sf_basic_info)####
+        n_sample = len(m_info)
+        if n_sample == 0:
+            return (0, 0, 0, 0)
+        return (f_cov, rlth, mean_is, std_var)
 
 ####
     ####calc the coverage for given bam
@@ -97,7 +129,7 @@ class X_BasicInfo():
         l_cov.sort()
         n_slct_sites = len(l_cov)
         if n_slct_sites > 0:
-            f_ave_cov = l_cov[n_slct_sites / 2]
+            f_ave_cov = l_cov[n_slct_sites // 2]
         return f_ave_cov
 ####
     #collect the basic information of samples
@@ -157,7 +189,7 @@ class X_BasicInfo():
                 l_cov.sort()
                 n_slct_sites = len(l_cov)
                 if n_slct_sites>0:
-                    f_ave_cov=l_cov[n_slct_sites/2]
+                    f_ave_cov=l_cov[int(n_slct_sites/2)]
 
                 # for read length
                 rlth = self._calc_read_length(m_rlth)
@@ -206,7 +238,7 @@ class X_BasicInfo():
         l_cov.sort()
         n_slct_sites = len(l_cov)
         if n_slct_sites > 0:
-            f_ave_cov = l_cov[n_slct_sites / 2]
+            f_ave_cov = l_cov[int(n_slct_sites / 2)]
 
         # for read length
         rlth = self._calc_read_length(m_rlth)
@@ -217,7 +249,7 @@ class X_BasicInfo():
 
     ####save the basic information to file
     #each line in format: bam_name, f_ave_cov, rlth, mean_is, std_var
-    def dump_basic_info_to_file(self, m_sample_info, sf_out):
+    def dump_basic_info_to_file(self, m_sample_info, sf_out):#
         with open(sf_out, "w") as fout_info:
             for sbam in m_sample_info:
                 rcd=m_sample_info[sbam]

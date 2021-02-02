@@ -34,7 +34,7 @@ class DiscCluster():
                     # find the representative position of this cluster
                     # also calc the standard derivation of the left and right cluster
                     set_size=len(set_cluster)
-                    mid_pos=set_cluster[set_size/2]
+                    mid_pos=set_cluster[int(set_size/2)]
                     if chrm not in m_cluster:
                         m_cluster[chrm]={}
                     m_cluster[chrm][mid_pos]=(set_cluster[0], set_cluster[-1], set_size)
@@ -49,7 +49,7 @@ class DiscCluster():
                 ####
             # push out the last group
             set_size = len(set_cluster)
-            mid_pos = set_cluster[set_size / 2]
+            mid_pos = set_cluster[int(set_size / 2)]
             if chrm not in m_cluster:
                 m_cluster[chrm] = {}
             m_cluster[chrm][mid_pos] = (set_cluster[0], set_cluster[-1], set_size)
