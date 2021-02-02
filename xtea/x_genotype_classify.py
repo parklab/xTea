@@ -1,18 +1,19 @@
 ##06/02/2019
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 #train a the classification model
 #predict based on the trained model
 
 #this is a stand alone module for model training/prediction
-
+import sys
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from scipy.io import arff
 import pandas as pd
 import pickle
 from sklearn.metrics import accuracy_score
+
 #from sklearn import svm
 
 class GntpClassifier():
@@ -21,7 +22,7 @@ class GntpClassifier():
         return
 ####
     ####gnerate the arff file for training data (with label)
-    def gnrt_training_arff_from_xTEA_output(self, sf_00_list, sf_01_list, sf_11_list, sf_arff):
+    def gnrt_training_arff_from_xTEA_output(self, sf_00_list, sf_01_list, sf_11_list, sf_arff, b_balance=False):
         with open(sf_arff, "w") as fout_arff:
             fout_arff.write("@RELATION\tinsgntp\n\n")
             fout_arff.write("@ATTRIBUTE\tlclipcns\tNUMERIC\n")
@@ -52,19 +53,28 @@ class GntpClassifier():
             #         sf_rslt = line.rstrip()
             #         l_features = self.load_in_feature_from_xTEA_output(sf_rslt)
             #         for rcd in l_features:
-            #             fout_arff.write(",".join(rcd) + "\n")
-            with open(sf_01_list) as fin_01:
-                for line in fin_01:
-                    sf_rslt = line.rstrip()
-                    l_features = self.load_in_feature_from_xTEA_output(sf_rslt)
-                    for rcd in l_features:
-                        fout_arff.write(",".join(rcd) + "\n")
+            #             fout_arff.write(",".join(rcd) + "\n") ##
+
+            n_11=0
             with open(sf_11_list) as fin_11:
                 for line in fin_11:
                     sf_rslt = line.rstrip()
                     l_features = self.load_in_feature_from_xTEA_output(sf_rslt)
                     for rcd in l_features:
                         fout_arff.write(",".join(rcd) + "\n")
+                    n_11+=1
+
+            n_01=0
+            with open(sf_01_list) as fin_01:
+                for line in fin_01:
+                    if n_01>n_11 and b_balance==True:
+                        break
+                    sf_rslt = line.rstrip()
+                    l_features = self.load_in_feature_from_xTEA_output(sf_rslt)
+                    for rcd in l_features:
+                        fout_arff.write(",".join(rcd) + "\n")
+                    n_01+=1
+
 
     # ####train the model
     def train_model(self, sf_arff, sf_model, f_ratio=0.3):
@@ -83,7 +93,7 @@ class GntpClassifier():
             pickle.dump(clf, file)
         preds = clf.predict(X_test)
         accuracy = accuracy_score(y_test, preds)
-        print(('Mean accuracy score: {0}'.format(round(accuracy))))
+        print('Mean accuracy score: {0}'.format(round(accuracy)))
         tab = pd.crosstab(y_test, preds, rownames=['Actual Result'], colnames=['Predicted Result'])
         print(tab)
 
@@ -132,14 +142,17 @@ class GntpClassifier():
 
 
     ####clf is the trained model
-    ####X_test is the trained
     def predict_for_site(self, rf_model, sf_xTEA, sf_new):
         sf_arff = sf_xTEA + ".arff"
         # site_features=self.prepare_arff_from_xTEA_output_two_category(sf_xTEA, sf_arff)
 
         site_features = self.prepare_arff_from_xTEA_output(sf_xTEA, sf_arff)
-        preds = rf_model.predict(site_features)
+        preds=None
+        if len(site_features)>0:
+            preds = rf_model.predict(site_features)
         with open(sf_xTEA) as fin_xTEA, open(sf_new, "w") as fout_new:
+            if None is preds:
+                return
             i_idx = 0
             for line in fin_xTEA:
                 sinfo = line.rstrip()
@@ -164,7 +177,12 @@ class GntpClassifier():
         # Load from file
         pickle_model = None
         with open(pkl_filename, 'rb') as file:
-            pickle_model = pickle.load(file)
+            if (sys.version_info > (3, 0)):
+                #this is python3
+                pickle_model = pickle.load(file, encoding='latin1')
+            else:
+                #python2
+                pickle_model = pickle.load(file)
         return pickle_model
 
     #

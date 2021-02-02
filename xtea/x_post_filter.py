@@ -1,7 +1,7 @@
 ####
 ##04/16/2019
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 ####1. for tprt both (with polyA and TSD) events, we filter out those:
         ####1.1 polyA dominant cases, this module will mainly used on Alu
@@ -220,7 +220,7 @@ class XPostFilter():
 
                 b_in_blacklist, tmp_pos=x_blklist.fall_in_region(ins_chrm, int(ins_pos))
                 if b_in_blacklist==True:
-                    print(("{0}:{1} is filtered out, because fall in centromere region".format(ins_chrm, ins_pos)))
+                    print("{0}:{1} is filtered out, because fall in centromere region".format(ins_chrm, ins_pos))
                     fout_log.write("{0}:{1} is filtered out, because fall in centromere region\n".format(
                         ins_chrm, ins_pos))
                     continue
@@ -279,7 +279,7 @@ class XPostFilter():
                 b_with_polyA = xtprt_filter.has_polyA_signal(rcd)
                 min_ins_len=200 #minimum insertion length
                 if (b_with_polyA is False) and (xtprt_filter.hit_end_of_cns(rcd)==False): #no polyA, and didn't hit end
-                    print(("{0}:{1} is filtered out, because no any polyA signal detected!".format(ins_chrm, ins_pos)))
+                    print("{0}:{1} is filtered out, because no any polyA signal detected!".format(ins_chrm, ins_pos))
                     fout_log.write("{0}:{1} is filtered out, because no any polyA signal detected!\n".format(
                         ins_chrm, ins_pos))
                     continue
@@ -287,17 +287,17 @@ class XPostFilter():
                     if xtprt_filter.is_polyA_dominant_two_side(rcd) == True \
                             and (xtprt_filter.is_two_side_polyA_same_orientation(rcd) == True) \
                             and xtprt_filter.is_two_side_consist_with_enough_ins_size(rcd, min_ins_len)==False:
-                        print(("{0}:{1} is filtered out, because two side polyA dominant!".format(ins_chrm, ins_pos)))
+                        print("{0}:{1} is filtered out, because two side polyA dominant!".format(ins_chrm, ins_pos))
                         fout_log.write("{0}:{1} is filtered out, because two side polyA dominant!\n".format(
                             ins_chrm, ins_pos))
                         continue
                     if xtprt_filter.hit_end_of_cns(rcd)==False:
-                        print(("{0}:{1} is filtered out, because doesn't hit the end of consensus!".format(ins_chrm, ins_pos)))
+                        print("{0}:{1} is filtered out, because doesn't hit the end of consensus!".format(ins_chrm, ins_pos))
                         fout_log.write("{0}:{1} is filtered out, because doesn't hit the end of consensus!\n".format(
                             ins_chrm, ins_pos))
                         continue
                     if af_filter.is_qualified_rcd(rcd[-1], m_cutoff) == False:
-                        print(("{0}:{1} is filtered out, because AF is not qualified!".format(ins_chrm, ins_pos)))
+                        print("{0}:{1} is filtered out, because AF is not qualified!".format(ins_chrm, ins_pos))
                         fout_log.write("{0}:{1} is filtered out, because AF is not qualified!\n".format(
                             ins_chrm, ins_pos))
                         continue
@@ -305,28 +305,28 @@ class XPostFilter():
                     if (div_rate >= 0) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
                         #unless "two-side-tprt-both" and "two-side-consistent", then filter out
                         if xtprt_filter.is_two_side_tprt_both_and_both_consistent(rcd, 6000, 200)==False:
-                            print(("{0}:{1} is filtered out, because fall in low div L1 region".format(ins_chrm, ins_pos)))
+                            print("{0}:{1} is filtered out, because fall in low div L1 region".format(ins_chrm, ins_pos))
                             fout_log.write("{0}:{1} is filtered out, because fall in low div L1 region\n".format(
                                 ins_chrm, ins_pos))
                             continue
                 elif s_rep_supt_type is self._one_half_side:  ##one and half side
                     # check whether fall in repetitive region of the same type
                     if (div_rate >=0) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
-                        print(("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!".format(
-                            ins_chrm, ins_pos)))
+                        print("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!".format(
+                            ins_chrm, ins_pos))
                         fout_log.write("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!\n".format(
                             ins_chrm, ins_pos))
                         continue#self.nclip_half_cutoff
                     if (xtprt_filter.is_polyA_dominant_two_side(rcd) == True) \
                             and (xtprt_filter.is_two_side_polyA_same_orientation(rcd)==True):#both polyA or polyT
-                        print(("{0}:{1} is filtered out, because two side polyA dominant!".format(ins_chrm, ins_pos)))#
+                        print("{0}:{1} is filtered out, because two side polyA dominant!".format(ins_chrm, ins_pos))#
                         fout_log.write("{0}:{1} is filtered out, because two side polyA dominant!\n".format(
                             ins_chrm, ins_pos))
                         continue
                 elif s_rep_supt_type is self._one_side:  ###one side
                     if (div_rate >=0) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
-                        print(("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!".format(
-                            ins_chrm, ins_pos)))
+                        print("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!".format(
+                            ins_chrm, ins_pos))
                         fout_log.write("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!\n".format(
                             ins_chrm, ins_pos))
                         continue
@@ -340,8 +340,8 @@ class XPostFilter():
                 if ((b_in_rep is True) or (b_cov_abnormal is True)) and \
                                 xtprt_filter.is_two_side_clip_and_both_hit_end(rcd, self.REP_LINE_POLYA_START)==True \
                     and (xtprt_filter.is_two_side_polyA_same_orientation(rcd) == True):  #both polyA or polyT:
-                    print(("{0}:{1} is filtered out, because coverage is abnormal and also two side clip both hit end of consensus!".format(
-                        ins_chrm, ins_pos)))
+                    print("{0}:{1} is filtered out, because coverage is abnormal and also two side clip both hit end of consensus!".format(
+                        ins_chrm, ins_pos))
                     fout_log.write("{0}:{1} is filtered out, because coverage is abnormal and also two side clip both hit end of consensus!\n".format(
                         ins_chrm, ins_pos))
                     continue
@@ -349,8 +349,8 @@ class XPostFilter():
                 #if within L1 repeat, but also neither clip side hit the end, then skip
                 #this is initially added for 10X
                 if (b_in_rep is True) and (xtprt_filter.hit_consensus_tail(rcd, self.REP_LINE_POLYA_START)==False):
-                    print(("{0}:{1} is filtered out, because fall in repeat region, and none of clip side fall in repeat!".format(
-                        ins_chrm, ins_pos)))
+                    print("{0}:{1} is filtered out, because fall in repeat region, and none of clip side fall in repeat!".format(
+                        ins_chrm, ins_pos))
                     fout_log.write("{0}:{1} is filtered out, because fall in repeat region, and none of clip side fall in repeat!\n".format(
                         ins_chrm, ins_pos))
                     continue
@@ -502,7 +502,7 @@ class XTEARsltParser():
                 tmp_rcd.append(line)#add the last line into list
                 l_rcd.append(tmp_rcd)
         return l_rcd
-
+####
     def dump_xTEA_rslt_to_file(self, l_rcd, sf_rslt):
         with open(sf_rslt, "w") as fout_rslt:
             for rcd in l_rcd:
@@ -559,17 +559,17 @@ class XTEARsltParser():
         s_rdisc_cluster=rcd[22]
         ####
         l_tmp=s_lclip_cluster.split(":")
-        i_lclip_start=int(l_tmp[0])
-        i_lclip_end=int(l_tmp[1])
+        i_lclip_start=int(float(l_tmp[0]))
+        i_lclip_end=int(float(l_tmp[1]))
         l_tmp2=s_rclip_cluster.split(":")
-        i_rclip_start=int(l_tmp2[0])
-        i_rclip_end=int(l_tmp2[1])
+        i_rclip_start=int(float(l_tmp2[0]))
+        i_rclip_end=int(float(l_tmp2[1]))
         l_tmp3=s_ldisc_cluster.split(":")
-        i_ldisc_start=int(l_tmp3[0])
-        i_ldisc_end=int(l_tmp3[1])
+        i_ldisc_start=int(float(l_tmp3[0]))
+        i_ldisc_end=int(float(l_tmp3[1]))
         l_tmp4=s_rdisc_cluster.split(":")
-        i_rdisc_start=int(l_tmp4[0])
-        i_rdisc_end=int(l_tmp4[1])
+        i_rdisc_start=int(float(l_tmp4[0]))
+        i_rdisc_end=int(float(l_tmp4[1]))
 
         if self.is_transduction(rcd)==False:#not transduction
             if i_lclip_start>0 and i_rclip_start>0:#both clip exist
@@ -769,11 +769,11 @@ class XTPRTFilter():
         s_lclip_cluster = rcd[19]
         s_rclip_cluster = rcd[20]
         ll_fields = s_lclip_cluster.split(":")
-        i_lstart = int(ll_fields[0])
-        i_lend = int(ll_fields[1])
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
         lr_fields = s_rclip_cluster.split(":")
-        i_rstart = int(lr_fields[0])
-        i_rend = int(lr_fields[1])
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
         if s_consist==global_values.BOTH_END_CONSISTNT \
                 and (abs(i_lstart-i_rend)>min_ins_len or abs(i_rstart-i_lend)>min_ins_len):
             return True
@@ -787,21 +787,21 @@ class XTPRTFilter():
         s_lclip_cluster = rcd[19]
         s_rclip_cluster = rcd[20]
         ll_fields = s_lclip_cluster.split(":")
-        i_lstart = int(ll_fields[0])
-        i_lend = int(ll_fields[1])
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
         lr_fields = s_rclip_cluster.split(":")
-        i_rstart = int(lr_fields[0])
-        i_rend = int(lr_fields[1])
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
 
         #left, right discordant cluster
         s_ldisc_cluster = rcd[21]
         s_rdisc_cluster = rcd[22]
         lld_fields = s_ldisc_cluster.split(":")
-        i_ldstart = int(lld_fields[0])
-        i_ldend = int(lld_fields[1])
+        i_ldstart = int(float(lld_fields[0]))
+        i_ldend = int(float(lld_fields[1]))
         lrd_fields = s_rdisc_cluster.split(":")
-        i_rdstart = int(lrd_fields[0])
-        i_rdend = int(lrd_fields[1])
+        i_rdstart = int(float(lrd_fields[0]))
+        i_rdend = int(float(lrd_fields[1]))
 
         #both should hit the end, otherwise return False
         if (i_lend<i_cns_tail and i_rend<i_cns_tail) or (i_ldend<i_cns_tail and i_rdend<i_cns_tail):
@@ -843,11 +843,11 @@ class XTPRTFilter():
         if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
             return False
         ll_fields = s_lclip_cluster.split(":")
-        i_lstart = int(ll_fields[0])
-        i_lend = int(ll_fields[1])
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
         lr_fields = s_rclip_cluster.split(":")
-        i_rstart = int(lr_fields[0])
-        i_rend = int(lr_fields[1])
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
         if i_lstart>=i_cns_tail and i_rstart>=i_cns_tail:
             return True
         return False
@@ -859,11 +859,11 @@ class XTPRTFilter():
         if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
             return False
         ll_fields = s_lclip_cluster.split(":")
-        i_lstart = int(ll_fields[0])
-        i_lend = int(ll_fields[1])
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
         lr_fields = s_rclip_cluster.split(":")
-        i_rstart = int(lr_fields[0])
-        i_rend = int(lr_fields[1])
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
         if i_lstart<i_cns_tail and i_rstart<i_cns_tail:
             return True
         return False
@@ -877,11 +877,11 @@ class XTPRTFilter():
         if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
             return True
         ll_fields=s_lclip_cluster.split(":")
-        i_lstart=int(ll_fields[0])
-        i_lend=int(ll_fields[1])
+        i_lstart=int(float(ll_fields[0]))
+        i_lend=int(float(ll_fields[1]))
         lr_fields=s_rclip_cluster.split(":")
-        i_rstart=int(lr_fields[0])
-        i_rend=int(lr_fields[1])
+        i_rstart=int(float(lr_fields[0]))
+        i_rend=int(float(lr_fields[1]))
         if abs(i_lend-i_rstart)<global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF \
                 or abs(i_rend-i_lstart)<global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF:
             return False
@@ -893,11 +893,11 @@ class XTPRTFilter():
         if ("-1" in s_ldisc_cluster) or ("-1" in s_rdisc_cluster):
             return True
         ll_fields = s_ldisc_cluster.split(":")
-        i_lstart = int(ll_fields[0])
-        i_lend = int(ll_fields[1])
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
         lr_fields = s_rdisc_cluster.split(":")
-        i_rstart = int(lr_fields[0])
-        i_rend = int(lr_fields[1])
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
         if abs(i_lend - i_rstart) < global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF \
                 or abs(i_rend - i_lstart) < global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF:
             return False
@@ -909,11 +909,11 @@ class XTPRTFilter():
         if ("-1" in s_ldisc_cluster) or ("-1" in s_rdisc_cluster):
             return False
         ll_fields = s_ldisc_cluster.split(":")
-        i_lstart = int(ll_fields[0])
-        i_lend = int(ll_fields[1])
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
         lr_fields = s_rdisc_cluster.split(":")
-        i_rstart = int(lr_fields[0])
-        i_rend = int(lr_fields[1])
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
         if i_lstart<i_pos_head or i_rstart<i_pos_head:
             return True
         return False
@@ -967,11 +967,11 @@ class XTPRTFilter():
             if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
                 return False
             ll_fields = s_lclip_cluster.split(":")
-            i_lstart = int(ll_fields[0])
-            i_lend = int(ll_fields[1])
+            i_lstart = int(float(ll_fields[0]))
+            i_lend = int(float(ll_fields[1]))
             lr_fields = s_rclip_cluster.split(":")
-            i_rstart = int(lr_fields[0])
-            i_rend = int(lr_fields[1])
+            i_rstart = int(float(lr_fields[0]))
+            i_rend = int(float(lr_fields[1]))
             if i_lend>i_cns_end or i_rend>i_cns_end:
                 return True
         return False
@@ -983,11 +983,11 @@ class XTPRTFilter():
         if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
             return False
         ll_fields = s_lclip_cluster.split(":")
-        i_lstart = int(ll_fields[0])
-        i_lend = int(ll_fields[1])
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
         lr_fields = s_rclip_cluster.split(":")
-        i_rstart = int(lr_fields[0])
-        i_rend = int(lr_fields[1])
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
         if i_lstart>i_cns_end and i_rstart>i_cns_end:
             return True
         return False
@@ -998,11 +998,11 @@ class XTPRTFilter():
         if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
             return True
         ll_fields = s_lclip_cluster.split(":")
-        i_lstart = int(ll_fields[0])
-        i_lend = int(ll_fields[1])
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
         lr_fields = s_rclip_cluster.split(":")
-        i_rstart = int(lr_fields[0])
-        i_rend = int(lr_fields[1])
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
         if i_lend>=i_cns_end or i_rend>=i_cns_end:
             return True
         return False
@@ -1188,6 +1188,7 @@ class AFConflictFilter():
         l_types = self.get_rep_type()
         m_cutoff = self.get_cutoff_by_type(l_types)
         self.calc_ratio(m_cutoff, n_clip_cutoff, n_disc_cutoff, sf_hc)
+
     ####
     def calc_ratio(self, m_cutoff, n_clip_cutoff, n_disc_cutoff, sf_in):
         sf_out = sf_in + ".after_filter"
@@ -1209,13 +1210,13 @@ class AFConflictFilter():
                 n_total += 1
 
                 if n_ef_clip < n_clip_cutoff:
-                    print(("ef_clip", line))
+                    print("ef_clip", line)
                     continue
                 if n_ef_disc < n_disc_cutoff:
-                    print(("ef_disc", line))
+                    print("ef_disc", line)
                     continue
                 if n_lpolyA + n_rpolyA < 1:
-                    print(("no polyA", line))
+                    print("no polyA", line)
                     continue
 
                 n_hard_pass += 1
@@ -1241,6 +1242,6 @@ class AFConflictFilter():
                     fout_af_filter.write(line)
                 else:
                     s = 1
-                    print((line.rstrip()))
-            print((n_hard_pass, n_pass, n_total))
+                    print(line.rstrip())
+            print(n_hard_pass, n_pass, n_total)
 ####
