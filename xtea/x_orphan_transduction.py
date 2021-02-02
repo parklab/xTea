@@ -433,7 +433,7 @@ class XOrphanTransduction(XTransduction):
             n_total_lreads=0
             n_total_rreads=0
             n_bkgrnd_low_mapq=0#number of background low mapping quality reads
-            i_offset = global_values.READ_LENGTH / 4
+            i_offset = int(global_values.READ_LENGTH / 4)
             l_lclip_pos=[]#save the left-clip position
             l_rclip_pos=[]#save the right-clip position
             l_local_rc_disc_pos=[]#save the local
@@ -804,7 +804,7 @@ class XOrphanTransduction(XTransduction):
             n_total_lreads = 0
             n_total_rreads = 0
             n_bkgrnd_low_mapq = 0  # number of background low mapping quality reads
-            i_offset = global_values.READ_LENGTH / 4
+            i_offset = int(global_values.READ_LENGTH / 4)
             l_lclip_pos = []  # save the left-clip position
             l_rclip_pos = []  # save the right-clip position
             l_local_rc_disc_pos = []  # save the local
@@ -974,12 +974,12 @@ class XOrphanTransduction(XTransduction):
         l_nrc_pos.sort()
         i_mid_nrc_pos = -1
         if len(l_nrc_pos) > 0:
-            i_mid_nrc_pos = l_nrc_pos[len(l_nrc_pos) / 4]
+            i_mid_nrc_pos = l_nrc_pos[int(len(l_nrc_pos) / 4)]
 
         l_rc_pos.sort()
         i_mid_rc_pos=-1
         if len(l_rc_pos)>0:
-            i_mid_rc_pos=l_rc_pos[len(l_rc_pos)*3/4]
+            i_mid_rc_pos=l_rc_pos[int(len(l_rc_pos)*3/4)]
 
         #print i_mid_nrc_pos, i_mid_rc_pos, i_lclip_pos, i_rclip_pos, "test clip, disc position"
         if i_lclip_pos<i_mid_nrc_pos:
@@ -1282,7 +1282,7 @@ class XOrphanTransduction(XTransduction):
         n_total_lreads = 0
         n_total_rreads = 0
         n_bkgrnd_low_mapq = 0  # number of background low mapping quality reads
-        i_offset = global_values.READ_LENGTH / 4
+        i_offset = int(global_values.READ_LENGTH / 4)
         l_lclip_pos = []  # save the left-clip position
         l_rclip_pos = []  # save the right-clip position
 
