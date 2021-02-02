@@ -106,7 +106,7 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 				-p: working folder, where the results and temporary files will be saved;
 				-l: repeat library folder (folder contain files decompressed from "rep_lib_annotation.tar.gz";
 				-r: reference genome file;
-				-y: type of repeats will work on (1-L1, 2-Alu, 4-SVA, 8-HERV; sum all selected as one value);
+				-y: type of repeats will work on (1-L1, 2-Alu, 4-HERV, 8-SVA, 16-Mit, 64-Pseudogene; sum all selected as one value);
 				-f: steps to run. (31 means run all the steps);
 				--xtea: xTea full path 
 				--cns: L1 consensus sequence (for ghost L1 calling);
