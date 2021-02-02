@@ -643,11 +643,11 @@ class XTransduction():
 
     def _reach_5_prime_end(self, s_lcluster, s_rcluster, i_leftmost):
         ll_fields = s_lcluster.split(":")
-        i_lstart = int(ll_fields[0])
-        i_lend = int(ll_fields[1])
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
         lr_fields = s_rcluster.split(":")
-        i_rstart = int(lr_fields[0])
-        i_rend = int(lr_fields[1])
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
         if i_lstart>0 and i_lstart<i_leftmost:
             return True
         if i_rstart>0 and i_rstart<i_leftmost:
