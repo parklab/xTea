@@ -1,6 +1,6 @@
 ##11/22/2017
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 class ClusterChecker():
     ####
@@ -74,8 +74,8 @@ class ClusterChecker():
         scnd_peak_pos = -1
         scnd_peak_acm = 0
         mpos = m_clip_pos[ins_chrm][ins_pos]  # is a dictionary {ref_pos:[(cns_pos)]}
-        istart = -1 * (BIN_SIZE / 2)
-        iend = BIN_SIZE / 2
+        istart = -1 * int((BIN_SIZE / 2))
+        iend = int(BIN_SIZE / 2)
         for pos in mpos:  # cns_pos may be -1
             if pos <= 0:
                 continue
