@@ -1,6 +1,6 @@
 ##11/22/2017
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 ####Revision on 01/10/2019: put basic functions to X_BasicInfo class, and then ReadDepth class inherits from it
 ####
@@ -295,7 +295,7 @@ class ReadDepth(X_BasicInfo):
                 l_sites_cov=self.calc_coverage_of_sites2(l_sites, sf_bam, search_win, search_win)
                 l_sites_cov.sort()
                 n_slct_sites=len(l_sites_cov)
-                m_sample_cov[sf_bam]=l_sites_cov[n_slct_sites/2]
+                m_sample_cov[sf_bam]=l_sites_cov[int(n_slct_sites/2)]
         return m_sample_cov
 
     def get_total_cov(self, m_sample_cov):

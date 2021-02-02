@@ -1,6 +1,6 @@
 ##11/27/2017
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 import os
 from subprocess import *

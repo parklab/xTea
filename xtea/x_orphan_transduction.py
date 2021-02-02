@@ -223,7 +223,7 @@ class XOrphanTransduction(XTransduction):
             return (chrm, insertion_pos, False, True, s_rmchrm, i_rpos, nrspt)
         return (chrm, insertion_pos, False, False, "", -1, 0)
         ####
-
+####
     ####Here sf_raw_sites is gotten from "raw_disc" results which is generated at the "disc" step.
     ####The results here already filtered by clip-reads cutoff and disc-reads cutoff
     def call_novel_sibling_TD_from_raw_list(self, sf_raw_sites, sf_bam_list, extnd,
@@ -252,7 +252,7 @@ class XOrphanTransduction(XTransduction):
                         # filter out fall in black list ones
                         b_in_blacklist, tmp_pos2 = x_blklist.fall_in_region(chrm, int(pos))
                         if b_in_blacklist == True:
-                            print(("{0}:{1} fall in black list region, filtered out!".format(chrm, pos)))
+                            print("{0}:{1} fall in black list region, filtered out!".format(chrm, pos))
                             continue
 
                         m_chrms[chrm]=1
@@ -332,14 +332,14 @@ class XOrphanTransduction(XTransduction):
                     f_rcov=tmp_rcd[14]
 
                     if n_lclip<n_clip_cutoff/2 and n_rclip< n_clip_cutoff/2:
-                        print(("{0}:{1} is filtered out, as no enough left or right clipped reads!".format(tmp_chrm, tmp_pos)))
+                        print("{0}:{1} is filtered out, as no enough left or right clipped reads!".format(tmp_chrm, tmp_pos))
                         continue
                     if n_lpolyA < n_clip_cutoff/2 and n_rpolyA < n_clip_cutoff/2:#require one side polyA
-                        print(("{0}:{1} is filtered out, as no enough polyA(T) reads!".format(tmp_chrm, tmp_pos)))
+                        print("{0}:{1} is filtered out, as no enough polyA(T) reads!".format(tmp_chrm, tmp_pos))
                         continue
                     if nlspot < n_disc_cutoff/2 or nrspot< n_disc_cutoff/2:#require both side discordant reads
-                        print(("{0}:{1} is filtered out, as no enough left ({2}) and right ({3}) disc reads!"\
-                            .format(tmp_chrm, tmp_pos, nlspot, nrspot)))
+                        print("{0}:{1} is filtered out, as no enough left ({2}) and right ({3}) disc reads!"\
+                            .format(tmp_chrm, tmp_pos, nlspot, nrspot))
                         continue
                     src_chrm = tmp_rcd[0]
                     src_pos_start = tmp_rcd[1]#mid-position of left discordant pair
@@ -583,11 +583,11 @@ class XOrphanTransduction(XTransduction):
             lclip_pos = -1
             if len(l_lclip_pos) > 0:
                 l_lclip_pos.sort()
-                lclip_pos = l_lclip_pos[len(l_lclip_pos) / 2]
+                lclip_pos = l_lclip_pos[len(l_lclip_pos) // 2]
             rclip_pos = -1
             if len(l_rclip_pos) > 0:
                 l_rclip_pos.sort()
-                rclip_pos = l_rclip_pos[len(l_rclip_pos) / 2]
+                rclip_pos = l_rclip_pos[len(l_rclip_pos) // 2]
             #Here check whether the cluster of reverse-complementary-anchor_disc (mean position),
             # non-reverse-complementary-anchor_disc (mean position), and insertion_pos are consistent or not
             #if both mean positions are at one side, then this is a false positive, more likely to be the "sibling source"
@@ -695,7 +695,7 @@ class XOrphanTransduction(XTransduction):
                         # filter out fall in black list ones
                         b_in_blacklist, tmp_pos2 = x_blklist.fall_in_region(chrm, int(pos))
                         if b_in_blacklist == True:
-                            print(("{0}:{1} fall in black list region, filtered out!".format(chrm, pos)))
+                            print("{0}:{1} fall in black list region, filtered out!".format(chrm, pos))
                             continue
 
                         m_chrms[chrm] = 1
@@ -1115,7 +1115,7 @@ class XOrphanTransduction(XTransduction):
     def _position_of_same_chrm_form_cluster(self, l_pos, ratio):
         l_tmp = sorted(l_pos)  # sor the list
         n_tmp = len(l_tmp)
-        mid_pos = l_tmp[n_tmp / 2]
+        mid_pos = l_tmp[n_tmp // 2]
         n_in_range=0
         for pos in l_tmp:
             if abs(int(pos)-int(mid_pos))<global_values.MAX_NORMAL_INSERT_SIZE:
@@ -1151,7 +1151,7 @@ class XOrphanTransduction(XTransduction):
             if float(n_of_same_cluster)/float(n_total_disc)>f_cluster_ratio:
                 n_size=len(l_mate_cluster)
                 l_mate_cluster.sort()
-                return True, l_mate_cluster[n_size/2]
+                return True, l_mate_cluster[int(n_size/2)]
         return False, -1
 ####
 ####
@@ -1160,13 +1160,14 @@ class XOrphanTransduction(XTransduction):
     def check_features_for_given_sites(self, sf_raw_sites, sf_bam_list, n_clip_cutoff, n_disc_cutoff):
         m_need_filter_out={}
         ####
+        ####this is to check each control bam
         with open(sf_bam_list) as fin_bam_list:
             icnt = 0
             for bam_line in fin_bam_list:  # for each bam file
                 bam_fields = bam_line.split()
                 sf_bam = bam_fields[0]
                 l_chrm_records = []
-                xtea_psr=XTEARsltParser()
+                xtea_psr=XTEARsltParser()#
                 with open(sf_raw_sites) as fin_list:
                     for line in fin_list:
                         sline = line.rstrip()
@@ -1192,6 +1193,8 @@ class XOrphanTransduction(XTransduction):
 
 ####
 ####
+    #this is to filter out FP somatic events by checking:
+    #1. whether in the control sample, also found reads algned to the specific transduction (sibling) regions
     def check_features_for_one_site(self, record):
         chrm=record[0]
         pos=int(record[1])
@@ -1200,25 +1203,54 @@ class XOrphanTransduction(XTransduction):
         n_disc_cutoff=int(record[4])
         s_src=record[5]
 
-        #pay attention that, some src are in format: chr1:-1-23342 (with -1)
-        src_fields=s_src.split(":")
-        if len(src_fields)<2:
-            return (chrm, pos, False)
+        region_chrm=""
+        region_start=0
+        region_end=0
 
-        s_region_tmp=src_fields[1]
-        if len(s_region_tmp)>0 and s_region_tmp[0]=="-":
-            s_region_tmp=src_fields[1][1:]
+        if global_values.SIBLING_LABEL in s_src:
+            #for example:4_40446924_sibling or 4:40446924~sibling
+            if ":" in s_src:
+                src_fields=s_src.split(":")#
+                if len(src_fields) < 2:
+                    return (chrm, pos, False)
+                region_chrm = src_fields[0]
+                s_region_tmp = src_fields[1]  #
+                region_fields = s_region_tmp.split("~")
+                region_start = int(region_fields[0])-100
+                region_end=int(region_fields[0])+100
+            elif "_" in s_src:##
+                src_fields = s_src.split("_")
+                if len(src_fields) < 2:
+                    return (chrm, pos, False)
+                region_chrm = src_fields[0]
+                s_region_tmp = src_fields[1]  #
+                region_fields = s_region_tmp.split("_")
+                region_start = int(region_fields[0]) - 100
+                region_end = int(region_fields[0]) + 100
+        else:#
+            #pay attention that, some src are in format: chr1:-1-23342 (with -1)
+            src_fields=s_src.split(":")#for example: chr16:35608476-35614501~1~orphan
+            if len(src_fields)<2:
+                return (chrm, pos, False)
 
-        region_fields=s_region_tmp.split("-")
-        if len(region_fields)<2:
-            return (chrm, pos, False)
-        region_chrm=src_fields[0]
-        region_start=int(region_fields[0])
-        region_end=int(region_fields[-1])
-        if abs(region_start)==1:
-            region_start=region_end-100
-        if abs(region_end)==1:
-            region_end=region_start+100
+            s_region_tmp=src_fields[1]#
+            if len(s_region_tmp)>0 and s_region_tmp[0]=="-":
+                s_region_tmp=src_fields[1][1:]
+
+            region_fields=s_region_tmp.split("-")
+            if len(region_fields)<2:
+                return (chrm, pos, False)
+            region_chrm=src_fields[0]
+            region_start=int(region_fields[0])
+            if "~" in region_fields[1]:
+                l_tmp=region_fields[1].split("~")
+                region_end = int(l_tmp[0])
+            else:
+                region_end=int(region_fields[-1])
+            if abs(region_start)==1:
+                region_start=region_end-100
+            if abs(region_end)==1:
+                region_end=region_start+100
 
         bam_info = BamInfo(sf_bam, self.sf_reference)
         b_with_chr = bam_info.is_chrm_contain_chr()
