@@ -1,6 +1,6 @@
 ##09/05/2018
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 ####Given gff3 annotation file, check whether a given site fall into some specific gene or not.
 ###By default, for GRCh37, use gencode.v28lift37.annotation.gff3, and for V38, use gencode.v28.GRCh38.annotation.gff3
@@ -122,7 +122,7 @@ class GFF3():
                     if gene_id not in self.m_region_info:
                         self.m_region_info[gene_id]={}
                     self.m_region_info[gene_id][region_id]=(ori_start_pos, ori_end_pos)
-
+####
 
     # ##For each chrom, sort according to the start position of each region
     # def index_gene_annotation(self):
@@ -196,7 +196,7 @@ class GFF3():
     #             idx_hit += 1
     #     return l_hits
 
-
+    #
     def query_by_position(self, chrm1, pos):
         l_hits=[]
         chrm = self._process_chrm_name2(chrm1)

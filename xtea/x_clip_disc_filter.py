@@ -1,6 +1,6 @@
 ##03/11/2018
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 ##The input sites are guranteed by the first two steps that:
 # 1) Have enough clipped reads support (nearby region)
@@ -78,7 +78,7 @@ class XClipDisc():####
 ####
     ###Problem here: 1. chrm in "candidate_list" may not consistent with chrm in bam file
     ###2. all should follow the style in candidate list
-    def collect_clipped_disc_reads_by_region(self, record):
+    def collect_clipped_disc_reads_by_region(self, record):#
         chrm = record[0][0]  ##this is the chrm style in candidate list
         insertion_pos = record[0][1]
         extnd = record[0][2]
@@ -588,7 +588,7 @@ class XClipDisc():####
                         af_disc = float(cnt_disc) / float(cnt_disc_all)
                         if af_disc > 1.0:
                             af_disc = 1.0
-                        l_af_disc.append(str(af_disc))
+                        l_af_disc.append(str(af_disc))#
 
                 s_af = "\t".join(l_af)
                 s_af_disc = "\t".join(l_af_disc)
@@ -686,7 +686,7 @@ class XClipDiscFilter():
     def _cnt_clip_reads(self, ins_chrm, ins_pos, peak_clip_pos, m_clip_pos):
         nclip = 0
         if (ins_chrm not in m_clip_pos) or (ins_pos not in m_clip_pos[ins_chrm]):
-            print(("Error in cnt clip step, {0}:{1} not in the dict!!!".format(ins_chrm, ins_pos)))
+            print("Error in cnt clip step, {0}:{1} not in the dict!!!".format(ins_chrm, ins_pos))
             return nclip
         for tmp_pos in m_clip_pos[ins_chrm][ins_pos]:
             if abs(tmp_pos - peak_clip_pos) <= global_values.CLIP_SEARCH_WINDOW:
@@ -699,7 +699,7 @@ class XClipDiscFilter():
         nldisc = 0
         nrdisc = 0
         if (ins_chrm not in m_disc) or (ins_pos not in m_disc[ins_chrm]):
-            print(("Error in cnt disc step, {0}:{1} not in the dict!!!".format(ins_chrm, ins_pos)))
+            print("Error in cnt disc step, {0}:{1} not in the dict!!!".format(ins_chrm, ins_pos))
             return 0, 0
         # print ins_chrm, ins_pos, clip_pos, m_disc[ins_chrm][ins_pos] ####################################################
         for tmp_pos in m_disc[ins_chrm][ins_pos]:
@@ -731,7 +731,7 @@ class XClipDiscFilter():
                 m_refined_pos[ins_chrm][ins_pos] = refined_pos
         return m_refined_pos
 ####
-    ####Note, for each recode, recode[1] will be skipped
+    ####Note, for each recode, recode[1] will be skipped 
     def dump_TEI_info(self, l_candidates, sf_final_list, b_with_head):
         with open(sf_final_list, "w") as fout_final_list:
             stitle1 = "#chrm\trefined-pos\tlclip-pos\trclip-pos\tTSD\tnalclip\tnarclip\tnaldisc\t"
@@ -819,13 +819,15 @@ class XClipDiscFilter():
                         fout_td.write(line)
 
     # separate the output to transduction and non-transduction
-    def sprt_TEI_to_td_orphan_non_td(self, sf_cns, sf_non_td, sf_td, sf_orphan):
+    def sprt_TEI_to_td_orphan_non_td(self, sf_cns, sf_non_td, sf_td, sf_td_sibling, sf_orphan):
         with open(sf_cns) as fin_cns:
-            with open(sf_td, "w") as fout_td, open(sf_orphan, "w") as fout_orphan, open(sf_non_td, "w") as fout_non_td:
+            with open(sf_td, "w") as fout_td, open(sf_orphan, "w") as fout_orphan, \
+                    open(sf_td_sibling, "w") as fout_sibling, open(sf_non_td, "w") as fout_non_td:#
                 for line in fin_cns:
                     fields = line.split()
-                    if len(fields) >= 32 and (fields[32] == global_values.ORPHAN_TRANSDUCTION):
+                    if ("orphan" in line) or (len(fields) >= 32 and (fields[32] == global_values.ORPHAN_TRANSDUCTION)):
                         fout_orphan.write(line)
+                        fout_td.write(line)#orphan also included in transduction cases
                     elif len(fields) >= 23 and (fields[23] == global_values.NOT_TRANSDUCTION):
                         l_fields = fields[23].split(":")
                         if len(l_fields) > 1:
@@ -833,7 +835,9 @@ class XClipDiscFilter():
                         else:
                             fout_non_td.write(line)
                     else:
-                        fout_td.write(line)
+                        if (global_values.SIBLING_LABEL in line):#save the sibling cases to a separate file
+                            fout_sibling.write(line)
+                        fout_td.write(line)#here contain the sibling cases
 ####
 
     ####Note, for each recode, recode[1] will be skipped
@@ -881,6 +885,7 @@ class XClipDiscFilter():
                 sinfo = s_pos + s_cnt_all + s_cnt + s_cns_lclip + s_cns_rclip + s_cns_ldisc + s_cns_rdisc \
                         + s_transduct_out + s_rc_disc + s_anchor_rc+"\n"
                 fout_final_list.write(sinfo)
+
 
     ####
     def _second_stage_classify_dump(self, m_ins_categories, l_candidates, m_high_confident, m_one_side_low_confident,
@@ -1082,7 +1087,7 @@ class XClipDiscFilter():
     # m_polyA in format: {chrm:{pos:[nleft, nright]}}
     # m_disc_peak: save the peak [start,end] positions on the consensus
     def _extract_detailed_info_TEI(self, m_disc_filtered, m_disc_bf_filter, m_clip_lpos, m_clip_rpos, m_polyA,
-                                   m_clip_checked_list, m_transduct_info, m_rescued_n_src):
+                                   m_clip_checked_list, m_transduct_info, m_rescued_n_src, m_depth=None):
         l_candidates = []
         #m_new_old_match={}
         for ins_chrm in m_disc_filtered:
@@ -1205,6 +1210,9 @@ class XClipDiscFilter():
                 anchor_dir_rcd=disc_record[7]
                 flcov = 0.0
                 frcov = 0.0
+                if (m_depth is not None) and (ins_chrm in m_depth) and (ins_pos in m_depth[ins_chrm]):
+                    flcov=m_depth[ins_chrm][ins_pos][0]
+                    frcov=m_depth[ins_chrm][ins_pos][1]
                 ####
                 lrcd = list((ins_chrm, ins_pos, refined_pos, lpeak_pos, rpeak_pos, TSD, n_total_lclip, n_total_rclip,
                              n_total_ldisc, n_total_rdisc, n_total_lpolyA, n_total_rpolyA, flcov, frcov, nlclip,
@@ -1246,7 +1254,7 @@ class XClipDiscFilter():
             elif (flcov - frcov) / flcov >= ratio:
                 b_differ = True
         return b_differ
-
+####
     # if the number <ncutoff, then will not check the consistency
     ###!!!!!!!!!!!!!!!
     ##Note: In some case TEI happen with SVs like inversion, where no coverage differ, then these will be filtered out
@@ -1416,13 +1424,13 @@ class XClipDiscFilter():
     #this function is called at the somatic calling step, with given sites and control bam, check whether:
     #1. there are clip cluster
     #2. there are disc cluster
-    #3. count # of clippe reads aligned to consensus
+    #3. count # of clipped reads aligned to consensus
     #4. count # of disc reads aligned to consensus
     def call_clip_disc_cluster(self, sf_candidate_list, extnd, bin_size, sf_rep_cns, bmapped_cutoff,
                                i_concord_dist, f_concord_ratio, nclip_cutoff, ndisc_cutoff, working_folder, sf_out):
         # collect the clipped and discordant reads
         # each record in format like: @20~41951715~L~1~41952104~0~0,
-        # (chrm, map_pos, global_values.FLAG_LEFT_CLIP, is_rc, insertion_pos, n_cnt_clip, sample_id)
+        # (chrm, map_pos, global_values.FLAG_LEFT_CLIP, is_rc, insertion_pos, n_cnt_clip, sample_id)#
         sf_clip_fq = working_folder + "candidate_sites_all_clip_from_control.fq"
         sf_disc_fa = working_folder + "candidate_sites_all_disc_from_control.fa"
         self.collect_clipped_disc_reads(sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa)
@@ -1496,13 +1504,13 @@ class XClipDiscFilter():
         m_transdct_info = {}  # by default, this is empty
         # l_candidates: [(ins_chrm, ins_pos, refined_pos, ...), ...]
         # keep ins_chrm, and ins_pos to keep 1-1 match between dicts
+
         m_rescued = {}
         l_candidates = self._extract_detailed_info_TEI(m_disc_filtered, m_disc_consist_list, m_ins_lpos, m_ins_rpos,
                                                        m_polyA, m_clip_checked_list, m_transdct_info, m_rescued)
         b_with_head = False
         self.dump_TEI_info_with_ori_pos(l_candidates, sf_out, b_with_head)#keep the insertion position unchanged
         return m_clip_only_cluster
-
 ####
 
 ####
@@ -3204,7 +3212,7 @@ class XClipDiscFilter():
         m_polyA = {}
         m_disc_sample = {}
         xpolyA = PolyA()
-        for algnmt in samfile.fetch():
+        for algnmt in samfile.fetch():#
             # mapq = algnmt.mapping_quality
             # if mapq<global_values.MINIMUM_DISC_MAPQ:##############Here should be very careful for SVA and Alu!!!!!!!!!!!!!!!!!!!!!!!
             #     continue

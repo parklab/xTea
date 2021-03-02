@@ -1,6 +1,6 @@
 ##09/05/2018
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 #Two classes are defined in this script:
 #XReference and XChromosome
@@ -23,9 +23,9 @@ class XChromosome():
         elif chrm == "hs37d5":
             return True
 
-        if len(chrm)>3 and ((chrm[:3] is "HLA") or (chrm[:3] is "HPV") or (chrm[:3] is "HIV") or (chrm[:3] is "CMV")
-                            or (chrm[:3] is "CMV") or (chrm[:3] is "MCV") or (chrm[:2] is "SV") or (chrm[:4] is "KSHV")
-                            or (chrm[:5] is "decoy") or (chrm[:6] is "random")):#this is some special fields in the bam file
+        if len(chrm)>3 and ((chrm[:3] == "HLA") or (chrm[:3] == "HPV") or (chrm[:3] == "HIV") or (chrm[:3] == "CMV")
+                            or (chrm[:3] == "CMV") or (chrm[:3] == "MCV") or (chrm[:2] == "SV") or (chrm[:4] == "KSHV")
+                            or (chrm[:5] == "decoy") or (chrm[:6] == "random")):#this is some special fields in the bam file
             return True
         fields=chrm.split("-")
         if len(fields)>1:

@@ -1,6 +1,6 @@
 ##11/22/2017
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 import os
 import sys
@@ -18,7 +18,7 @@ def unwrap_self_extract_mate_reads_for_region(arg, **kwarg):
     return BamInfo.extract_mate_reads_of_region(*arg, **kwarg)
 
 ####Function: Functions for processing alignment, like trim, change format, and etc.
-class BamInfo():
+class BamInfo():#
     def __init__(self, sf_bam, sf_ref):
         self.sf_bam = sf_bam
         self.out_header = None
@@ -114,7 +114,7 @@ class BamInfo():
                 continue
             if algnmt.next_reference_id<0:
                 continue
-
+####
             map_pos=algnmt.reference_start
             if algnmt.next_reference_id not in m_chrm_ids:
                 continue

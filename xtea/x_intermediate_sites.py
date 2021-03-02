@@ -512,7 +512,7 @@ class XIntemediateSites():
                     s_right_disc=fields[3]
                     if chrm not in m_disc:
                         m_disc[chrm]={}
-                    m_disc[chrm][pos]=(s_left_disc, s_right_disc)
+                    m_disc[chrm][pos]=(s_left_disc, s_right_disc)#
             with open(sf_clip) as fin_clip:
                 for line in fin_clip:
                     fields=line.split()
@@ -528,7 +528,7 @@ class XIntemediateSites():
                     fields.append(s_left_disc)
                     fields.append(s_right_disc)
                     fout_list.write("\t".join(fields) + "\n")
-
+#
     ####This is to output all the candidates with all the clip, discord, barcode information in one single file
     def merge_clip_disc_barcode(self, sf_barcode_tmp, sf_disc, sf_out):
         with open(sf_out, "w") as fout_list:

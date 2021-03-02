@@ -58,5 +58,4 @@ class XSites():
                     m_sites[chrm] = {}
                 m_sites[chrm][pos] = 1
         return m_sites
-
 ####
