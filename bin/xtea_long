@@ -74,7 +74,7 @@ def gnrt_parameters(l_pars):
 ####
 ####
 def gnrt_calling_command(ncores, iflag, i_rep_type, sf_rmsk, sf_rep_cns, i_min_copy_len, i_peak_win, b_complex,
-                         b_fast_mode=False, b_asm_cmd=False, b_call_seq=False, b_clean=False):
+                         b_fast_mode=False, b_asm_cmd=False, b_call_seq=False, b_clean=False):####
 
     sclip_step = "python ${{XTEA_PATH}}\"l_main.py\" -C -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                  "-o ${{PREFIX}}\"candidate_list_from_clip.txt\"  -n {0} -w {1} \n".format(ncores, i_peak_win)
@@ -335,7 +335,8 @@ def gnrt_running_shell(sf_ids, sf_bams, s_wfolder, sf_ref, sf_folder_xtea, sf_re
         iflag = options.flag #which step to run
         i_rep_type=options.rep_type
         s_calling_cmd = gnrt_calling_command( ncores, iflag, i_rep_type, sf_rmsk, sf_rep_cns,
-                                              i_min_copy_len, i_peak_win, b_complex, b_asm_cmd,  b_call_seq, b_clean)
+                                              i_min_copy_len, i_peak_win, b_complex, b_fast_mode,
+                                              b_asm_cmd,  b_call_seq, b_clean)
 
         l_tmp_sh=gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_rep_sample_id, sf_rep_bam,
                        sf_sample_folder)
@@ -510,5 +511,5 @@ if __name__ == '__main__':
     ####
         gnrt_running_shell(sf_id, sf_bams, s_wfolder, sf_ref, sf_folder_xtea, sf_rep_folder, spartition, stime, smemory,
                            ncores, sf_rmsk, sf_rep_cns, sf_ref_sva, i_min_copy_len, i_peak_win, sf_sbatch_sh, b_complex,
-                           b_lsf, b_slurm, b_asm_cmd, b_call_seq, b_clean)
+                           b_fast_mode, b_lsf, b_slurm, b_asm_cmd, b_call_seq, b_clean)
     ####
