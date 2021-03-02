@@ -1938,7 +1938,7 @@ class XClipDiscFilter():
         with open(sf_cns) as fin_cns:
             for line in fin_cns:
                 if line[0] == ">":
-                    if (i_acm_len is not 0) and (min_len > i_acm_len):
+                    if (i_acm_len != 0) and (min_len > i_acm_len):
                         min_len = i_acm_len
                     i_acm_len = 0
                     continue

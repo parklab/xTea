@@ -425,14 +425,14 @@ class XPostFilter():
         x_blklist.load_index_regions(sf_black_list)
 
 ####Hard code here !!!!!!!!!!!
-        if i_rep_type & 1 is not 0:
+        if (i_rep_type & 1) != 0:
             i_min_copy_len=self.L1_min_ref_copy_len #set a smaller value
             sf_td_new_sites=sf_xtea_rslt+global_values.TD_NON_SIBLING_SUFFIX+ global_values.TD_NEW_SITES_SUFFIX
             xannotation = self.construct_interval_tree(sf_rmsk, i_min_copy_len, self.b_rslt_with_chr,
                                                        self.L1_boundary_extnd)
             self.post_processing_L1(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation,
                                     m_cutoff, f_cov, x_blklist, b_tumor, sf_new_out, sf_td_new_sites)
-        elif i_rep_type & 4 is not 0:
+        elif (i_rep_type & 4) != 0:
             xannotation = self.construct_interval_tree(sf_rmsk, i_min_copy_len, self.b_rslt_with_chr)
             self.post_processing_SVA(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation,
                                      m_cutoff, f_cov, x_blklist, b_tumor, sf_new_out)
@@ -525,7 +525,7 @@ class XTEARsltParser():
 ####
     def get_ins_sub_type(self, rcd):
         s_type = rcd[32]
-        if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" is s_type):
+        if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" in s_type):
             return self._two_side
         elif "one_side" in s_type:#
             return self._one_side
@@ -608,7 +608,7 @@ class XTEARsltParser():
         n_ef_lclip = int(rcd[5])
         n_ef_rclip = int(rcd[6])
         s_type = rcd[32]
-        if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" is s_type):
+        if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" in s_type):
             return self._two_side
         elif "one_side" in s_type:
             return self._one_side
@@ -622,7 +622,7 @@ class XTEARsltParser():
 ####
     def get_ins_sub_type_sva(self, rcd):
         s_type = rcd[32]
-        if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" is s_type):
+        if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" in s_type):
             return self._two_side
         elif "one_side" in s_type:#
             return self._one_side

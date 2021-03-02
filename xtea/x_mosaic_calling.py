@@ -1,7 +1,7 @@
 ####
 ##04/23/2019
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 #This module is designed for mosaic TE insertion calling from normal bulk tissue.
 # Assume the insertions happen at low AF (say <1%).
@@ -39,13 +39,13 @@ class MosaicCaller(XPostFilter):
 
         ####Hard code here !!!!!!!!
         sf_new_out_bf_black_list=sf_new_out+".before_blacklist.txt"
-        if (i_rep_type & 1) is not 0:
+        if (i_rep_type & 1) != 0:
             self.call_mosaic_L1_from_bulk(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff,
                                           sf_new_out_bf_black_list)
-        elif (i_rep_type & 2) is not 0:
+        elif (i_rep_type & 2) != 0:
             self.call_mosaic_Alu_from_bulk(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff,
                                      sf_new_out_bf_black_list)
-        elif (i_rep_type & 4) is not 0:
+        elif (i_rep_type & 4) != 0:
             self.call_mosaic_SVA_from_bulk(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff,
                                      sf_new_out_bf_black_list)
 
@@ -65,16 +65,16 @@ class MosaicCaller(XPostFilter):
                     continue
                 if af_filter.is_qualified_mosaic_rcd(rcd[-1], m_cutoff) == False:
                     continue
-                if s_rep_supt_type is self._two_side:  ####two sides
+                if s_rep_supt_type == self._two_side:  ####two sides
                     if xtprt_filter.is_polyA_dominant_two_side(rcd) == True:
                         continue
-                elif s_rep_supt_type is self._one_half_side:  ##one and half side
+                elif s_rep_supt_type == self._one_half_side:  ##one and half side
                     # check whether fall in repetitive region of the same type
-                    if b_in_rep is True:
+                    if b_in_rep == True:
                         continue
                     if xtprt_filter.is_polyA_dominant_two_side(rcd) is True:
                         continue
-                elif s_rep_supt_type is self._one_side:###one side
+                elif s_rep_supt_type == self._one_side:###one side
                     if b_in_rep is True:
                         continue
                         # if xtprt_filter.is_polyA_dominant_one_side(rcd, self.nclip_half_cutoff) is True:
@@ -169,7 +169,7 @@ class MosaicCaller(XPostFilter):
     def get_AF_cutoff(self, l_types):
         m_cutoff = {}
         for s_type in l_types:
-            if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" is s_type):
+            if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" in s_type):
                 m_cutoff[s_type] = (0.35,0.02)
             elif "one_side" in s_type:#
                 m_cutoff[s_type] = (0.35,0.02)

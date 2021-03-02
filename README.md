@@ -36,7 +36,11 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 	```
 	
 	Or directly download through `wget https://github.com/parklab/xTea/raw/master/rep_lib_annotation.tar.gz`. 
-4. Gene annotation file are downloaded from GENCODE (https://www.gencodegenes.org/human/release_33.html)
+
+4. Gene annotation file are downloaded from GENCODE, and decompressed gff3 file is required.
+	+ For GRCh38 (or hg38), the gff3 file is downloaded and decompressed from https://www.gencodegenes.org/human/release_33.html ;
+	+ For GRCh37 (or hg19), the gff3 file is downloaded and decompressed from https://www.gencodegenes.org/human/release_33lift37.html ;
+	+ Or use the latest version
 
 ## Dependency
 
@@ -45,9 +49,9 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 3. minimap2 (for long reads only), which can be downloaded from https://github.com/lh3/minimap2.
 4. wtdbg2 (for long reads only), which can be downloaded from https://github.com/ruanjue/wtdbg2.
 5. Python 2.7+/3.6+
+	+ Here only show how to install through conda. User could also install in other ways, like pip. 
 	+ pysam (https://github.com/pysam-developers/pysam, v0.12 or later) is required to be installed.
 		+ Install pysam:
-
 			```
 			conda config --add channels r
 			conda config --add channels bioconda
@@ -66,7 +70,7 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 
 ## Install
 
-1. **Use Conda**
++ **Use Conda**
 
 	xtea is a bioconda package, to install first make sure the bioconda channel has been added:
 	```
@@ -81,13 +85,10 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 	```
 
 	Or directly `conda install -y xtea`
+
++ **Install free**
 	
-2. **Install free**
-	
-	If the dependencies have been install already, then install-free mode is recommended:
-	```
-	git clone https://github.com/parklab/xTea
-	```
+	If the dependencies have been install already, then install-free mode is recommended. User could directly run from the python scripts.
 
 
 ## Run xTea
@@ -122,33 +123,36 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 			```
 
 
-2. **Run the pipeline**
+2. **Run the pipeline from local cluster or machine**
 	
-	
-	2.1 Generate the running script (if it is install-free, then use `bin/xtea` instead.)
+
+	2.1 Generate the running script (if it is install-free, then use the full path of the downloaded `bin/xtea` instead.)
 			
-	+ Run on a slurm cluster or a single node (by default `xtea` assume the reference genome is **GRCh38** or **hg38**, for `hg19` or `GRCh37`, please use `xtea_hg19`)
+	+ Run on a cluster or a single node (by default `xtea` assume the reference genome is **GRCh38** or **hg38**, for `hg19` or `GRCh37`, please use `xtea_hg19`)
+		+ Here, take slurm system as an example, if LSF then replace `--slurm` with `--lsf`. Other than slurm or LSF, users need to adjust the shell script header accordingly. Users also need to adjust the number of cores (`-n`) and memory (`-m`) accordingly. In general, each core will take 2-3G memory to run. For very high depth bam, running time (by `-t`) may take longer.
+		+ Note, `--xtea` is a required option that points to the exact folder contain the python scripts.
+
 		+ Only with Illumina data
 			```
-			xtea -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xtea/ -f 5907 -y 7 			
+			xtea -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -f 5907 -y 7  --slurm -t 0-12:00 -q short -n 8 -m 25
 			```
 
 		+ Only with 10X data
 			```
-			xtea -i sample_id.txt -b null -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3  --xtea /home/ec2-user/xtea/ -y 7 -f 5907 			
+			xtea -i sample_id.txt -b null -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3  --xtea /home/ec2-user/xTea/xtea/ -y 7 -f 5907  --slurm -t 0-12:00 -q short -n 8 -m 25		
 			```
 		
 		+ Working with hybrid data of 10X and Illumina 
 			```
-			xtea -i sample_id.txt -b illumina_bam_list.txt -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xtea/ -y 7 -f 5907
+			xtea -i sample_id.txt -b illumina_bam_list.txt -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -y 7 -f 5907 --slurm -t 0-12:00 -q short -n 8 -m 25
 			```
 		+ Working with case-ctrl mode
 			```
-			xtea --case_ctrl --tumor -i sample_id.txt -b case_ctrl_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xtea/ -y 7 -f 5907
+			xtea --case_ctrl --tumor -i sample_id.txt -b case_ctrl_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -y 7 -f 5907 --slurm -t 0-12:00 -q short -n 8 -m 25
 			```
 		+ Working with long reads (non case-ctrl; more detailed steps please check the "xTea_long_release_v0.1.0" branch)
 			```
-			xtea_long -i sample_id.txt -b long_read_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -n 8 -m 32 --rmsk ./rep_lib_annotation/LINE/hg38/hg38_L1_larger2K_with_all_L1HS.out -r /home/ec2-user/reference/genome.fa --cns ./rep_lib_annotation/consensus/LINE1.fa --rep /home/ec2-user/rep_lib_annotation/ -f 31 -y 15 --clean
+			xtea_long -i sample_id.txt -b long_read_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh --rmsk ./rep_lib_annotation/LINE/hg38/hg38_L1_larger2K_with_all_L1HS.out -r /home/ec2-user/reference/genome.fa --cns ./rep_lib_annotation/consensus/LINE1.fa --rep /home/ec2-user/rep_lib_annotation/ --xtea /home/ec2-user/xTea_long/xtea_long/ -f 31 -y 15 -n 8 -m 32 --slurm -q long 
 			```
 
 		+ Parameters:
@@ -208,12 +212,12 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 	+ To run on the script: `sh run_xTea_pipeline.sh` or users can submit the jobs (each line one job) to a cluster.
 	
 	
-	2.3 Run from the Cloud
+3. Run from the Cloud
 	
 	+ A docker file and cwl file are provided for running on AWS/GCP/Fire Cloud.
-	
+
 			
-3. **Output**
+4. **Output**
 
 	A gVCF file will be generated for each sample.
 	+ For germline TE insertion calling on short reads, the `orphan transduction` module usually has higher false positive rate, thus users could filter out those events with command like `grep -v "orphan" out.vcf > new_out.vcf` to get those higher confident events.
