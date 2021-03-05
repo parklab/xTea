@@ -1,6 +1,6 @@
 ##11/04/2018
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 ##############################################################################
 ####originally used  in x_TEA_main.py
@@ -156,6 +156,8 @@ RAW_CLIP_FQ_SUFFIX=".raw_clip.fq"#suffix of the raw clip reads (for collecting e
 HIGH_CONFIDENT_SUFFIX=".high_confident"
 FIVE_PRIME_INVERSION="5-prime-inversion"
 NOT_FIVE_PRIME_INV="Not-5prime-inversion"
+SIBLING_LABEL="sibling"
+ORPHAN_LABEL="orphan"
 ####
 ####
 ###############################################################################
@@ -288,7 +290,7 @@ BWA_HALF_READ_MIN_SCORE=45 #This is half of read length (maybe a little bit smal
 CLIP_EXACT_CLIP_SLACK=3#check number of exact clip
 LARGE_INDEL_IN_READ=3#if have 3D or 3I or larger indels within the read, then view as with large indels
 DFT_IS=550
-def set_insert_size(i_is):
+def set_insert_size(i_is):#
     global DFT_IS
     DFT_IS=i_is
 
