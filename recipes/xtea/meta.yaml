@@ -1,4 +1,4 @@
-{% set version = "0.1.3" %}
+{% set version = "0.1.4" %}
 
 package:
     name: xtea
@@ -14,14 +14,14 @@ build:
 
 requirements:
     run:
-      - pysam
+      - pysam>=0.16.0
       - sortedcontainers
-      - samtools
-      - bwa
+      - samtools>=1.0
+      - bwa>=0.7.17
       - minimap2
       - wtdbg
       - numpy
-      - scikit-learn
+      - scikit-learn==0.18.1
       - pandas
 test:
   commands:
