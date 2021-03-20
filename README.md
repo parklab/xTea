@@ -79,10 +79,10 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 
 	Then, install xtea (while creating a new enviroment):
 	```
-	conda create -n your_env xtea
+	conda create -n your_env xtea=0.1.4
 	```
 
-	Or install directly via: `conda install -y xtea`
+	Or install directly via: `conda install -y xtea=0.1.4`
 
 + **Install-free**
 	
