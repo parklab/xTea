@@ -32,7 +32,7 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 3. pre-processed repeat library used by xTea (this library is used for both short and long reads)  
 	
 	```
-	wget https://github.com/parklab/xTea/raw/master/rep_lib_annotation.tar.gz. 
+	wget https://github.com/parklab/xTea/raw/master/rep_lib_annotation.tar.gz
 	```
 	
 4. gene annotation files are downloaded from GENCODE. Decompressed gff3 files are required.
