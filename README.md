@@ -79,10 +79,10 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 
 	Then, install xtea (while creating a new enviroment):
 	```
-	conda create -n your_env xtea=0.1.4
+	conda create -n your_env xtea=0.1.6
 	```
 
-	Or install directly via: `conda install -y xtea=0.1.4`
+	Or install directly via: `conda install -y xtea=0.1.6`
 
 + **Install-free**
 	
@@ -128,7 +128,7 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 			
 	+ Run on a cluster or a single node (by default `xtea` assumes the reference genome is **GRCh38** or **hg38**. For `hg19` or `GRCh37`, please use `xtea_hg19`)
 		+ Here, the slurm system is used as an example. If using LSF, replace `--slurm` with `--lsf`. For those using clusters other than slurm or LSF, users must adjust the generated shell script header accordingly. Users also must adjust the number of cores (`-n`) and memory (`-m`) accordingly. In general, each core will require 2-3G memory to run. For very high depth bam files, runtime (denoted by `-t`) may take longer.
-		+ Note that `--xtea` is a required option that points to the exact folder containing python scripts.
+		+ **Note that `--xtea` is a required option that points to the *exact folder* containing python scripts.**
 
 		+ Using only Illumina data
 			```
@@ -209,7 +209,7 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 	+ To run on the script: `sh run_xTea_pipeline.sh` or users can submit the jobs (where each line corresponds to one job) to a cluster.
 	
 	
-3. Run from the Cloud
+3. **Run from the Cloud**
 	
 	+ A docker file and a cwl file are provided for running the tool on AWS/GCP/FireCloud.
 
@@ -218,4 +218,3 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 
 	A gVCF file will be generated for each sample.
 	+ For germline TE insertion calling on short reads, the `orphan transduction` module usually has a higher false positive rate. Users can filter out false positive events with a command such as `grep -v "orphan" out.vcf > new_out.vcf` to retrieve higher confidence events.
-
