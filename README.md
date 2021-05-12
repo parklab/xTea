@@ -1,5 +1,6 @@
+<!---
 ## This is a pre-release version of xTea for paper review only. This software is provided `as is` without warranty of any kind. We will formally release xTea very soon. In the meantime, please contact us if you have any questions or would like to collaborate.
-
+-->
 
 ## xTea
 
