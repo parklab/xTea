@@ -1,6 +1,5 @@
-<!---
 ## This is a pre-release version of xTea for paper review only. This software is provided `as is` without warranty of any kind. We will formally release xTea very soon. In the meantime, please contact us if you have any questions or would like to collaborate.
--->
+
 
 ## xTea
 
@@ -219,3 +218,13 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 
 	A gVCF file will be generated for each sample.
 	+ For germline TE insertion calling on short reads, the `orphan transduction` module usually has a higher false positive rate. Users can filter out false positive events with a command such as `grep -v "orphan" out.vcf > new_out.vcf` to retrieve higher confidence events.
+
+
+5. **Citation and accompany scripts**
+	If you are using xTea for your project, please cite:
+	
+	```
+	Chu, C., Borges-Monroy, R., Viswanadham, V.V. et al. Comprehensive identification of transposable element insertions using multiple sequencing technologies. Nat Commun 12, 3836 (2021). https://doi.org/10.1038/s41467-021-24041-8
+	```
+
+	The accompany scripts for re-produce the results in the paper could be found here: `https://github.com/parklab/xTea_paper`
