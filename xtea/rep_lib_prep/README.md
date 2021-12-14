@@ -71,13 +71,9 @@ xTea is designed to identify TE insertions from paired-end Illumina reads, barco
 
 		+ Using only Illumina data
 			```
-			xtea -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -f 5907 -y 32 --slurm -t 0-12:00 -q short -n 8 -m 25
+			xtea -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -f 1555 -y 32 --slurm -t 0-12:00 -q short -n 8 -m 25
 			```
 
-		+ Using case-ctrl mode
-			```
-			xtea --case_ctrl --tumor -i sample_id.txt -b case_ctrl_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -y 32 -f 5907 --slurm -t 0-12:00 -q short -n 8 -m 25
-			```
 
 		
 
