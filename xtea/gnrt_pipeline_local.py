@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-##11/04/2018
-##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
-
 import os
 from subprocess import *
 from optparse import OptionParser
@@ -210,6 +206,14 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
                             "-o ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\"\n" \
             .format(i_rep_type, ncores, s_tumor)
 
+    sf_sr_asm = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --sr_asm -b ${{BAM_LIST}} -p ${{TMP_CNS}}\"asm\" " \
+               " -n {0} -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\" " \
+               " --ref ${{REF}} -o ${{PREFIX}}\"assembled_ins_sequence.fa\" \n".format(ncores)
+
+    if b_tumor==True:
+        sf_sr_asm = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --sr_asm -b ${{BAM_LIST}} -p ${{TMP_CNS}}\"asm\" " \
+                    " -n {0} -i ${{PREFIX}}\"candidate_disc_filtered_cns_high_confident_post_filtering_somatic.txt\" " \
+                    " --ref ${{REF}} -o ${{PREFIX}}\"assembled_ins_sequence.fa\" \n".format(ncores)
     ####
     # s_case_control = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --case_control -p ${{TMP_CNS}} -b ${{BAM_LIST}} " \
     #                  "-n {0} -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
@@ -256,9 +260,14 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
         s_cmd += sf_post_filter
         s_cmd += sf_post_filter_hc
     if (iflag & 1024 == 1024) and (iflag & 2048!=2048):
-        s_cmd += gnrt_calling_command_annotation_vcf(ncores, i_rep_type)
+        if b_tumor==True:
+            s_cmd += gnrt_calling_command_annotation_vcf_tumor_case(ncores, i_rep_type)
+        else:
+            s_cmd += gnrt_calling_command_annotation_vcf(ncores, i_rep_type)
+    if iflag & 8192 == 8192:
+        s_cmd += sf_sr_asm
     return s_cmd
-#
+
 ####
 ####
 def gnrt_calling_command_annotation_vcf(ncores, i_rep_type):
@@ -266,7 +275,7 @@ def gnrt_calling_command_annotation_vcf(ncores, i_rep_type):
               " -n {0} -o ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt\"\n".format(ncores)
 
     sf_gntp_classify = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gntp_classify -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt\" " \
-                       " -n {0} --model ${{XTEA_PATH}}\"genotyping/trained_model_ssc_py2_random_forest_two_category.pkl\" " \
+                       " -n {0} --model ${{XTEA_PATH}}\"genotyping/DF21_model_1_2\" " \
                        " -o ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene_gntp.txt\"\n".format(1)
 
     sf_cvt_gvcf = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gVCF -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene_gntp.txt\" " \
@@ -278,19 +287,26 @@ def gnrt_calling_command_annotation_vcf(ncores, i_rep_type):
     return s_cmd
 
 ####
-def gnrt_calling_command_annotation_vcf_somatic(ncores, i_rep_type):
-    sf_gene = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gene -a ${{GENE}} -i ${{PREFIX}}\"candidate_disc_filtered_cns_high_confident_post_filtering_somatic.txt\" " \
-              " -n {0} -o ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_somatic_with_gene.txt\"\n".format(ncores)
+####
+def gnrt_calling_command_annotation_vcf_tumor_case(ncores, i_rep_type):
+    sf_gene = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gene -a ${{GENE}} -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\" " \
+              " -n {0} -o ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt\"\n".format(ncores)
 
-    sf_gntp_classify = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gntp_classify -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_somatic_with_gene.txt\" " \
-                       " -n {0} --model ${{XTEA_PATH}}\"genotyping/trained_model_ssc_py2_random_forest_two_category.pkl\" " \
-                       " -o ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_somatic_with_gene_gntp.txt\"\n".format(1)
-
-    sf_cvt_gvcf = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gVCF -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_somatic_with_gene_gntp.txt\" " \
+    sf_cvt_gvcf = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gVCF -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt\" " \
                   " -o ${{PREFIX}} -b ${{BAM_LIST}} --ref ${{REF}} --rtype {0}\n".format(i_rep_type)
     s_cmd=""
     s_cmd += sf_gene
-    s_cmd += sf_gntp_classify
+    s_cmd += sf_cvt_gvcf
+    return s_cmd
+
+####
+def gnrt_calling_command_annotation_vcf_somatic(ncores, i_rep_type):
+    sf_gene = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gene -a ${{GENE}} -i ${{PREFIX}}\"candidate_disc_filtered_cns_high_confident_post_filtering_somatic.txt\" " \
+              " -n {0} -o ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_somatic_with_gene.txt\"\n".format(ncores)
+    sf_cvt_gvcf = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gVCF -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_somatic_with_gene.txt\" " \
+                  " -o ${{PREFIX}} -b ${{BAM_LIST}} --ref ${{REF}} --rtype {0}\n".format(i_rep_type)
+    s_cmd=""
+    s_cmd += sf_gene
     s_cmd += sf_cvt_gvcf
     return s_cmd
 
@@ -322,12 +338,12 @@ def gnrt_calling_command_somatic_case_control(iflt_clip, iflt_disc, ncores, sf_c
     #BamSnap
     s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
             "-i ${{PREFIX}}\"candidate_disc_filtered_cns2.txt\" " \
-            " --ref ${{REF}} -e 1000 " \
-            "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(sf_case_control_bam_list)
+            " --ref ${{REF}} -e 1000 -n {1} " \
+            "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(sf_case_control_bam_list, ncores)
     s_bamsnap_hc = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
                "-i ${{PREFIX}}\"candidate_disc_filtered_cns_high_confident_post_filtering_somatic.txt\" " \
-               " --ref ${{REF}} -e 1000 " \
-               "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot_somatic.txt\"\n".format(sf_case_control_bam_list)
+               " --ref ${{REF}} -e 1000 -n {1} " \
+               "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot_somatic.txt\"\n".format(sf_case_control_bam_list, ncores)
     ####
     s_cmd += s_case_control
     s_cmd += s_case_control_hc
@@ -338,8 +354,31 @@ def gnrt_calling_command_somatic_case_control(iflt_clip, iflt_disc, ncores, sf_c
 
     if iflag&1024==1024:
         s_cmd+=gnrt_calling_command_annotation_vcf_somatic(ncores, i_rep_type)
+    if iflag == 17408:
+        s_cmd = gnrt_calling_command_annotation_vcf_somatic(ncores, i_rep_type)
     return s_cmd
+
 ####
+def gnrt_calling_command_denovo_from_trio(iflt_clip, iflt_disc, ncores, sf_ctr_list, iflk_len,
+                                              sf_case_control_bam_list, iflag, i_rep_type):
+    s_cmd = ""
+    s_case_control = "python ${{XTEA_PATH}}\"x_TEA_main_latest.py\" --denovo -p ${{TMP_CNS}} -b {0} " \
+                     "-n {1} -r ${{L1_CNS}} -i ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering.txt\" " \
+                     " --input2 ${{PREFIX}}\"null\" --ref ${{REF}} --cr {2} --nd {3} " \
+                     "--fflank ${{SF_FLANK}} --flklen {4} " \
+                     "-o ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering_denovo.txt\"\n" \
+        .format(sf_ctr_list, ncores, iflt_clip, iflt_disc, iflk_len)
+
+    ####BamSnap####
+    s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
+            "-i ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering_denovo.txt\" " \
+            " --ref ${{REF}} -e 1000 -n {1} " \
+            "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(sf_case_control_bam_list, ncores)
+    ####
+    s_cmd += s_case_control
+    s_cmd += s_bamsnap
+
+    return s_cmd
 
 # grnt calling steps
 def gnrt_calling_command_non_RNA(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len, min_tei_len, iflag,
@@ -525,6 +564,12 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
             if os.path.exists(sf_tmp_cns)==False:
                 cmd = "mkdir {0}".format(sf_tmp_cns)
                 run_cmd(cmd)
+
+            sf_tmp_cns_asm = sf_folder + "/tmp/cns/asm"
+            if os.path.exists(sf_tmp_cns_asm) == False:
+                cmd1 = "mkdir {0}".format(sf_tmp_cns_asm)
+                run_cmd(cmd1)
+
             sf_tmp_tsdct = sf_folder + "/tmp/transduction"
             if os.path.exists(sf_tmp_tsdct) == False:
                 cmd = "mkdir {0}".format(sf_tmp_tsdct)
@@ -533,7 +578,7 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
             if os.path.exists(sf_tmp_igv) == False:
                 cmd = "mkdir {0}".format(sf_tmp_igv)
                 run_cmd(cmd)
-    m_bams = {}
+    m_bams = {}##
     if sf_bams != "null":
         with open(sf_bams) as fin_bams:
             for line in fin_bams:
@@ -564,7 +609,7 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
 
                 sf_10X_barcode_bam = sf_working_folder + "10X_barcode_indexed.sorted.bam"
                 if os.path.isfile(sf_10X_barcode_bam) == False:
-                    cmd = "ln -s {0} {1}".format(s_barcode_bam, sf_10X_barcode_bam)  #
+                    cmd = "ln -s {0} {1}".format(s_barcode_bam, sf_10X_barcode_bam)
                     run_cmd(cmd)
                 # soft-link the bai
                 sf_10X_bai = sf_working_folder + "10X_phased_possorted_bam.bam.bai"
@@ -608,7 +653,7 @@ def gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_id, sf_bams, sf_bams_10X, s
         l_sbatch_files.append(sf_out_sh)
     return l_sbatch_files
 
-#
+####
 def write_to_config(sf_anno, sf_anno1, sf_ref, sf_gene, sf_black_list, sf_copy_with_flank, sf_flank, sf_cns,
                     sf_xtea, s_bl, s_bam1, s_bc_bam, s_tmp, s_tmp_clip, s_tmp_cns, sf_config):
     with open(sf_config, "w") as fout_L1:
@@ -727,11 +772,10 @@ def get_sample_id(sf_bam):
     sample_id = ".".join(fname_fields[:-1])
     return sample_id
 
-
 ####gnrt the running shell
 def gnrt_running_shell(sf_ids, sf_bams, sf_10X_bams, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor, f_purity, s_wfolder,
                        sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition, stime,
-                       smemory, ncores, sf_submit_sh, sf_case_control_bam_list="null", b_lsf=False, b_slurm=False, b_resume=False):
+                       smemory, ncores, sf_submit_sh, sf_case_control_bam_list="null", b_lsf=False, b_slurm=False, b_resume=False, b_denovo=False):
     if s_wfolder[-1] != "/":
         s_wfolder += "/"
     if os.path.exists(s_wfolder) == False:
@@ -809,12 +853,17 @@ def gnrt_running_shell(sf_ids, sf_bams, sf_10X_bams, l_rep_type, b_mosaic, b_use
                 s_calling_cmd = gnrt_calling_command_MT(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncores, iflk_len,
                                                      itei_len, iflag, b_mosaic, b_user_par, sf_pub_clip)
 
-            if sf_case_control_bam_list != "null":
+            if sf_case_control_bam_list != "null":#
                 sf_ctr_list = s_wfolder_rep + "/bam_list2.txt"
                 sf_case_ctrl_list = s_wfolder_rep + "/bam_list3.txt"
                 sf_tmp_cmd=gnrt_calling_command_somatic_case_control(iflt_clip, iflt_disc, ncores, sf_ctr_list,
                                                                      iflk_len, sf_case_ctrl_list, iflag, i_rep_type)
                 s_calling_cmd+=sf_tmp_cmd
+                if b_denovo==True:
+                    s_calling_cmd=gnrt_calling_command_denovo_from_trio(iflt_clip, iflt_disc, ncores, sf_ctr_list,
+                                                                     iflk_len, sf_case_ctrl_list, iflag, i_rep_type)
+
+
             l_tmp_sh=gnrt_pipelines(s_head, s_libs, s_calling_cmd, sf_rep_sample_id, sf_rep_bam, sf_rep_x10_bam,
                            sf_sample_folder, rep_type)
             for tmp_sh in l_tmp_sh:
@@ -837,6 +886,8 @@ def split_bam_list(m_ids, sf_bams, sf_x10_bams, l_rep_type, s_wfolder, sf_case_c
         with open(sf_bams) as fin_bams:
             for line in fin_bams:
                 fields = line.split()
+                if len(fields)<2:
+                    continue
                 sid = fields[0]
                 if sid not in m_ids:
                     continue
@@ -1016,6 +1067,9 @@ def parse_option():
     parser.add_option("-C", "--case_control",
                       action="store_true", dest="case_control", default=False,
                       help="Run in case control mode")
+    parser.add_option("--denovo",
+                      action="store_true", dest="denovo", default=False,
+                      help="Run in de novo mode")
     parser.add_option("-U", "--user",
                       action="store_true", dest="user", default=False,
                       help="Use user specific parameters instead of automatically calculated ones")
@@ -1071,7 +1125,6 @@ def parse_option():
 
     parser.add_option("-f", "--flag", dest="flag", type="int", default=19,
                       help="Flag indicates which step to run (1-clip, 2-disc, 4-barcode, 8-xfilter, 16-filter, 32-asm)")
-
     parser.add_option("-y", "--reptype", dest="rep_type", type="int", default=1,
                       help="Type of repeats working on: 1-L1, 2-Alu, 4-SVA, 8-HERV, 16-Mitochondrial")
 
@@ -1118,6 +1171,7 @@ if __name__ == '__main__':
         b_lsf = options.lsf
         b_slurm=options.slurm
         b_resume=options.resume
+        b_denovo = options.denovo
 
         if s_wfolder[-1]!="/":
             s_wfolder+="/"
@@ -1169,6 +1223,17 @@ if __name__ == '__main__':
                                s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition, stime,
                                smemory, ncores, sf_sbatch_sh, "null", b_lsf, b_slurm, b_resume)
 
+        elif b_denovo==False:
+            #if in case-control mode, then need to separate to two steps
+            #thus need to prepare the files separately
+            sf_sprt_bams=sf_bams + CASE_LIST_SUFFIX
+            sf_control_bams=sf_bams + CTRL_LIST_SUFFIX
+            prepare_case_control_bam(sf_bams, sf_sprt_bams, sf_control_bams)
+            #first, run the jobs seperately for all the case and control samples
+            gnrt_running_shell(sf_id, sf_sprt_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor,
+                               f_purity, s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea,
+                               spartition, stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_slurm, b_resume)
+
         else:
             # if in case-control mode, then need to separate to two steps
             # thus need to prepare the files separately
@@ -1178,7 +1243,7 @@ if __name__ == '__main__':
             # first, run the jobs seperately for all the case and control samples
             gnrt_running_shell(sf_id, sf_sprt_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor,
                                f_purity, s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition,
-                               stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_slurm, b_resume)
+                               stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_slurm, b_resume, b_denovo)
         #run_pipeline(l_rep_type, sample_id, s_wfolder)
         #cp_compress_results(s_wfolder, l_rep_type, sample_id)
 

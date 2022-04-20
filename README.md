@@ -1,5 +1,3 @@
-## This is a pre-release version of xTea for paper review only. This software is provided `as is` without warranty of any kind. We will formally release xTea very soon. In the meantime, please contact us if you have any questions or would like to collaborate.
-
 
 ## xTea
 
@@ -59,9 +57,13 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 		+ Install sortedcontainers
 		`conda install sortedcontainers -y`
 
-	+ numpy, scikit-learn, and pandas  
+	+ numpy, scikit-learn, and pandas
 		+ Install numpy, scikit-learn and pandas
 		`conda install numpy scikit-learn=0.18.1 pandas -y`
+
+	+ DF21 (this is used to replease scikit-learn, which is complained by several users for version incompatible)
+		+ Install DF21
+		`pip install deep-forest`
 
 6. Note: bwa and samtools need to be added to the $PATH.
 
@@ -228,3 +230,9 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 	```
 
 	The accompany scripts for re-produce the results in the paper could be found here: `https://github.com/parklab/xTea_paper`
+
+6. **Update log**
+
+	+ 04/20/22 A fatal error was noticed at the genotyping step. The machine learing model was trained with features extracted with a old version of xTea, and this will introduce bias to predict the features extracted with the latest version of xTea. A new model is uploaded for non-conda version.
+	
+	+ 04/20/22 The scikit-learn version issue is complained by several users. To solve this issue, the new genotype classification model is trained with DF21 (https://github.com/LAMDA-NJU/Deep-Forest). Users need to install with command `pip install deep-forest`. For now, this is only for the non-conda version. I'll update the conda version soon.

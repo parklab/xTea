@@ -1,22 +1,10 @@
-##06/02/2019
-##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong.simon.chu@gmail.com
-
-#train a the classification model
-#predict based on the trained model
-
-#this is a stand alone module for model training/prediction
+import os
 import sys
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from scipy.io import arff
 import pandas as pd
-import pickle
-from sklearn.metrics import accuracy_score
+from deepforest import CascadeForestClassifier
+from scipy.io import arff
 
-#from sklearn import svm
-
-class GntpClassifier():
+class GntpClassifier_DF21():
     def __init__(self):
         self.n_feature = 15
         return
@@ -29,7 +17,7 @@ class GntpClassifier():
             fout_arff.write("@ATTRIBUTE\trclipcns\tNUMERIC\n")
             fout_arff.write("@ATTRIBUTE\tldisccns\tNUMERIC\n")
             fout_arff.write("@ATTRIBUTE\trdisccns\tNUMERIC\n")
-            fout_arff.write("@ATTRIBUTE\tpolyA\tNUMERIC\n")  # total polyA
+            fout_arff.write("@ATTRIBUTE\tpolyA\tNUMERIC\n")#total polyA
 
             # fout_arff.write("@ATTRIBUTE\trpolyA\tNUMERIC\n")
             fout_arff.write("@ATTRIBUTE\tlcov\tNUMERIC\n")
@@ -47,7 +35,7 @@ class GntpClassifier():
             #fout_arff.write("@ATTRIBUTE\tclass\t{0,1,2}\n\n")
             fout_arff.write("@ATTRIBUTE\tclass\t{1,2}\n\n") #two category
             fout_arff.write("@DATA\n")
-
+####
             # with open(sf_00_list) as fin_00:
             #     for line in fin_00:
             #         sf_rslt = line.rstrip()
@@ -75,27 +63,27 @@ class GntpClassifier():
                         fout_arff.write(",".join(rcd) + "\n")
                     n_01+=1
 
-
+####
     # ####train the model
-    def train_model(self, sf_arff, sf_model, f_ratio=0.3):
-        data = arff.loadarff(sf_arff)
-        df = pd.DataFrame(data[0])
-        xVar = df.iloc[:, :self.n_feature]
-        yVar = df.iloc[:, self.n_feature]
-        yVar = yVar.astype('int')
-
-        X_train, X_test, y_train, y_test = train_test_split(xVar, yVar, test_size=f_ratio)
-        clf = RandomForestClassifier(n_jobs=-1, random_state=0, n_estimators=20)
-        # clf = svm.SVC(kernel='linear')
-        # clf=svm.SVC(kernel='rbf') #Gaussian Kernel
-        clf.fit(X_train, y_train)
-        with open(sf_model, 'wb') as file:
-            pickle.dump(clf, file)
-        preds = clf.predict(X_test)
-        accuracy = accuracy_score(y_test, preds)
-        print('Mean accuracy score: {0}'.format(round(accuracy)))
-        tab = pd.crosstab(y_test, preds, rownames=['Actual Result'], colnames=['Predicted Result'])
-        print(tab)
+    # def train_model(self, sf_arff, sf_model, f_ratio=0.3):
+    #     data = arff.loadarff(sf_arff)
+    #     df = pd.DataFrame(data[0])
+    #     xVar = df.iloc[:, :self.n_feature]
+    #     yVar = df.iloc[:, self.n_feature]
+    #     yVar = yVar.astype('int')
+    #
+    #     X_train, X_test, y_train, y_test = train_test_split(xVar, yVar, test_size=f_ratio)
+    #     clf = RandomForestClassifier(n_jobs=-1, random_state=0, n_estimators=20)
+    #     # clf = svm.SVC(kernel='linear')
+    #     # clf=svm.SVC(kernel='rbf') #Gaussian Kernel
+    #     clf.fit(X_train, y_train)
+    #     with open(sf_model, 'wb') as file:
+    #         pickle.dump(clf, file)
+    #     preds = clf.predict(X_test)
+    #     accuracy = accuracy_score(y_test, preds)
+    #     print('Mean accuracy score: {0}'.format(round(accuracy)))
+    #     tab = pd.crosstab(y_test, preds, rownames=['Actual Result'], colnames=['Predicted Result'])
+    #     print(tab)
 
     ####
     ####
@@ -134,22 +122,27 @@ class GntpClassifier():
         data = arff.loadarff(sf_arff)
         df = pd.DataFrame(data[0])
         xVar = df.iloc[:, :self.n_feature]
-        yVar = df.iloc[:, self.n_feature]
-        yVar = yVar.astype('int')
+        #yVar = df.iloc[:, self.n_feature]
+        #yVar = yVar.astype('int')
+
+        X=xVar.to_numpy()
         # X_train, X_test, y_train, y_test = train_test_split(xVar, yVar, test_size=0.999999)
         # return X_test
-        return xVar
-
+        return X
+####
 
     ####clf is the trained model
-    def predict_for_site(self, rf_model, sf_xTEA, sf_new):
+    def predict_for_site(self, sf_model, sf_xTEA, sf_new):
+        rf_model_df21 = CascadeForestClassifier()
+        rf_model_df21.load(sf_model)
+
         sf_arff = sf_xTEA + ".arff"
         # site_features=self.prepare_arff_from_xTEA_output_two_category(sf_xTEA, sf_arff)
 
         site_features = self.prepare_arff_from_xTEA_output(sf_xTEA, sf_arff)
         preds=None
         if len(site_features)>0:
-            preds = rf_model.predict(site_features)
+            preds = rf_model_df21.predict(site_features)
         with open(sf_xTEA) as fin_xTEA, open(sf_new, "w") as fout_new:
             if None is preds:
                 return
@@ -165,30 +158,11 @@ class GntpClassifier():
                 fout_new.write(sinfo)
                 i_idx += 1
 
-
-    def save_model(self, clf, pkl_filename):
-        # Save to file in the current working directory
-        # pkl_filename = "pickle_model.pkl"
-        with open(pkl_filename, 'wb') as file:
-            pickle.dump(clf, file)
-
-    #
-    def load_model_from_file(self, pkl_filename):
-        # Load from file
-        pickle_model = None
-        with open(pkl_filename, 'rb') as file:
-            if (sys.version_info > (3, 0)):
-                #this is python3
-                pickle_model = pickle.load(file, encoding='latin1')
-            else:
-                #python2
-                pickle_model = pickle.load(file)
-        return pickle_model
-
-    #
     ####
     def load_in_feature_from_xTEA_output(self, sf_xtea, b_train=True):
         l_all_features = []
+        if os.path.isfile(sf_xtea)==False:
+            return l_all_features
         with open(sf_xtea) as fin_xtea:
             for line in fin_xtea:
                 fields = line.split()
@@ -209,8 +183,7 @@ class GntpClassifier():
                     l_feature2.append(str(tmp_rcd))
                 l_all_features.append(l_feature2)
         return l_all_features
-#
-
+####
     ####
     # parse out the features
     def _parser_features(self, l_fields):  #

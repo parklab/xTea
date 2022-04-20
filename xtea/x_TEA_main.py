@@ -1,6 +1,6 @@
 ##11/27/2017
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 ##
 '''
 Upgrade 11/04/2018
@@ -106,6 +106,9 @@ Also need to collect the: direction of the background ones !!!!!
 ####
 04/17/19 Add the post filtering module (done)
 ####
+04/15/21 Add the de novo mode
+####
+
 '''
 ####
 import os
@@ -122,7 +125,7 @@ from x_somatic_calling import *
 from optparse import OptionParser
 from x_reads_collection import *
 from x_mutation import *
-from x_sv import *
+from x_TE_associated_sv import *
 from x_gene_annotation import *
 from x_genotype_feature import *
 from x_basic_info import *
@@ -131,10 +134,14 @@ from x_post_filter import *
 from x_mosaic_calling import *
 from x_joint_calling import *
 from x_igv import *
+from x_BamSnap import *
 from x_gvcf import *
+from x_genotype_classify_sklearn import *
 from x_genotype_classify import *
 from x_orphan_transduction import *
-
+from x_denovo_calling import *
+from x_short_read_MEI_assembly import *
+#
 ####
 ##parse the options
 def parse_option():
@@ -240,12 +247,21 @@ def parse_option():
     parser.add_option("--igv",
                       action="store_true", dest="igv", default=False,
                       help="Prepare screenshot command for given sites")
+    parser.add_option("--bamsnap",
+                      action="store_true", dest="bamsnap", default=False,
+                      help="Prepare screenshot command for given sites")
     parser.add_option("--force",
                       action="store_true", dest="force", default=False,
                       help="Force to start from the very beginning")
     parser.add_option("--case_control",
                       action="store_true", dest="case_control", default=False,
                       help="case control mode")
+    parser.add_option("--denovo",
+                      action="store_true", dest="denovo", default=False,
+                      help="de novo insertion calling from trio")#
+    parser.add_option("--hard",
+                      action="store_true", dest="hard", default=False,
+                      help="This is hard-cut for fitering out coverage abnormal candidates")
     parser.add_option("--tumor",
                       action="store_true", dest="tumor", default=False,
                       help="Working on tumor samples")
@@ -286,7 +302,11 @@ def parse_option():
     parser.add_option("--single_sample",
                       action="store_true", dest="single_sample", default=False,
                       help="For single sample (like igv screenshot)")
-
+    parser.add_option("--sr_asm",
+                      action="store_true", dest="short_read_assembly", default=False,
+                      help="TE insertion assembly from short reads")
+#
+####
     parser.add_option("-i", "--input", dest="input", default="",
                       help="input file ", metavar="FILE")
     parser.add_option("--input2", dest="input2", default="",
@@ -372,8 +392,8 @@ def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_f
     if b_tumor==True:
         f_cov=f_cov*f_purity
     par_rcd=xpar.get_par_by_cov(f_cov) #in format (iclip, idisc, i_clip-disc)
-    print(("Ave coverage is {0}: automatic parameters (clip, disc, clip-disc) " \
-          "with value ({1}, {2} ,{3})\n".format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2])))
+    print("Ave coverage is {0}: automatic parameters (clip, disc, clip-disc) with value ({1}, {2} ,{3})\n"
+          .format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2]))
     return par_rcd, rcd
 
 ####
@@ -398,8 +418,8 @@ def automatic_gnrt_parameters_case_control(sf_bam_list, sf_ref, s_working_folder
     ####2. based on the coverage, set the parameters
     xpar=CaseControlFilterPars()
     par_rcd=xpar.get_par_by_cov(f_cov) #in format (iclip, idisc, i_clip-disc)
-    print(("Ave coverage is {0}: automatic parameters (clip, disc, clip-disc) " \
-          "with value ({1}, {2} ,{3})\n".format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2])))
+    print("Ave coverage is {0}: automatic parameters (clip, disc, clip-disc) with value ({1}, {2} ,{3})\n"
+          .format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2]))
     return par_rcd, rcd
 
 ####
@@ -510,7 +530,7 @@ if __name__ == '__main__':
                 #     cutoff_right_clip=adjust_cutoff_tumor(cutoff_right_clip)
                 cutoff_clip_mate_in_rep=rcd[2]
 
-            print(("Clip cutoff: {0}, {1}, {2} are used!!!".format(cutoff_left_clip, cutoff_right_clip, cutoff_clip_mate_in_rep)))
+            print("Clip cutoff: {0}, {1}, {2} are used!!!".format(cutoff_left_clip, cutoff_right_clip, cutoff_clip_mate_in_rep))
             tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
 
             ####by default, if number of clipped reads is larger than this value, then discard
@@ -566,7 +586,7 @@ if __name__ == '__main__':
                 n_disc_cutoff=rcd[1]
                 # if b_tumor==True:
                 #     n_disc_cutoff = adjust_cutoff_tumor(n_disc_cutoff, 0)
-            print(("Discordant cutoff: {0} is used!!!".format(n_disc_cutoff)))
+            print("Discordant cutoff: {0} is used!!!".format(n_disc_cutoff))
 
             sf_tmp = s_working_folder + "disc_tmp.list"
             sf_raw_disc=sf_out + global_values.RAW_DISC_TMP_SUFFIX #save the left and right raw disc for each site
@@ -582,7 +602,7 @@ if __name__ == '__main__':
         print("Working on \"clip-disc-filtering\" step!")
         sf_bam_list = options.bam  ###read in a bam list file
         s_working_folder = options.wfolder
-        print(("Current working folder is: {0}\n".format(s_working_folder)))
+        print("Current working folder is: {0}\n".format(s_working_folder))
         n_jobs = options.cores
         sf_ref = options.ref  ###reference genome, some cram file require this file to open
 
@@ -607,8 +627,8 @@ if __name__ == '__main__':
             rlth = basic_rcd[1]  # read length
             mean_is = basic_rcd[2]  # mean insert size
             std_var = basic_rcd[3]  # standard derivation
-            print(("Mean insert size is: {0}\n".format(mean_is)))
-            print(("Standard derivation is: {0}\n".format(std_var)))
+            print("Mean insert size is: {0}\n".format(mean_is))
+            print("Standard derivation is: {0}\n".format(std_var))
 
             max_is = int(mean_is + 3 * std_var)
             if iextnd < max_is: #correct the bias
@@ -618,9 +638,9 @@ if __name__ == '__main__':
             global_values.set_read_length(rlth)
             global_values.set_insert_size(max_is)
             global_values.set_average_cov(ave_cov)
-            print(("Read length is: {0}\n".format(rlth)))
-            print(("Maximum insert size is: {0}\n".format(max_is)))
-            print(("Average coverage is: {0}\n".format(ave_cov)))
+            print("Read length is: {0}\n".format(rlth))
+            print("Maximum insert size is: {0}\n".format(max_is))
+            print("Average coverage is: {0}\n".format(ave_cov))
 
             n_clip_cutoff = options.cliprep #this is the sum of left and right clipped reads
             n_disc_cutoff = options.ndisc  #each sample should have at least this number of discordant reads
@@ -630,7 +650,7 @@ if __name__ == '__main__':
                 # if b_tumor==True:
                 #     n_clip_cutoff = adjust_cutoff_tumor(n_clip_cutoff)
                 #     n_disc_cutoff = adjust_cutoff_tumor(n_disc_cutoff, 2)
-            print(("Filter (on cns) cutoff: {0} and {1} are used!!!".format(n_clip_cutoff, n_disc_cutoff)))
+            print("Filter (on cns) cutoff: {0} and {1} are used!!!".format(n_clip_cutoff, n_disc_cutoff))
 
             x_cd_filter = XClipDiscFilter(sf_bam_list, s_working_folder, n_jobs, sf_ref)
             x_cd_filter.call_MEIs_consensus(sf_candidate_list, sf_raw_disc, iextnd, bin_size, sf_cns, sf_flank,
@@ -651,7 +671,7 @@ if __name__ == '__main__':
         bin_size = 50000000  # block size for parallelization
         sf_cns = options.reference  ####repeat copies/cns here
         s_working_folder = options.wfolder
-        print(("Current working folder is: {0}\n".format(s_working_folder)))
+        print("Current working folder is: {0}\n".format(s_working_folder))
         n_jobs = options.cores
         sf_reference = options.ref  ###reference genome, some cram file require this file to open
         sf_flank = options.fflank  # this is the flanking region
@@ -669,8 +689,8 @@ if __name__ == '__main__':
                 rlth = basic_rcd[1]  # read length
                 mean_is = basic_rcd[2]  # mean insert size
                 std_var = basic_rcd[3]  # standard derivation
-                print(("Mean insert size is: {0}\n".format(mean_is)))
-                print(("Standard derivation is: {0}\n".format(std_var)))
+                print("Mean insert size is: {0}\n".format(mean_is))
+                print("Standard derivation is: {0}\n".format(std_var))
                 max_is = int(mean_is + 3 * std_var)
                 if iextnd < max_is:  # correct the bias
                     iextnd = max_is
@@ -681,7 +701,7 @@ if __name__ == '__main__':
                 global_values.set_read_length(rlth)
                 global_values.set_insert_size(max_is)
                 global_values.set_average_cov(ave_cov)
-
+####
                 n_clip_cutoff = options.cliprep  # this is the sum of left and right clipped reads
                 n_disc_cutoff = options.ndisc  # each sample should have at least this number of discordant reads
                 if b_automatic == True:
@@ -711,11 +731,11 @@ if __name__ == '__main__':
                 sf_updated_cns=sf_output #this is the final updated
 
                 #1.Call out the sibling transduction events from the current list
-                sf_sibling_TD=sf_output+".sibling_transduction_from_existing_list"
+                sf_sibling_TD=sf_output+".sibling_transduction_from_existing_list"#
                 xorphan.call_sibling_TD_from_existing_list(sf_output_tmp, sf_bam_list, iextnd, n_half_disc_cutoff,
                                                            i_search_win, xannotation, i_rep_type, i_max_cov,
                                                            sf_updated_cns, sf_sibling_TD)
-
+#
                 # #2. Call orphan "sibling" transdcution from non_existing list
                 # sf_sibling_TD2 = sf_output + ".novel_sibling_transduction"
                 # b_with_original=False
@@ -750,7 +770,7 @@ if __name__ == '__main__':
         bin_size = 50000000  # block size for parallelization
         sf_cns = options.reference  ####repeat copies/cns here
         s_working_folder = options.wfolder
-        print(("Current working folder is: {0}\n".format(s_working_folder)))
+        print("Current working folder is: {0}\n".format(s_working_folder))
         n_jobs = options.cores
         sf_reference = options.ref  ###reference genome, some cram file require this file to open
         sf_flank = options.fflank  # this is the flanking region
@@ -768,8 +788,8 @@ if __name__ == '__main__':
             rlth = basic_rcd[1]  # read length
             mean_is = basic_rcd[2]  # mean insert size
             std_var = basic_rcd[3]  # standard derivation
-            print(("Mean insert size is: {0}\n".format(mean_is)))
-            print(("Standard derivation is: {0}\n".format(std_var)))
+            print("Mean insert size is: {0}\n".format(mean_is))
+            print("Standard derivation is: {0}\n".format(std_var))
             max_is = int(mean_is + 3 * std_var)
 
             i_concord_dist = 550
@@ -805,7 +825,7 @@ if __name__ == '__main__':
                                                                            sf_rmsk)
             sf_sibling_TD=sf_output
             if os.path.isfile(sf_black_list)==False:
-                print(("Blacklist file {0} does not exist!".format(sf_black_list)))
+                print("Blacklist file {0} does not exist!".format(sf_black_list))
             xorphan.call_novel_sibling_TD_from_raw_list(sf_tmp_slct2, sf_bam_list, i_concord_dist, n_clip_cutoff,
                                                         n_disc_cutoff, sf_black_list, sf_rmsk, sf_sibling_TD)
 
@@ -823,8 +843,8 @@ if __name__ == '__main__':
                 rlth = basic_rcd[1]  # read length
                 mean_is = basic_rcd[2]  # mean insert size
                 std_var = basic_rcd[3]  # standard derivation
-                print(("Mean insert size is: {0}\n".format(mean_is)))
-                print(("Standard derivation is: {0}\n".format(std_var)))
+                print("Mean insert size is: {0}\n".format(mean_is))
+                print("Standard derivation is: {0}\n".format(std_var))
                 max_is = int(mean_is + 3 * std_var)
 
                 i_concord_dist = 550
@@ -848,7 +868,6 @@ if __name__ == '__main__':
 ####
 ####
     ####this module for: 1) tumor case-control files;
-    ####2) trio or quads to call de novo insertion
     elif options.case_control:#case-control mode to call somatic events
         b_somatic_hc = options.somatic_hc
         sf_candidate_list = options.input  # this is the list called from case
@@ -878,11 +897,12 @@ if __name__ == '__main__':
             #ccm.set_parameters(iextnd, bin_size, bmapped_cutoff, i_concord_dist, f_concord_ratio)
             rlth = basic_rcd[1]  # read length
             mean_is = basic_rcd[2]  # mean insert size
+            global_values.set_insert_size(int(mean_is))
             std_var = basic_rcd[3]  # standard derivation
             max_is = int(mean_is + 3 * std_var) + int(rlth)
             extnd = max_is
             bin_size = 50000000  # block size for parallelization
-            print(("clip,disc,polyA-cutoff is ({0}, {1}, {2})".format(nclip_cutoff, ndisc_cutoff, n_polyA_cutoff)))
+            print("clip,disc,polyA-cutoff is ({0}, {1}, {2})".format(nclip_cutoff, ndisc_cutoff, n_polyA_cutoff))
             n_polyA_cutoff=ndisc_cutoff #if both sides have more than cutoff polyA, then filter out
             ccm.call_somatic_TE_insertion(sf_bam_list, sf_candidate_list, extnd, nclip_cutoff, ndisc_cutoff,
                                           n_polyA_cutoff, sf_rep_cns, sf_flank, i_flk_len, bin_size, sf_output, b_tumor)
@@ -894,6 +914,47 @@ if __name__ == '__main__':
             ccm = CaseControlMode(sf_ref, s_working_folder, n_jobs)
             ccm.parse_high_confident_somatic(sf_candidate_list, sf_raw_somatic, sf_output)
 ####
+    ####from trio or quads to call de novo insertion
+    #####this is assume we have run on the proband already
+    elif options.denovo:  # case-control mode to call somatic events
+        sf_candidate_cns = options.input  # this is the list called from case
+        sf_candidate_cns2 = options.input2  # this is the list called from case
+        sf_output = options.output
+        s_working_folder = options.wfolder
+
+        sf_bam_list = options.bam  # this is the control bam file list (each bam in one line)
+        sf_ref = options.ref  # reference genome
+        n_jobs = options.cores
+        nclip_cutoff = options.cliprep  # this is the sum of left and right clipped reads
+        ndisc_cutoff = options.ndisc  # each sample should have at least this number of discordant reads
+        sf_rep_cns = options.reference  ####repeat copies/cns here
+        sf_flank = options.fflank  # this is the flanking region
+        i_flk_len = options.flklen
+
+        b_force=True
+        rcd=None
+        basic_rcd=None
+        n_polyA_cutoff=0
+        if b_automatic==True:
+            rcd, basic_rcd=automatic_gnrt_parameters_case_control(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_force)
+            nclip_cutoff=rcd[0]
+            ndisc_cutoff=rcd[1]
+            n_polyA_cutoff=rcd[2]
+
+        ccm=DenovoMode(sf_ref, s_working_folder, n_jobs)
+        rlth = basic_rcd[1]  # read length
+        mean_is = basic_rcd[2]  # mean insert size
+        global_values.set_insert_size(int(mean_is))
+        std_var = basic_rcd[3]  # standard derivation
+        max_is = int(mean_is + 3 * std_var) + int(rlth)
+        extnd = max_is
+        bin_size = 50000000  # block size for parallelization
+        print("clip,disc,polyA-cutoff is ({0}, {1}, {2})".format(nclip_cutoff, ndisc_cutoff, n_polyA_cutoff))
+        n_polyA_cutoff=ndisc_cutoff #if both sides have more than cutoff polyA, then filter out
+        ccm.call_denovo_TE_insertions(sf_bam_list, sf_candidate_cns, sf_candidate_cns2, extnd, nclip_cutoff, ndisc_cutoff,
+                                      n_polyA_cutoff, sf_rep_cns, sf_flank, i_flk_len, bin_size, sf_output)
+####
+
 ####
     elif options.mosaic:  # this is only for normal illumina data
         #for mosaic events, when check clip information, we will check the polyA information
@@ -919,16 +980,16 @@ if __name__ == '__main__':
         cutoff_right_clip = options.rclip
         cutoff_clip_mate_in_rep = options.cliprep
         cutoff_polyA=1
-
+####
         if b_automatic == True:
             rcd, basic_rcd = automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs)
             cutoff_left_clip = rcd[0]
             cutoff_right_clip = rcd[0]
             cutoff_clip_mate_in_rep = rcd[2]
-        print(("Clip cutoff: {0}, {1}, {2} are used!!!".format(cutoff_left_clip, cutoff_right_clip,
-                                                              cutoff_clip_mate_in_rep)))
+        print("Clip cutoff: {0}, {1}, {2} are used!!!".format(cutoff_left_clip, cutoff_right_clip,
+                                                              cutoff_clip_mate_in_rep))
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
-
+####
         ####by default, if number of clipped reads is larger than this value, then discard
         max_cov_cutoff = int(0.5 * options.cov)  # at most half of coverage of clipped reads
         wfolder_pub_clip = options.cwfolder  # public clip folder
@@ -984,6 +1045,7 @@ if __name__ == '__main__':
         sf_new_out = options.output
         i_rep_type=options.rep_type
         sf_black_list=options.blacklist
+        b_hard_cut = options.hard
 
         i_min_copy_len=225 #when check whether fall in repeat region, require the minimum copy length
         b_pf_mosaic=options.postFmosaic
@@ -996,7 +1058,7 @@ if __name__ == '__main__':
             xpost_filter = XPostFilter(s_working_folder, n_jobs)
             #here sf_black_list is the centromere + duplication region
             xpost_filter.run_post_filtering(sf_xtea_rslt, sf_rmsk, i_min_copy_len, i_rep_type, f_cov, sf_black_list,
-                                            sf_new_out, b_tumor)
+                                            sf_new_out, b_hard_cut, b_tumor)
 ####
     ####
     elif options.gntp_feature:#generate the genotype features
@@ -1011,26 +1073,27 @@ if __name__ == '__main__':
         extnd = 450
         x_gntper.call_genotype(sf_bam_list, sf_candidate_list, extnd, sf_output)
 
-    elif options.gntp_classify:
+    elif options.gntp_classify:#
         b_train = options.train_gntp
         sf_model=options.model
         if b_train==True:#train a new model
             sf_00_list = "/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/genotyping/training_set_SSC/Genotyping/rslt_list/all_00.list"
             sf_01_list = "/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/genotyping/training_set_SSC/Genotyping/rslt_list/all_01.list"
             sf_11_list = "/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/genotyping/training_set_SSC/Genotyping/rslt_list/all_11.list"
-            sf_arff = "/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/genotyping/training_set_SSC/Genotyping/merged_all_0_1_2.arff"
-            gc = GntpClassifier()
-            gc.gnrt_training_arff_from_xTEA_output(sf_00_list, sf_01_list, sf_11_list, sf_arff)
+            #sf_arff = "/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/genotyping/training_set_SSC/Genotyping/merged_all_0_1_2.arff"
+            #sf_arff="/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/genotyping/training_set_SSC/Genotyping/merged_all_two_category.arff"
+            sf_arff=options.input
+            gc = GntpClassifier_sklearn()
+            b_balance=False
+            gc.gnrt_training_arff_from_xTEA_output(sf_00_list, sf_01_list, sf_11_list, sf_arff, b_balance)
             #pkl_filename = "./genotyping/trained_model_ssc_py2_random_forest_two_category.pkl"
             gc.train_model(sf_arff, sf_model, f_ratio=0.01)
         else:#predict the genotype
             #sf_model = "./genotyping/trained_model_ssc_py2_random_forest_two_category.pkl"
             sf_xTEA = options.input #input raw results before calling genotype
             sf_new = options.output
-            gc = GntpClassifier()
-            pkl_model = gc.load_model_from_file(sf_model)
-            sf_arff = sf_xTEA + ".arff"
-            gc.predict_for_site(pkl_model, sf_xTEA, sf_new)
+            gc = GntpClassifier_DF21()
+            gc.predict_for_site(sf_model, sf_xTEA, sf_new)
 
 ####
     elif options.gVCF:
@@ -1064,7 +1127,7 @@ if __name__ == '__main__':
             sf_vcf=sf_prefix+s_sample_id+"_"+s_rep_type+".vcf"
             gvcf.cvt_raw_rslt_to_gvcf(s_sample_id, sf_bam, sf_raw_rslt, i_rep_type, sf_ref, sf_vcf)
         else:
-            print(("Wrong bam file: {0}".format(sf_bam)))
+            print("Wrong bam file: {0}".format(sf_bam))
 ####
     elif options.joint:
         s_working_folder = options.wfolder
@@ -1084,10 +1147,15 @@ if __name__ == '__main__':
         sf_gnm=options.ref #"hg19" or "hg38"
         i_extnd = options.extend #"-e", "--extend"
         b_single_sample=options.single_sample
-        x_igv = XIGV()
-        if b_single_sample==True:
-            sf_sites=x_igv.gnrt_sites_single_sample(sf_sites, sf_bam_list)
-        x_igv.prepare_igv_scripts_multi_bams(sf_sites, sf_bam_list, s_screenshot_folder, i_extnd, sf_gnm, sf_out)
+
+        if options.bamsnap==True:
+            x_bamsnap=XBamSnap()
+            x_bamsnap.prepare_bamsnap_scripts_multi_bams(sf_sites, sf_bam_list, s_screenshot_folder, i_extnd, sf_gnm, sf_out)
+        else:
+            x_igv = XIGV()#
+            if b_single_sample==True:
+                sf_sites=x_igv.gnrt_sites_single_sample(sf_sites, sf_bam_list)
+            x_igv.prepare_igv_scripts_multi_bams(sf_sites, sf_bam_list, s_screenshot_folder, i_extnd, sf_gnm, sf_out)
 
 ####
     elif options.collect:  # collect the reads for each candidate site
@@ -1125,6 +1193,9 @@ if __name__ == '__main__':
         sf_output=options.output
         gff=GFF3(sf_gene_annotation)
         iextnd=global_values.UP_DOWN_GENE
+        i_user_extnd = options.extend
+        if i_user_extnd>iextnd:
+            iextnd=i_user_extnd
         gff.load_gene_annotation_with_extnd(iextnd)
         gff.index_gene_annotation_interval_tree()
         gff.annotate_results(sf_input, sf_output)
@@ -1136,7 +1207,7 @@ if __name__ == '__main__':
         n_jobs = options.cores
         s_working_folder = options.wfolder
 
-    elif options.assembly:  # assemble the reads for all the sites
+    elif options.assembly:  # assemble the reads for all the sites (this is for 10X module)
         b_local = options.local
         s_working_folder = options.wfolder
         n_jobs = options.cores
@@ -1150,9 +1221,24 @@ if __name__ == '__main__':
         else:
             # xlasm.assemble_all_TEIs_slurm_cluster(sf_candidate_list)
             xlasm.assemble_all_phased_TEIs_slurm_cluster(sf_candidate_list)
+
+    elif options.short_read_assembly:#this is for insertion assembly from short reads --sr_asm
+        sf_candidate_list = options.input
+        sf_bam_list = options.bam
+        sf_ref = options.ref  ###reference genome, some cram file require this file to open
+        s_working_folder = options.wfolder
+
+        n_jobs = options.cores
+        sr_mei_asm=ShortRead_MEI_ASM(sf_candidate_list, sf_bam_list, s_working_folder, n_jobs)
+        iextnd = 400  ###for each site, re-collect reads in range [-iextnd, iextnd], this around ins +- 3*derivation
+        bin_size = 50000000  # block size for parallelization
+        sf_ins_asm = options.output
+        sr_mei_asm.asm_MEI_PE_reads(sf_ref, iextnd, bin_size, sf_ins_asm)##
+
+####
 ####
     elif options.map:####align the asm to reference genome
-        sf_ref = options.reference#
+        sf_ref = options.reference
         s_working_folder = options.wfolder
         n_jobs = int(options.cores)
         sf_sites = options.input
@@ -1164,7 +1250,7 @@ if __name__ == '__main__':
         xctg.align_asm_contigs_to_reference(sf_sites, sf_ref, s_working_folder)
         xctg.call_MEIs_from_all_group_contigs(sf_sites, sf_ref, sf_cns, s_working_folder, sf_final_list, sf_final_seqs)
 
-    elif options.flk_map:  #gnrt the flank regions and align the regions to the contigs 
+    elif options.flk_map:  #gnrt the flank regions and align the regions to the contigs
         sf_ref = options.ref
         s_working_folder = options.wfolder
         n_jobs = int(options.cores)
@@ -1176,7 +1262,7 @@ if __name__ == '__main__':
         xctg = XTEContig(s_working_folder, n_jobs)
         xctg.align_flanks_to_phased_contig(sf_sites)
 ####
-    elif options.filter_asm:
+    elif options.filter_asm:##
         s_working_folder = options.wfolder
         n_jobs = int(options.cores)
         sf_sites = options.input
