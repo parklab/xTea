@@ -2,130 +2,20 @@
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
 ##@@contact: chong.simon.chu@gmail.com
 ##
-'''
-Upgrade 11/04/2018
-1. Put all the pubic shared variables to a single file global_variables.py
-2. For clip and disc have two different mapping-quality cutoff now
-3. Keep the short poly-A clipped reads in the "clip" step
-4. Change the align clipped reads to repeat copies to "two stages" alignment
-5. Popen.communicate() has a potential bug when the "stdout" file is large. Now change it redirect to a file,
-    instead of stdout
-6. Add the gene annotation information to each candidate
-####11/12/2018 --solved on 11/14/2018
-Bug need to fix: when have several bams for one individual, the pub_folder link may have the same file name,
-this is not correct.
-####
 
-####@@CC 01/03/2018
-Todo List: 1. clip step requires lots of memory. 150G for 10 cores. This should be improved.
-Update: 01/09/2018: The issue is caused at the "ClipReadInfo::cnt_clip_part_aligned_to_rep()" function.
-Solution:
-        1)Skip the load all into memory step, instead only load those has "left(right) realigned" ones. This is
-            the current version used.
-        2)For the re-aligned sam file, parse out the chrm, positions, and write to a file, and sort the file,
-          then, count the number of supported reads. This version should be more memory efficient, but hasn't been
-          fully tested.
-
-####
-09/10/2018
-Todo List:
-1. For orphan (or partial) transduction events:
-    1) In "clip" step, change "mate-in-rep" to "mate-is-discordant"
-    3) In "disc" step, change "mate-in-rep" to "mate-is-discordant", then split to two outputs:
-3. output to vcf file
-
-
-10/10/2018
-Trio checking module:
-Need to check whether the clipped parts are same or not!
-
-11/06/2018:
-Add a coverage estimation module. (need to sum up the coverage of different bams) --To do list
-Set an automatic cutoff setting module that associated with read depth, e.g. (solved 01/05/2019)
-30-40X: clip:3, disc:5
-50-60: clip:4, disc:6
-70-100: clip:5, disc:8
-
-Also, need to set the maximum coverage cutoff (current one in filtering step, default set as 8*30=240X)
-Similarly, check_disc_sample_consistency(), should use an arrary of cutoff value.
-
-11/20/2018 Two major modules now affact the speed a lot, especiallly when there lots of clipped candidate sites (for 10X):
-1. Align the clipped reads to repeat copies. (Already have been improved, but still lots of rooms)
-2. Check discordant reads (second step) step, current module is split by chrm, and still have room to improve!!!
-
-To do list:
-12/11/2018 (solved)
-Check the phred score for the clipped parts, and if the score is low, then discard the clipped part
-#Q: how to set the cutoff for this value? By default set as 15
-
-12/12/2018 (solved on 12/31/18)
-Collect all the background information
-#nearby un-related clipped reads
-#nearby un-related or low mapping quality discordant reads
-#fully mapped reads at the breakpoint
-#concordant reads near the breakpoint
-##reads contain small indels or lots of mismatches.... (how to calc this) ???
-##
-12/26/2018 (solved on 12/31/18)
-Revise: polyA part now changed to only check sub-clipped reads
-
-####
-12/31/18
-Add one option for cleaning tmp files.
-
-01/31/2019
-Potential issue:
-1. When reads are long say: 250bp, but the insertion is short like 200bp, then there will be no/small-number of discordant reads.
-2. This need to be solved when adding the long reads module.
-
-02/28/2019
-Improvement:
-1. Define high confident regions (discordant reads aligned to these regions will not be counted)
-2. Add repeatmasker annotation in the final output
-3. If one site is called as both Alu and SVA (high confident), then select as SVA
-4. When checking whether neighor region is coverage island or not, count all reads, not only those with high mapq.
-5. Check the TSD assembly? To do further filtering.
-    For those have two side clipped reads support, left/right breakpoint is supported by left/right clipped reads only
-6. Check the standard derivation for breakpoint clipped reads (maybe also the discordant reads?), especially for 10X data
-
-03/24/2019
-Improvement:
-For cram format, if we don't need to parse quality, seq fields, then some species process can improve the speed:
-See here: https://brentp.github.io/post/cram-speed/
-bam_list.append(pysam.AlignmentFile(b,
-                mode='rc',reference_filename=ref_fasta,format_options=["required_fields=7167"]))
-https://gist.github.com/brentp/213f214dd5677dd447150e62e2e360f5
-
-04/17/19 (done, need to collect further information )
-Collect the left-disc-rc/non-rc, and right-dis-rc/non-rc features and save them in cns file;
-Note: these are from aligned ones, also need to check those unaligned ones
-####
-Also need to collect the: direction of the background ones !!!!!
-####
-
-####
-04/17/19 Add the post filtering module (done)
-####
-04/15/21 Add the de novo mode
-####
-
-'''
 ####
 import os
 from shutil import copyfile
 import global_values
 from x_TEI_locator import *
-#from x_TEI_source_tracer import *
 from x_local_assembly import *
 from x_intermediate_sites import *
 from x_reference import *
 from x_clip_disc_filter import *
 from x_somatic_calling import *
-#from x_analysis import *
 from optparse import OptionParser
 from x_reads_collection import *
 from x_mutation import *
-from x_TE_associated_sv import *
 from x_gene_annotation import *
 from x_genotype_feature import *
 from x_basic_info import *
@@ -134,19 +24,15 @@ from x_post_filter import *
 from x_mosaic_calling import *
 from x_joint_calling import *
 from x_igv import *
-from x_BamSnap import *
 from x_gvcf import *
-#from x_genotype_classify_sklearn import *
+from x_genotype_classify_sklearn import *
 from x_genotype_classify import *
 from x_orphan_transduction import *
-from x_denovo_calling import *
-from x_short_read_MEI_assembly import *
-from x_gnrt_screenshot_bam import *
 #
 ####
 ##parse the options
 def parse_option():
-    parser = OptionParser()##
+    parser = OptionParser()
     parser.add_option("-P", "--preprocess",
                       action="store_true", dest="preprocess", default=False,
                       help="Preprocessing stpes")
@@ -162,7 +48,7 @@ def parse_option():
     parser.add_option("-D", "--discordant",
                       action="store_true", dest="discordant", default=False,
                       help="Filter with discordant paired end reads")
-    parser.add_option("-N", "--filter_csn",##
+    parser.add_option("-N", "--filter_csn",
                       action="store_true", dest="filter_csn", default=False,
                       help="Filter out candidate sites from map position on consensus")
     parser.add_option("--resume",
@@ -197,7 +83,7 @@ def parse_option():
     parser.add_option("-G", "--contig_realign",
                       action="store_true", dest="contig_realign", default=False,
                       help="Filter out candidate sites from assembly")
-    parser.add_option("-T", "--trace",####
+    parser.add_option("-T", "--trace",
                       action="store_true", dest="trace", default=False,
                       help="Trace the sources of TEIs")
     parser.add_option("-A", "--assembly",
@@ -248,27 +134,15 @@ def parse_option():
     parser.add_option("--igv",
                       action="store_true", dest="igv", default=False,
                       help="Prepare screenshot command for given sites")
-    parser.add_option("--bamsnap",
-                      action="store_true", dest="bamsnap", default=False,
-                      help="Prepare screenshot command for given sites")
     parser.add_option("--force",
                       action="store_true", dest="force", default=False,
                       help="Force to start from the very beginning")
     parser.add_option("--case_control",
                       action="store_true", dest="case_control", default=False,
                       help="case control mode")
-    parser.add_option("--denovo",
-                      action="store_true", dest="denovo", default=False,
-                      help="de novo insertion calling from trio")#
-    parser.add_option("--hard",
-                      action="store_true", dest="hard", default=False,
-                      help="This is hard-cut for fitering out coverage abnormal candidates")
     parser.add_option("--tumor",
                       action="store_true", dest="tumor", default=False,
                       help="Working on tumor samples")
-    parser.add_option("--local_screen",
-                      action="store_true", dest="local_screen", default=False,
-                      help="Indicating to generate local bam for screenshots")#
     #convert to gVCF
     parser.add_option("--gVCF",
                       action="store_true", dest="gVCF", default=False,
@@ -306,9 +180,7 @@ def parse_option():
     parser.add_option("--single_sample",
                       action="store_true", dest="single_sample", default=False,
                       help="For single sample (like igv screenshot)")
-    parser.add_option("--sr_asm",
-                      action="store_true", dest="short_read_assembly", default=False,
-                      help="TE insertion assembly from short reads")
+
 #
 ####
     parser.add_option("-i", "--input", dest="input", default="",
@@ -327,8 +199,6 @@ def parse_option():
                       help="Input barcode indexed bam file", metavar="FILE")
     parser.add_option("-o", "--output", dest="output",
                       help="The output file", metavar="FILE")
-    parser.add_option("--id", dest="sample_id", type="string", default="sampleID",
-                      help="Sample ID")
     parser.add_option("-p", "--path", dest="wfolder", type="string", default="./",
                       help="Working folder")
     parser.add_option("--cp", dest="cwfolder", type="string",
@@ -921,45 +791,6 @@ if __name__ == '__main__':
             ccm.parse_high_confident_somatic(sf_candidate_list, sf_raw_somatic, sf_output)
 ####
     ####from trio or quads to call de novo insertion
-    #####this is assume we have run on the proband already
-    elif options.denovo:  # case-control mode to call somatic events
-        sf_candidate_cns = options.input  # this is the list called from case
-        sf_candidate_cns2 = options.input2  # this is the list called from case
-        sf_output = options.output
-        s_working_folder = options.wfolder
-
-        sf_bam_list = options.bam  # this is the control bam file list (each bam in one line)
-        sf_ref = options.ref  # reference genome
-        n_jobs = options.cores
-        nclip_cutoff = options.cliprep  # this is the sum of left and right clipped reads
-        ndisc_cutoff = options.ndisc  # each sample should have at least this number of discordant reads
-        sf_rep_cns = options.reference  ####repeat copies/cns here
-        sf_flank = options.fflank  # this is the flanking region
-        i_flk_len = options.flklen
-
-        b_force=True
-        rcd=None
-        basic_rcd=None
-        n_polyA_cutoff=0
-        if b_automatic==True:
-            rcd, basic_rcd=automatic_gnrt_parameters_case_control(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_force)
-            nclip_cutoff=rcd[0]
-            ndisc_cutoff=rcd[1]
-            n_polyA_cutoff=rcd[2]
-
-        ccm=DenovoMode(sf_ref, s_working_folder, n_jobs)
-        rlth = basic_rcd[1]  # read length
-        mean_is = basic_rcd[2]  # mean insert size
-        global_values.set_insert_size(int(mean_is))
-        std_var = basic_rcd[3]  # standard derivation
-        max_is = int(mean_is + 3 * std_var) + int(rlth)
-        extnd = max_is
-        bin_size = 50000000  # block size for parallelization
-        print("clip,disc,polyA-cutoff is ({0}, {1}, {2})".format(nclip_cutoff, ndisc_cutoff, n_polyA_cutoff))
-        n_polyA_cutoff=ndisc_cutoff #if both sides have more than cutoff polyA, then filter out
-        ccm.call_denovo_TE_insertions(sf_bam_list, sf_candidate_cns, sf_candidate_cns2, extnd, nclip_cutoff, ndisc_cutoff,
-                                      n_polyA_cutoff, sf_rep_cns, sf_flank, i_flk_len, bin_size, sf_output)
-####
 
 ####
     elif options.mosaic:  # this is only for normal illumina data
@@ -1139,39 +970,7 @@ if __name__ == '__main__':
         if options.postFmosaic==True:
             mzc_joint=MosaicJointCalling(s_working_folder, n_jobs)
             mzc_joint.call_mosaic_from_multi_samples(sf_rslt_list, islack, sf_out)
-####
-    elif options.igv:#prepare the igv screenshot script for multiple bams and sites
-        sf_sites = options.input #site list
-        sf_ori_bam_list=options.bam #bam list in format: sample_id sf_bam1_path sf_bam2_path
-        s_screenshot_folder = options.wfolder
-        sf_out = options.output #output file
-        sf_gnm=options.ref #"hg19" or "hg38"
-        i_extnd = options.extend #"-e", "--extend"
-        b_single_sample=options.single_sample ##
-
-        sf_wfolder = options.wfolder
-        n_jobs = options.cores
-        x_gnrt_new_bam=XScreenshotBAM(sf_sites, sf_ori_bam_list, sf_gnm, n_jobs, sf_wfolder)
-        i_clip_extnd=55
-        sf_bam_list = sf_ori_bam_list + ".new_for_clip_disc_only.list"
-        x_gnrt_new_bam.prepare_new_screenbam_name_list(sf_bam_list)
-        b_exist_screenshot_bam=x_gnrt_new_bam.chk_index_bam(sf_bam_list)
-        if b_exist_screenshot_bam==False:#
-            x_gnrt_new_bam.gnrt_screenshot_bam(i_clip_extnd)
-####x_TEA_main.py
-        if options.bamsnap==True:
-            x_bamsnap=XBamSnap()
-            x_bamsnap.prepare_bamsnap_scripts_multi_bams(sf_sites, sf_ori_bam_list, s_screenshot_folder, i_extnd, sf_gnm, sf_out)
-            sf_focal_out=sf_out+".focal.sh"
-            x_bamsnap.prepare_bamsnap_scripts_multi_processed_bams(sf_sites, sf_bam_list, s_screenshot_folder, i_extnd, sf_gnm, sf_focal_out)
-        else:
-            x_igv = XIGV()##
-            if b_single_sample==True:
-                sf_sites=x_igv.gnrt_sites_single_sample(sf_sites, sf_bam_list)
-            x_igv.prepare_igv_scripts_multi_bams(sf_sites, sf_ori_bam_list, s_screenshot_folder, i_extnd, sf_gnm, sf_out)
-            sf_focal_out = sf_out + ".focal.sh"
-            x_igv.prepare_igv_scripts_multi_bams(sf_sites, sf_bam_list, s_screenshot_folder, i_extnd, sf_gnm, sf_focal_out)
-####
+########
 ####
     elif options.collect:  # collect the reads for each candidate site
         sf_ori_bam = options.bam
@@ -1234,18 +1033,6 @@ if __name__ == '__main__':
             # xlasm.assemble_all_TEIs_slurm_cluster(sf_candidate_list)
             xlasm.assemble_all_phased_TEIs_slurm_cluster(sf_candidate_list)
 
-    elif options.short_read_assembly:#this is for insertion assembly from short reads --sr_asm
-        sf_candidate_list = options.input
-        sf_bam_list = options.bam
-        sf_ref = options.ref  ###reference genome, some cram file require this file to open
-        s_working_folder = options.wfolder
-        sf_output = options.output
-
-        n_jobs = options.cores
-        sr_mei_asm=ShortRead_MEI_ASM(sf_candidate_list, sf_bam_list, s_working_folder, n_jobs)
-        iextnd = 400  ###for each site, re-collect reads in range [-iextnd, iextnd], this around ins +- 3*derivation
-        bin_size = 50000000  # block size for parallelization
-        sr_mei_asm.asm_MEI_PE_reads(sf_ref, iextnd, bin_size, sf_output)
 
 ####
 ####
@@ -1288,12 +1075,6 @@ if __name__ == '__main__':
         xctg = XTEContig(s_working_folder, n_jobs)
         xctg.validate_TEI_from_phased_asm_algnmt(sf_sites, flank_length, f_map_cutoff, i_slack, sf_repeat_copies,
                                                  sf_keep_sites)
-    elif options.sv:
-        sf_sites = options.input
-        sf_dels=options.output
-        te_del=TEDeletion()
-        m_del=te_del.call_del_matched_brkpnts(sf_sites)
-        te_del.output_del(m_del, sf_dels)
 
     elif options.collect_clip:#collect the clipped reads for the sample
         sf_bam_list = options.input
