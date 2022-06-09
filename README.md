@@ -232,6 +232,8 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 	The accompany scripts for re-produce the results in the paper could be found here: `https://github.com/parklab/xTea_paper`
 
 6. **Update log**
+	+ 06/09/22 Update the Dockerfile and cwl for germline module (hg38).
+
 
 	+ 04/20/22 A fatal error was noticed at the genotyping step. The machine learing model was trained with features extracted with a old version of xTea, and this will introduce bias to predict the features extracted with the latest version of xTea. A new model is uploaded for non-conda version.
 	
