@@ -200,6 +200,8 @@ def parse_option():
                       help="Input bam file", metavar="FILE")
     parser.add_option("-d", "--barcode_bam", dest="barcode_bam",
                       help="Input barcode indexed bam file", metavar="FILE")
+    parser.add_option("--id", dest="sample_id", type="string", default="sampleID",
+                      help="Sample ID")
     parser.add_option("-o", "--output", dest="output",
                       help="The output file", metavar="FILE")
     parser.add_option("-p", "--path", dest="wfolder", type="string", default="./",
