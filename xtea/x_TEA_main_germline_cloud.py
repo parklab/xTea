@@ -885,7 +885,7 @@ if __name__ == '__main__':
         sf_new_out = options.output
         i_rep_type=options.rep_type
         sf_black_list=options.blacklist
-        b_hard_cut = options.hard
+#b_hard_cut = options.hard #this is comment out for the github old version
 
         i_min_copy_len=225 #when check whether fall in repeat region, require the minimum copy length
         b_pf_mosaic=options.postFmosaic
@@ -898,7 +898,7 @@ if __name__ == '__main__':
             xpost_filter = XPostFilter(s_working_folder, n_jobs)
             #here sf_black_list is the centromere + duplication region
             xpost_filter.run_post_filtering(sf_xtea_rslt, sf_rmsk, i_min_copy_len, i_rep_type, f_cov, sf_black_list,
-                                            sf_new_out, b_hard_cut, b_tumor)
+                                            sf_new_out, b_tumor)
 ####
     ####
     elif options.gntp_feature:#generate the genotype features
