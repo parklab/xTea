@@ -140,6 +140,9 @@ def parse_option():
     parser.add_option("--case_control",
                       action="store_true", dest="case_control", default=False,
                       help="case control mode")
+    parser.add_option("--hard",
+                      action="store_true", dest="hard", default=False,
+                      help="This is hard-cut for fitering out coverage abnormal candidates")
     parser.add_option("--tumor",
                       action="store_true", dest="tumor", default=False,
                       help="Working on tumor samples")
