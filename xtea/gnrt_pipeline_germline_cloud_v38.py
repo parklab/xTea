@@ -98,7 +98,7 @@ def gnrt_calling_command(s_family_id, iclip_c, iclip_rp, idisc_c, iflt_clip, ifl
                "-r ${{L1_CNS}} --ref ${{REF}} -a ${{ANNOTATION}} " \
                "-o ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" {4} {5} {6} {7}\n".format(iflt_clip, iflt_disc, iflk_len, ncores, s_purity, s_user, s_tumor, s_resume)
     if b_SVA==True:
-        s_filter = "python ${{XTEA_PATH}}\"x_TEA_main_denovo_cloud.py\" -N --sva --cr {0} --nd {1} -b ${{BAM_LIST}} -p ${{TMP_CNS}} " \
+        s_filter = "python ${{XTEA_PATH}}\"x_TEA_main_germline_cloud.py\" -N --sva --cr {0} --nd {1} -b ${{BAM_LIST}} -p ${{TMP_CNS}} " \
                    "--fflank ${{SF_FLANK}} --flklen {2} -n {3} -i ${{PREFIX}}\"candidate_list_from_disc.txt\" " \
                    "-r ${{L1_CNS}} --ref ${{REF}} -a ${{ANNOTATION}} " \
                    "-o ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" {4} {5} {6} {7}\n".format(iflt_clip, iflt_disc, iflk_len,
@@ -126,7 +126,7 @@ def gnrt_calling_command(s_family_id, iclip_c, iclip_rp, idisc_c, iflt_clip, ifl
                " -n {0} -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\" " \
                " --ref ${{REF}} -o ${{PREFIX}}\"assembled_ins_sequence.fa\" \n".format(ncores)
     if b_tumor==True:
-        sf_sr_asm = "python ${{XTEA_PATH}}\"x_TEA_main_denovo_cloud.py\" --sr_asm -b ${{BAM_LIST}} -p ${{TMP_CNS}}\"asm\" " \
+        sf_sr_asm = "python ${{XTEA_PATH}}\"x_TEA_main_germline_cloud.py\" --sr_asm -b ${{BAM_LIST}} -p ${{TMP_CNS}}\"asm\" " \
                     " -n {0} -i ${{PREFIX}}\"candidate_disc_filtered_cns_high_confident_post_filtering_somatic.txt\" " \
                     " --ref ${{REF}} -o ${{PREFIX}}\"assembled_ins_sequence.fa\" \n".format(ncores)
 ####
