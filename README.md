@@ -1,6 +1,3 @@
-## This is a pre-release version of xTea for paper review only. This software is provided ``as is`` without warranty of any kind. We will formally relese xTea very soon. Before that, please contact us if you have any questions or want to collaborate.
-
-
 ## xTea
 
 xTea (comprehensive Transposable element analyzer) is designed to identify TE insertions from paired-end Illumina reads, barcode Linked-Reads, long reads (PacBio or Nanopore), or hybrid data (WGS/WES). 
@@ -133,3 +130,12 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 3. **Output**
 
 	For each TE/retroelement a result file with suffix "classified_results.txt" will be generated under the working folder.
+
+4. **Citation and accompany scripts**
+	If you are using xTea for your project, please cite:
+	
+	```
+	Chu, C., Borges-Monroy, R., Viswanadham, V.V. et al. Comprehensive identification of transposable element insertions using multiple sequencing technologies. Nat Commun 12, 3836 (2021). https://doi.org/10.1038/s41467-021-24041-8
+	```
+
+	The accompany scripts for re-produce the results in the paper could be found here: `https://github.com/parklab/xTea_paper`
