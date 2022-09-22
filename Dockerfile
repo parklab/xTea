@@ -1,61 +1,32 @@
-FROM ubuntu:16.04
-MAINTAINER Chong Simon Chu (chong.simon.chu@gmail.com) (Initially by Soo Lee (duplexa@gmail.com)) 
+FROM debian:bullseye
 
-# 1. general updates & installing necessary Linux components
-RUN apt-get update -y && apt-get install -y \
-    bzip2 \
-    gcc \
-    git \
-    less \
-    libncurses-dev \
-    make \
-    time \
-    unzip \
-    vim \
-    wget \
-    zlib1g-dev \
-    liblz4-tool \
-    python3-pip
+LABEL org.opencontainers.image.authors="Chong Simon Chu chong.simon.chu@gmail.com"
+LABEL org.opencontainers.image.contributors="Soo Lee duplexa@gmail.com\
+  Alexander Solovyov alexander.solovyov@gmail.com"
 
-# conda and pysam
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-py38_4.10.3-Linux-x86_64.sh && bash Miniconda3-py38_4.10.3-Linux-x86_64.sh -p /miniconda -b
-ENV PATH=/miniconda/bin:$PATH
-RUN conda update -y conda \
-    && rm Miniconda3-py38_4.10.3-Linux-x86_64.sh
-RUN conda config --add channels r \
-    && conda config --add channels bioconda \
-    && conda install -c conda-forge libgcc-ng \
-    && conda install -c bioconda samtools \
-    && conda install -c bioconda bwa \
-    && conda install pysam sortedcontainers numpy pandas scikit-learn -y
+RUN apt-get update -y && apt-get install -y --no-install-recommends \
+    bzip2 gcc git less libncurses-dev make time unzip vim wget zlib1g-dev \
+    liblz4-tool python3 python3-numpy python3-pysam samtools bwa python3-pip \
+    python3-sortedcontainers python3-pandas python3-dev python3-setuptools \
+    python-is-python3 python3-scipy python3-sklearn
 
-#install bamsnap
-RUN pip install --no-cache-dir bamsnap
+RUN pip install --no-cache-dir bamsnap deep-forest
 
-#install deep-forest
-RUN pip install deep-forest
-
-# download tools
-WORKDIR /usr/local/bin
-#COPY downloads.sh .
-#RUN . downloads.sh
-
-# set path
-#ENV PATH=/usr/local/bin/bwa/:$PATH
-#ENV PATH=/usr/local/bin/samtools/:$PATH
+# clone the code
+RUN mkdir -p /opt/xtea/annotation
+WORKDIR /opt/xtea
+ADD . /opt/xtea
+RUN rm rep_lib_annotation.tar.gz && \
+  wget https://github.com/parklab/xTea/raw/master/rep_lib_annotation.tar.gz && \
+  tar -C /opt/xtea/annotation -xf rep_lib_annotation.tar.gz && \
+  rm rep_lib_annotation.tar.gz
 
 # supporting UTF-8
 ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
-
-# wrapper
-COPY *.py *.sh ./
-RUN chmod +x *.py
-
-# copy the trained model for genotyping
-COPY genotyping ./genotyping
+ENV TERM=xterm
+ENV PATH="/opt/xtea/bin:${PATH}"
 
 # default command
-CMD ["ls /usr/local/bin"]
+CMD ["/bin/bash"]
 
-#
