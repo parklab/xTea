@@ -1192,7 +1192,12 @@ if __name__ == '__main__':
         sf_folder_rep1 = options.lib  ##this is the lib folder path
         sf_ref1=options.ref ####reference genome
         sf_folder_xtea=options.xtea
-
+        if not sf_folder_xtea:
+            # default to directory_of_this_script/../xtea
+            this_dirname = os.path.dirname(os.path.abspath(__file__))
+            parent_dirname = os.path.join(this_dirname, os.pardir)
+            sf_folder_xtea = os.path.abspath(os.path.join(parent_dirname,
+                "xtea"))
         sf_folder_rep=sf_folder_rep1
         sf_ref=sf_ref1
         if options.decompress==True:
