@@ -6,11 +6,11 @@ LABEL org.opencontainers.image.contributors="Soo Lee duplexa@gmail.com\
 
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
     bzip2 gcc git less libncurses-dev make time unzip vim wget zlib1g-dev \
-    liblz4-tool python3 python3-numpy python3-pysam samtools bwa python3-pip \
-    python3-sortedcontainers python3-pandas python3-dev python3-setuptools \
-    python-is-python3 python3-scipy python3-sklearn
+    liblz4-tool python3 python3-pysam samtools bwa python3-pip \
+    python3-sortedcontainers python3-dev python3-setuptools \
+    python-is-python3
 
-RUN pip install --no-cache-dir bamsnap deep-forest
+RUN pip install --no-cache-dir bamsnap numpy scipy pandas scikit-learn deep-forest
 
 # clone the code
 RUN mkdir -p /opt/xtea/annotation
@@ -29,4 +29,3 @@ ENV PATH="/opt/xtea/bin:${PATH}"
 
 # default command
 CMD ["/bin/bash"]
-
