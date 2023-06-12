@@ -36,6 +36,7 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 4. gene annotation files are downloaded from GENCODE. Decompressed gff3 files are required.
 	+ For GRCh38 (or hg38), gff3 files are downloaded and decompressed from https://www.gencodegenes.org/human/release_33.html ;
 	+ For GRCh37 (or hg19), gff3 files are downloaded and decompressed from https://www.gencodegenes.org/human/release_33lift37.html ;
+	+ For CHM13v2, gff3 files are downloaded from https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/annotation/chm13.draft_v2.0.gene_annotation.gff3;
 	+ Or use the latest version
 
 ## Dependencies
@@ -128,7 +129,7 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 
 	2.1 Generate the running script (if it is install-free, then use the full path of the downloaded `bin/xtea` instead.)
 			
-	+ Run on a cluster or a single node (by default `xtea` assumes the reference genome is **GRCh38** or **hg38**. For `hg19` or `GRCh37`, please use `xtea_hg19`)
+	+ Run on a cluster or a single node (by default `xtea` assumes the reference genome is **GRCh38** or **hg38**. For `hg19` or `GRCh37`, please use `xtea_hg19`; for `CHM13`, please use `gnrt_pipeline_local_chm13.py`)
 		+ Here, the slurm system is used as an example. If using LSF, replace `--slurm` with `--lsf`. For those using clusters other than slurm or LSF, users must adjust the generated shell script header accordingly. Users also must adjust the number of cores (`-n`) and memory (`-m`) accordingly. In general, each core will require 2-3G memory to run. For very high depth bam files, runtime (denoted by `-t`) may take longer.
 		+ **Note that `--xtea` is a required option that points to the *exact folder* containing python scripts.**
 
@@ -232,8 +233,10 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 	The accompany scripts for re-produce the results in the paper could be found here: `https://github.com/parklab/xTea_paper`
 
 6. **Update log**
-	+ 06/09/22 Update the Dockerfile and cwl for germline module (hg38).
 
+	+ 06/11/23 Add `gnrt_pipeline_local_chm13.py` for CHM13_v2.0 reference genome .
+
+	+ 06/09/22 Update the Dockerfile and cwl for germline module (hg38).
 
 	+ 04/20/22 A fatal error was noticed at the genotyping step. The machine learing model was trained with features extracted with a old version of xTea, and this will introduce bias to predict the features extracted with the latest version of xTea. A new model is uploaded for non-conda version.
 	
