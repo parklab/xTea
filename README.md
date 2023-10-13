@@ -1,39 +1,25 @@
 
-## xTea
+## xTea-mosaic
 
-xTea (comprehensive transposable element analyzer) is designed to identify TE insertions from paired-end Illumina reads, barcode linked-reads, long reads (PacBio or Nanopore), or hybrid data from different sequencing platforms and takes whole-exome sequencing (WES) or whole-genome sequencing (WGS) data as input. 
+xTea-mosaic is derived from xTea to identify mosaic TE insertions from bulk high-depth PE short WGS data. The current version is for testing only, not guranteed for stable output.
 
 ![alt text](./xTea_workflow.png)
 
 
 ## Download
 
-1. short reads (Illumina and Linked-Reads)
-
-	+ 1.1 latest version
+1. short reads (Illumina; High-depth)
 
 	```
-	git clone https://github.com/parklab/xTea.git
+	git clone --single-branch --branch xtea_mosaic https://github.com/parklab/xTea.git
 	```
-
-	+ 1.2 cloud binary version
-
-	```
-	git clone --single-branch --branch release_xTea_cloud_1.0.0-beta  https://github.com/parklab/xTea.git
-	```
-
-2. long reads (PacBio or Nanopore)
-
-	```
-	git clone --single-branch --branch xTea_long_release_v0.1.0 https://github.com/parklab/xTea.git
-	```
-3. pre-processed repeat library used by xTea (this library is used for both short and long reads)  
+2. pre-processed repeat library used by xTea (this library is used for both short and long reads)  
 	
 	```
 	wget https://github.com/parklab/xTea/raw/master/rep_lib_annotation.tar.gz
 	```
 	
-4. gene annotation files are downloaded from GENCODE. Decompressed gff3 files are required.
+3. gene annotation files are downloaded from GENCODE. Decompressed gff3 files are required.
 	+ For GRCh38 (or hg38), gff3 files are downloaded and decompressed from https://www.gencodegenes.org/human/release_33.html ;
 	+ For GRCh37 (or hg19), gff3 files are downloaded and decompressed from https://www.gencodegenes.org/human/release_33lift37.html ;
 	+ For CHM13v2, gff3 files are downloaded from https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/annotation/chm13.draft_v2.0.gene_annotation.gff3;
@@ -133,33 +119,17 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 		+ Here, the slurm system is used as an example. If using LSF, replace `--slurm` with `--lsf`. For those using clusters other than slurm or LSF, users must adjust the generated shell script header accordingly. Users also must adjust the number of cores (`-n`) and memory (`-m`) accordingly. In general, each core will require 2-3G memory to run. For very high depth bam files, runtime (denoted by `-t`) may take longer.
 		+ **Note that `--xtea` is a required option that points to the *exact folder* containing python scripts.**
 
-		+ Using only Illumina data
+		+ Using high-depth Illumina data
 			```
-			xtea -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -f 5907 -y 7  --slurm -t 0-12:00 -q short -n 8 -m 25
-			```
-
-		+ Using only 10X data
-			```
-			xtea -i sample_id.txt -b null -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -y 7 -f 5907 --slurm -t 0-12:00 -q short -n 8 -m 25		
-			```
-		
-		+ Using hybrid data of 10X and Illumina 
-			```
-			xtea -i sample_id.txt -b illumina_bam_list.txt -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -y 7 -f 5907 --slurm -t 0-12:00 -q short -n 8 -m 25
-			```
-		+ Using case-ctrl mode
-			```
-			xtea --case_ctrl --tumor -i sample_id.txt -b case_ctrl_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -y 7 -f 5907 --slurm -t 0-12:00 -q short -n 8 -m 25
-			```
-		+ Working with long reads (non case-ctrl; more detailed steps please check the "xTea_long_release_v0.1.0" branch)
-			```
-			xtea_long -i sample_id.txt -b long_read_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh --rmsk ./rep_lib_annotation/LINE/hg38/hg38_L1_larger_500_with_all_L1HS.out -r /home/ec2-user/reference/genome.fa --cns ./rep_lib_annotation/consensus/LINE1.fa --rep /home/ec2-user/rep_lib_annotation/ --xtea /home/ec2-user/xTea_long/xtea_long/ -f 31 -y 15 -n 8 -m 32 --slurm -q long -t 2-0:0:0
+			xtea -M -U -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -f 5907 -y 1 --slurm -t 10-12:00 -q short -n 8 -m 96 --nclip 2 --cr 0 --nd 1 --nfclip 1 --nfdisc 1 --blacklist /home/germline_insertions.bed
 			```
 
 		+ Parameters:
 			
 			```
 			Required:
+			    -M: indicates this is for mosaic mode;
+			    -U: indicates this is to use user-specific cutoff, rather than automatic parameter setting.
 				-i: samples id list (one sample id per line);
 				-b: Illumina bam/cram file list (sorted and indexed — one file per line);
 				-x: 10X bam file list (sorted and indexed — one file per line);
@@ -173,37 +143,23 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 				    it is highly recommended to run the tool on one repeat type first, and subsequently on the rest. 
 				    For example, first use '-y 1', and for then use '-y 6' in a second run);
 				-f: steps to run. (5907 means run all the steps);
-				--xtea: this is the full path of the xTea/xtea folder (or the xTea_long_release_v0.1.0 folder for long reads module), 
-				        where the python scripts reside in;
+				--xtea: this is the full path of the xTea/xtea folder, where the python scripts reside in;
 				-g: gene annotation file in gff3 format;
 				-o: generated running scripts under the working folder;
-			Optional:
-				-n: number of cores (default: 8, should be an integer);
-				-m: maximum memory in GB (default: 25, should be an integer);
-				-q: cluster partition name;
-				-t: job runtime;
-				--flklen: flanking region length;
-				--lsf: add this option if using an LSF cluster (by default, use of the slurm scheduler is assumed);
-				--tumor: indicates the tumor sample in a case-ctrl pair;
-				--purity: tumor purity (by default 0.45);
-				--blacklist: blacklist file in bed format. Listed regions will be filtered out;
-				--slurm: runs using the slurm scheduler. Generates a script header fit for this scheduler;
-			
-			The following cutoffs will be automatically set based on read depth (and also purity in the case of a tumor sample); 
-			These parameters have been thoroughly tuned based on the use of benchmark data and also on a large cohort analysis. 
-			For advanced users (optional major cutoffs):
-				--user: by default, this is turned off. If this option is set, then a user-specific cutoff will be used;
 				--nclip: minimum number of clipped reads;
 				--cr: minimum number of clipped reads whose mates map to repetitive regions;
 				--nd: minimum number of discordant pairs;
+				--blacklist: for mosaic calling, this one is the germline insertions from population data (e.g. gnomAD). File should be in bed format. Regions do not want to consider can also be added to this file.
 
-			Specific parameters for long reads module:
-			    --rmsk: this is a reference full-length L1 annotation file from RepeatMasker only for the "ghost" L1 detection module. 
-			            One file named "hg38_L1_larger2K_with_all_L1HS.out" within the downloaded library could be directly used;
-			    --cns: this is the L1 concensus sequence needed only by the "ghost" L1 detection module. 
-			           One file named "LINE1.fa" within the downloaded library could be directly used;
-			    --rep: repeat library folder (folder contain files decompressed from the downloaded "rep_lib_annotation.tar.gz");
-			    --clean: clean the intermediate files;
+			Optional:
+				-n: number of cores (default: 8, should be an integer);
+				-m: maximum memory in GB (default: 25, should be an integer; for mosaic mode, large memory is needed);
+				-q: cluster partition name;
+				-t: job runtime (for mosaic mode, long running time is needed);
+				--flklen: flanking region length;
+				--lsf: add this option if using an LSF cluster (by default, use of the slurm scheduler is assumed);
+				--slurm: runs using the slurm scheduler. Generates a script header fit for this scheduler;
+
 
 			```
 		
@@ -211,19 +167,14 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 		
 	+ To run on the script: `sh run_xTea_pipeline.sh` or users can submit the jobs (where each line corresponds to one job) to a cluster.
 	
-	
-3. **Run from the Cloud**
-	
-	+ A docker file and a cwl file are provided for running the tool on AWS/GCP/FireCloud.
-
 			
-4. **Output**
+3. **Output**
 
 	A gVCF file will be generated for each sample.
 	+ For germline TE insertion calling on short reads, the `orphan transduction` module usually has a higher false positive rate. Users can filter out false positive events with a command such as `grep -v "orphan" out.vcf > new_out.vcf` to retrieve higher confidence events.
 
 
-5. **Citation and accompany scripts**
+4. **Citation and accompany scripts**
 	If you are using xTea for your project, please cite:
 	
 	```
@@ -233,6 +184,7 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 	The accompany scripts for re-produce the results in the paper could be found here: `https://github.com/parklab/xTea_paper`
 
 6. **Update log**
+	+ 10/13/23 Release the version for mosaic insertion calling from high-depth WGS.
 
 	+ 06/11/23 Add `gnrt_pipeline_local_chm13.py` for CHM13_v2.0 reference genome .
 
