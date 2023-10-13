@@ -55,28 +55,6 @@ xTea-mosaic is derived from xTea to identify mosaic TE insertions from bulk high
 6. Note: bwa and samtools need to be added to the $PATH.
 
 
-## Install
-
-+ **Use Conda**
-
-	xtea is a bioconda package, to install first make sure the bioconda channel has been added:
-	```
-	conda config --add channels defaults
-	conda config --add channels bioconda
-	conda config --add channels conda-forge
-	```
-
-	Then, install xtea (while creating a new enviroment):
-	```
-	conda create -n your_env xtea=0.1.6
-	```
-
-	Or install directly via: `conda install -y xtea=0.1.6`
-
-+ **Install-free**
-	
-	If the dependencies have already been installed, then install-free mode is recommended. One can directly run the downloaded python scripts.
-
 
 ## Run xTea
 1. **Input**
@@ -95,33 +73,20 @@ xTea-mosaic is derived from xTea to identify mosaic TE insertions from bulk high
 			NA12878 /path/na12878_illumina_1_sorted.bam
 			NA12877 /path/na12877_illumina_1_sorted.bam
 			```
-		
-		+  A 10X bam/cram file (sorted and indexed, see [BarcodeMate](https://github.com/simoncchu/BarcodeMate) regarding barcode-based indicies) list, e.g. a file named `10X_bam_list.txt` with content as follows (three columns separated by a space or tab: sample-id bam-path barcode-index-bam-path):
-		
-			```
-			NA12878 /path/na12878_10X_1_sorted.bam /path/na12878_10X_1_barcode_indexed.bam
-			NA12877 /path/na12877_10X_1_sorted.bam /path/na12877_10X_1_barcode_indexed.bam
-			```
-		
-		+  A case-ctrl bam/cram file list (three columns separated by a space or tab: sample-id case-bam-path ctrl-bam-path
-			```
-			DO0001 /path/DO001_case_sorted.bam /path/DO001_ctrl_sorted.bam
-			DO0002 /path/DO002_case_sorted.bam /path/DO002_ctrl_sorted.bam
-			```
 
 
 2. **Run the pipeline from local cluster or machine**
 	
 
-	2.1 Generate the running script (if it is install-free, then use the full path of the downloaded `bin/xtea` instead.)
+	2.1 Generate the running script
 			
-	+ Run on a cluster or a single node (by default `xtea` assumes the reference genome is **GRCh38** or **hg38**. For `hg19` or `GRCh37`, please use `xtea_hg19`; for `CHM13`, please use `gnrt_pipeline_local_chm13.py`)
-		+ Here, the slurm system is used as an example. If using LSF, replace `--slurm` with `--lsf`. For those using clusters other than slurm or LSF, users must adjust the generated shell script header accordingly. Users also must adjust the number of cores (`-n`) and memory (`-m`) accordingly. In general, each core will require 2-3G memory to run. For very high depth bam files, runtime (denoted by `-t`) may take longer.
+	+ Run on a cluster or a single node (by default xTea_mosaic assumes the reference genome is **GRCh38** or **hg38**. For `hg19` or `GRCh37`, please use `gnrt_pipeline_local.py`; for `CHM13`, please use `gnrt_pipeline_local_chm13.py`)
+		+ Here, the slurm system is used as an example. If using LSF, replace `--slurm` with `--lsf`. For those using clusters other than slurm or LSF, users must adjust the generated shell script header accordingly. Users also must adjust the number of cores (`-n`) and memory (`-m`) accordingly. For very high depth bam files, runtime (denoted by `-t`) may take longer.
 		+ **Note that `--xtea` is a required option that points to the *exact folder* containing python scripts.**
 
 		+ Using high-depth Illumina data
 			```
-			xtea -M -U -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -f 5907 -y 1 --slurm -t 10-12:00 -q short -n 8 -m 96 --nclip 2 --cr 0 --nd 1 --nfclip 1 --nfdisc 1 --blacklist /home/germline_insertions.bed
+			python /home/xTea_mosaic/gnrt_pipeline_local_v38.py -M -U -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -f 5907 -y 1 --slurm -t 10-12:00 -q short -n 8 -m 96 --nclip 2 --cr 0 --nd 1 --nfclip 1 --nfdisc 1 --blacklist /home/germline_insertions.bed
 			```
 
 		+ Parameters:
@@ -171,7 +136,6 @@ xTea-mosaic is derived from xTea to identify mosaic TE insertions from bulk high
 3. **Output**
 
 	A gVCF file will be generated for each sample.
-	+ For germline TE insertion calling on short reads, the `orphan transduction` module usually has a higher false positive rate. Users can filter out false positive events with a command such as `grep -v "orphan" out.vcf > new_out.vcf` to retrieve higher confidence events.
 
 
 4. **Citation and accompany scripts**
