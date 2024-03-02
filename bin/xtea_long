@@ -484,6 +484,8 @@ if __name__ == '__main__':
         b_clean=options.clean
         i_peak_win = options.win #maximum window size when try to cluster the breakpoints
 
+        s_wfolder = os.path.abspath(s_wfolder)
+
         if s_wfolder[-1]!="/":
             s_wfolder+="/"
         if os.path.exists(s_wfolder) == False:

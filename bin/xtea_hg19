@@ -4,6 +4,7 @@ import os
 from subprocess import *
 from optparse import OptionParser
 import ntpath
+
 #import global_values
 ILLUMINA="illumina"
 X10="10X"
@@ -1172,6 +1173,8 @@ if __name__ == '__main__':
         b_slurm=options.slurm
         b_resume=options.resume
         b_denovo = options.denovo
+
+        s_wfolder = os.path.abspath(s_wfolder)
 
         if s_wfolder[-1]!="/":
             s_wfolder+="/"
