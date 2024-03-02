@@ -5,8 +5,6 @@ from subprocess import *
 from optparse import OptionParser
 import ntpath
 
-from xtea import utils
-
 #import global_values
 ILLUMINA="illumina"
 X10="10X"
