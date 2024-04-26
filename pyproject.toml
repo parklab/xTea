@@ -28,10 +28,5 @@ testpaths = [
     "tests"
 ]
 
-[tool.setuptools]
-packages = [
-	"src/xtea"
-]
-
 [project.scripts]
 run_xtea = "xtea.x_TEA_main:main"

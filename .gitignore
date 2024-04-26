@@ -1,3 +1,4 @@
 dist/*
 *egg*/*
 build/*
+src/xtea.egg-info/*
