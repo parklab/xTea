@@ -2,3 +2,4 @@ dist/*
 *egg*/*
 build/*
 src/xtea.egg-info/*
+timings.md

@@ -1,0 +1,74 @@
+# Default Parameters for xTea
+
+[command_line]
+version = '.'
+id = '.'
+bam = '.'
+x10 = '.'
+
+decompress = '.'
+mosaic = '.'
+case_control = '.'
+denovo = '.'
+tumor = '.'
+reptype = '.'
+
+
+[insertion_detection_params]
+user = false # Use user specific parameters instead of automatically calculated ones
+
+
+flklen = 3000 # TODO: flank region file??
+nclip = 3 # cutoff of minimum # of clipped reads
+cliprep = 1 # cutoff of minimum # of clipped reads whose mates map in repetitive regions
+ndisc = 5 # cutoff of minimum # of discordant pair
+nfilterclip = 3 # cutoff of minimum # of clipped reads in filtering step
+nfdisc = 5 # cutoff of minimum # of discordant pair of each sample in filtering step
+teilen = 50 # minimum length of the insertion for future analysis
+hard = false # hard-cut for fitering out coverage abnormal candidates
+purity = 0.45 # tumor purity set at 45%
+
+
+
+
+[external_files]
+blacklist = '.'
+gene = '.'
+ref = '.' # Homo_sapiens_assembly38.fa
+lib = '.'
+xtea = '.'
+par = '.' # rep_lib_annotation/Alu/hg38/hg38_Alu.out
+    # ?? cns = '.' #rep_lib_annotation/consensus/ALU.fa (not used or parsed in x_TEA_Main.py)
+    # ?? -r rep_lib_annotation/Alu/hg38/hg38_AluJabc_copies_with_flank.fa
+    # --cp
+
+
+
+[IO_paths]
+path = '.'
+output = '.'
+
+
+[failure_behavior]
+resume = '.'
+force = '.'
+flag = '.'
+
+
+[scheduler_params]
+lsf = '.'
+slurm = '.'
+cores = '.'
+memory = '.'
+partition = '.'
+time = '.'
+
+
+
+
+
+
+
+
+
+

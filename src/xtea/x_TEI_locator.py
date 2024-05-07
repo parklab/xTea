@@ -22,24 +22,25 @@ class TE_Multi_Locator():
         self.n_jobs = int(n_jobs)
         self.sf_ref=sf_ref ##reference genome
 
-    def get_clip_part_realignment_for_list(self, sf_candidate_sites):
-        m_sites={}
-        with open(sf_candidate_sites) as fin_sites:
-            for line in fin_sites:
-                fields=line.split()
-                chrm=fields[0]
-                pos=int(fields[1])
-                if chrm not in m_sites:
-                    m_sites[chrm]={}
-                m_sites[chrm][pos]=line ###here save the chrom and position, also the other informations
+    # CS COMMENTED OUT 5/7/24
+    # def get_clip_part_realignment_for_list(self, sf_candidate_sites):
+    #     m_sites={}
+    #     with open(sf_candidate_sites) as fin_sites:
+    #         for line in fin_sites:
+    #             fields=line.split()
+    #             chrm=fields[0]
+    #             pos=int(fields[1])
+    #             if chrm not in m_sites:
+    #                 m_sites[chrm]={}
+    #             m_sites[chrm][pos]=line ###here save the chrom and position, also the other informations
 
-        #for each bam in the list
-        with open(self.sf_list) as fin_bam_list:
-            for line in fin_bam_list:  ###for each bam file
-                fields=line.split()
-                sf_ori_bam = fields[0]
-                if len(sf_ori_bam) <= 1:
-                    continue
+    #     #for each bam in the list
+    #     with open(self.sf_list) as fin_bam_list:
+    #         for line in fin_bam_list:  ###for each bam file
+    #             fields=line.split()
+    #             sf_ori_bam = fields[0]
+    #             if len(sf_ori_bam) <= 1:
+    #                 continue
 
     def collect_all_clipped_from_multiple_alignmts(self, sf_annotation, b_se, s_clip_wfolder, wfolder_pub_clip):
         with open(self.sf_list) as fin_bam_list:
@@ -354,56 +355,57 @@ class TE_Multi_Locator():
 
     ####
 
-    ###output two files:
-    ###1. each cluster has one representative position
-    ###2. each cluster is one event, and has two (left and right) peak positions
-    def chain_regions(self, sf_sorted_list, dist_cutoff, cutoff_left_clip, cutoff_right_clip, cutoff_clip_mate_in_rep,
-                      sf_peak_pos, sf_peak_events):
-        l_cluster = []
-        pre_chrm = ""
-        pre_pos = 0
-        b_first = True
-        with open(sf_peak_pos, "w") as fout_peak_pos, open(sf_peak_events, "w") as fout_peak_events:  ####write to file
-            with open(sf_sorted_list) as fin_sorted_list:
-                for line in fin_sorted_list:
-                    fields = line.split()
-                    cur_chrm = fields[0]
-                    cur_pos = int(fields[1])
+    # CS COMMENTED OUT 5/7/24
+    # ###output two files:
+    # ###1. each cluster has one representative position
+    # ###2. each cluster is one event, and has two (left and right) peak positions
+    # def chain_regions(self, sf_sorted_list, dist_cutoff, cutoff_left_clip, cutoff_right_clip, cutoff_clip_mate_in_rep,
+    #                   sf_peak_pos, sf_peak_events):
+    #     l_cluster = []
+    #     pre_chrm = ""
+    #     pre_pos = 0
+    #     b_first = True
+    #     with open(sf_peak_pos, "w") as fout_peak_pos, open(sf_peak_events, "w") as fout_peak_events:  ####write to file
+    #         with open(sf_sorted_list) as fin_sorted_list:
+    #             for line in fin_sorted_list:
+    #                 fields = line.split()
+    #                 cur_chrm = fields[0]
+    #                 cur_pos = int(fields[1])
 
-                    if b_first == True:
-                        b_first = False
-                    else:
-                        # if form a cluster
-                        if pre_chrm != cur_chrm or ((cur_pos - pre_pos) >= dist_cutoff):
-                            b_qualify, lppos, rppos, repsnt_pos, lpinfo, rpinfo = self.is_candidate_cluster \
-                                (l_cluster, cutoff_left_clip, cutoff_right_clip, cutoff_clip_mate_in_rep)
-                            del l_cluster[:]
-                            if b_qualify == True:
-                                fout_peak_events.write(lpinfo + "\n")
-                                fout_peak_events.write(rpinfo + "\n")
-                                if repsnt_pos == lppos:
-                                    fout_peak_pos.write(lpinfo + "\n")
-                                else:
-                                    fout_peak_pos.write(rpinfo + "\n")
-                    l_cluster.append(line.rstrip())
-                    pre_chrm = cur_chrm
-                    pre_pos = cur_pos
+    #                 if b_first == True:
+    #                     b_first = False
+    #                 else:
+    #                     # if form a cluster
+    #                     if pre_chrm != cur_chrm or ((cur_pos - pre_pos) >= dist_cutoff):
+    #                         b_qualify, lppos, rppos, repsnt_pos, lpinfo, rpinfo = self.is_candidate_cluster \
+    #                             (l_cluster, cutoff_left_clip, cutoff_right_clip, cutoff_clip_mate_in_rep)
+    #                         del l_cluster[:]
+    #                         if b_qualify == True:
+    #                             fout_peak_events.write(lpinfo + "\n")
+    #                             fout_peak_events.write(rpinfo + "\n")
+    #                             if repsnt_pos == lppos:
+    #                                 fout_peak_pos.write(lpinfo + "\n")
+    #                             else:
+    #                                 fout_peak_pos.write(rpinfo + "\n")
+    #                 l_cluster.append(line.rstrip())
+    #                 pre_chrm = cur_chrm
+    #                 pre_pos = cur_pos
 
-                ####The last record
-                b_qualify, lppos, rppos, repsnt_pos, lpinfo, rpinfo = self.is_candidate_cluster \
-                    (l_cluster, cutoff_left_clip, cutoff_right_clip, cutoff_clip_mate_in_rep)
-                if b_qualify == True:
-                    fout_peak_events.write(lpinfo + "\n")
-                    fout_peak_events.write(rpinfo + "\n")
-                    if repsnt_pos == lppos:
-                        fout_peak_pos.write(lpinfo + "\n")
-                    else:
-                        fout_peak_pos.write(rpinfo + "\n")
+    #             ####The last record
+    #             b_qualify, lppos, rppos, repsnt_pos, lpinfo, rpinfo = self.is_candidate_cluster \
+    #                 (l_cluster, cutoff_left_clip, cutoff_right_clip, cutoff_clip_mate_in_rep)
+    #             if b_qualify == True:
+    #                 fout_peak_events.write(lpinfo + "\n")
+    #                 fout_peak_events.write(rpinfo + "\n")
+    #                 if repsnt_pos == lppos:
+    #                     fout_peak_pos.write(lpinfo + "\n")
+    #                 else:
+    #                     fout_peak_pos.write(rpinfo + "\n")
 
-    # m_sites_chrm_filtered = xfilter.parse_sites_with_clip_cutoff_for_chrm(m_sites_chrm, cutoff_left_clip,
-    #                                                                       cutoff_right_clip,
-    #                                                                       cutoff_clip_mate_in_rep)
-    #
+    # # m_sites_chrm_filtered = xfilter.parse_sites_with_clip_cutoff_for_chrm(m_sites_chrm, cutoff_left_clip,
+    # #                                                                       cutoff_right_clip,
+    # #                                                                       cutoff_clip_mate_in_rep)
+    # #
 #####
     # For given candidate sites from clip reads,
     # sum the num of the discordant pairs from different alignments
@@ -556,8 +558,9 @@ class TE_Multi_Locator():
                     for i in range(lth):
                         m_final[chrm][pos][i] += m_tmp[chrm][pos][i]
 
-def unwrap_self_filter_by_discordant(arg, **kwarg):
-    return TELocator.run_filter_by_discordant_pair_by_chrom(*arg, **kwarg)
+# CS COMMENTED OUT 5/7/24 
+# def unwrap_self_filter_by_discordant(arg, **kwarg):
+#     return TELocator.run_filter_by_discordant_pair_by_chrom(*arg, **kwarg)
 
 
 def unwrap_self_filter_by_discordant_non_barcode(arg, **kwarg):
@@ -740,70 +743,71 @@ class TELocator():
         clip_info.collect_clipped_parts(sf_all_clip_fq)
 ####
 
-    def _is_decoy_contig_chrms(self, chrm):
-        fields = chrm.split("_")
-        if len(fields) > 1:
-            return True
-        elif chrm == "hs37d5":
-            return True
-        else:
-            return False
+    # CS COMMENTED OUT 5/7/24
+    # def _is_decoy_contig_chrms(self, chrm):
+    #     fields = chrm.split("_")
+    #     if len(fields) > 1:
+    #         return True
+    #     elif chrm == "hs37d5":
+    #         return True
+    #     else:
+    #         return False
 
-    ###Input in format {chrm: {map_pos: [left_cnt, right_cnt, mate_within_rep_cnt]}}
-    def filter_out_decoy_contig_chrms(self, m_candidate_list):
-        m_new_list = {}
-        for chrm in m_candidate_list:
-            if self._is_decoy_contig_chrms(chrm) == True:
-                continue
+    # ###Input in format {chrm: {map_pos: [left_cnt, right_cnt, mate_within_rep_cnt]}}
+    # def filter_out_decoy_contig_chrms(self, m_candidate_list):
+    #     m_new_list = {}
+    #     for chrm in m_candidate_list:
+    #         if self._is_decoy_contig_chrms(chrm) == True:
+    #             continue
 
-            if chrm not in m_new_list:
-                m_new_list[chrm] = {}
-            for pos in m_candidate_list[chrm]:
-                if pos not in m_new_list[chrm]:
-                    m_new_list[chrm][pos] = []
-                for value in m_candidate_list[chrm][pos]:
-                    m_new_list[chrm][pos].append(value)
-        return m_new_list
+    #         if chrm not in m_new_list:
+    #             m_new_list[chrm] = {}
+    #         for pos in m_candidate_list[chrm]:
+    #             if pos not in m_new_list[chrm]:
+    #                 m_new_list[chrm][pos] = []
+    #             for value in m_candidate_list[chrm][pos]:
+    #                 m_new_list[chrm][pos].append(value)
+    #     return m_new_list
 
+    # CS COMMENTED OUT 5/7/24
+    # #####First, Use (left, right) clipped read as threshold. Also, require some of the mate read are within repeat region
+    # ##Note: this version will miss some cases, like insertion with deletion ones
+    # def call_TEI_candidate_sites_from_clip_reads(self, sf_ref, sf_annotation, cutoff_left_clip, cutoff_right_clip):
+    #     clip_info = ClipReadInfo(self.sf_bam, self.n_jobs, self.sf_reference)
+    #     clip_info.set_working_folder(self.working_folder)
+    #     sf_all_clip_fq = self.working_folder + CLIP_FQ_SUFFIX
+    #     m_clip_pos_freq = clip_info.collect_clipped_reads_with_position(sf_all_clip_fq, sf_annotation)
 
-    #####First, Use (left, right) clipped read as threshold. Also, require some of the mate read are within repeat region
-    ##Note: this version will miss some cases, like insertion with deletion ones
-    def call_TEI_candidate_sites_from_clip_reads(self, sf_ref, sf_annotation, cutoff_left_clip, cutoff_right_clip):
-        clip_info = ClipReadInfo(self.sf_bam, self.n_jobs, self.sf_reference)
-        clip_info.set_working_folder(self.working_folder)
-        sf_all_clip_fq = self.working_folder + CLIP_FQ_SUFFIX
-        m_clip_pos_freq = clip_info.collect_clipped_reads_with_position(sf_all_clip_fq, sf_annotation)
+    #     # xself.output_candidate_sites(m_clip_pos_freq, "initial_clip_pos.txt")
+    #     ####Here need to use the cutoff to remove most of the unnecessary sites first !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-        # xself.output_candidate_sites(m_clip_pos_freq, "initial_clip_pos.txt")
-        ####Here need to use the cutoff to remove most of the unnecessary sites first !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #     clip_info.correct_num_of_clip_by_realignment(sf_ref, sf_annotation, sf_all_clip_fq, m_clip_pos_freq)
+    #     mate_in_rep_cutoff = (cutoff_right_clip + cutoff_left_clip) / 2
+    #     m_candidate_sites = {}
+    #     for chrm in m_clip_pos_freq:
+    #         for pos in m_clip_pos_freq[chrm]:
+    #             ####here need to check the nearby region
+    #             nearby_left_freq = 0
+    #             nearby_right_freq = 0
+    #             nearby_mate_in_rep = 0
+    #             for i in range(-1 * global_values.NEARBY_REGION, global_values.NEARBY_REGION):
+    #                 i_tmp_pos = pos + i
+    #                 if i_tmp_pos in m_clip_pos_freq[chrm]:
+    #                     nearby_left_freq += m_clip_pos_freq[chrm][i_tmp_pos][0]
+    #                     nearby_right_freq += m_clip_pos_freq[chrm][i_tmp_pos][1]
+    #                     nearby_mate_in_rep += m_clip_pos_freq[chrm][i_tmp_pos][2]
 
-        clip_info.correct_num_of_clip_by_realignment(sf_ref, sf_annotation, sf_all_clip_fq, m_clip_pos_freq)
-        mate_in_rep_cutoff = (cutoff_right_clip + cutoff_left_clip) / 2
-        m_candidate_sites = {}
-        for chrm in m_clip_pos_freq:
-            for pos in m_clip_pos_freq[chrm]:
-                ####here need to check the nearby region
-                nearby_left_freq = 0
-                nearby_right_freq = 0
-                nearby_mate_in_rep = 0
-                for i in range(-1 * global_values.NEARBY_REGION, global_values.NEARBY_REGION):
-                    i_tmp_pos = pos + i
-                    if i_tmp_pos in m_clip_pos_freq[chrm]:
-                        nearby_left_freq += m_clip_pos_freq[chrm][i_tmp_pos][0]
-                        nearby_right_freq += m_clip_pos_freq[chrm][i_tmp_pos][1]
-                        nearby_mate_in_rep += m_clip_pos_freq[chrm][i_tmp_pos][2]
-
-                if nearby_left_freq >= cutoff_left_clip and nearby_right_freq >= cutoff_right_clip \
-                        and nearby_mate_in_rep >= mate_in_rep_cutoff:
-                    if chrm not in m_candidate_sites:
-                        m_candidate_sites[chrm] = {}
-                    # if pos not in m_candidate_sites[chrm]:
-                    #    m_candidate_sites[chrm] = {}
-                    i_left_cnt = m_clip_pos_freq[chrm][pos][0]
-                    i_right_cnt = m_clip_pos_freq[chrm][pos][1]
-                    i_mate_in_rep_cnt = m_clip_pos_freq[chrm][pos][2]
-                    m_candidate_sites[chrm][pos] = (i_left_cnt, i_right_cnt, i_mate_in_rep_cnt)
-        return m_candidate_sites
+    #             if nearby_left_freq >= cutoff_left_clip and nearby_right_freq >= cutoff_right_clip \
+    #                     and nearby_mate_in_rep >= mate_in_rep_cutoff:
+    #                 if chrm not in m_candidate_sites:
+    #                     m_candidate_sites[chrm] = {}
+    #                 # if pos not in m_candidate_sites[chrm]:
+    #                 #    m_candidate_sites[chrm] = {}
+    #                 i_left_cnt = m_clip_pos_freq[chrm][pos][0]
+    #                 i_right_cnt = m_clip_pos_freq[chrm][pos][1]
+    #                 i_mate_in_rep_cnt = m_clip_pos_freq[chrm][pos][2]
+    #                 m_candidate_sites[chrm][pos] = (i_left_cnt, i_right_cnt, i_mate_in_rep_cnt)
+    #     return m_candidate_sites
 
     # #align the reads to the repeat copies to collect the repeat related reads only
     # #note, we also include two flank regions of the repeats to help find the transductions
@@ -811,160 +815,163 @@ class TELocator():
     #     #first, dump all the alignmnts to a file
     #     #then,
 
-    def run_filter_by_discordant_pair_by_chrom(self, record):
-        site_chrm1 = record[0]
-        sf_bam = record[1]
-        sf_barcode_bam = record[2]
-        iextend = int(record[3])  ###extend some region on both sides in order to collect all barcodes
-        i_is = int(record[4])
-        f_dev = int(record[5])
-        sf_annotation = record[6]
-        sf_disc_working_folder = record[7]
-        s_suffix = record[8]
-        # iextend_small=record[9] ##extend a small region to compare the barcode difference
-        # iextend_small = 300  ##extend a small region to compare the barcode difference ###############################
+    # CS COMMENTED OUT 5/7/24        
+    # def run_filter_by_discordant_pair_by_chrom(self, record):
+    #     site_chrm1 = record[0]
+    #     sf_bam = record[1]
+    #     sf_barcode_bam = record[2]
+    #     iextend = int(record[3])  ###extend some region on both sides in order to collect all barcodes
+    #     i_is = int(record[4])
+    #     f_dev = int(record[5])
+    #     sf_annotation = record[6]
+    #     sf_disc_working_folder = record[7]
+    #     s_suffix = record[8]
+    #     # iextend_small=record[9] ##extend a small region to compare the barcode difference
+    #     # iextend_small = 300  ##extend a small region to compare the barcode difference ###############################
 
-        sf_candidate_list = sf_disc_working_folder + site_chrm1 + s_suffix
-        if os.path.exists(sf_candidate_list) == False:
-            return
-        m_candidate_pos = {}
-        with open(sf_candidate_list) as fin_list:
-            for line in fin_list:
-                fields = line.split()
-                pos = int(fields[1])
-                m_candidate_pos[pos] = "\t".join(fields[2:])
+    #     sf_candidate_list = sf_disc_working_folder + site_chrm1 + s_suffix
+    #     if os.path.exists(sf_candidate_list) == False:
+    #         return
+    #     m_candidate_pos = {}
+    #     with open(sf_candidate_list) as fin_list:
+    #         for line in fin_list:
+    #             fields = line.split()
+    #             pos = int(fields[1])
+    #             m_candidate_pos[pos] = "\t".join(fields[2:])
 
-        bam_info = BamInfo(sf_bam, self.sf_reference)
-        b_with_chr = bam_info.is_chrm_contain_chr()
-        m_chrms = bam_info.get_all_reference_names()
-        site_chrm = bam_info.process_chrm_name(site_chrm1, b_with_chr)
-        if site_chrm not in m_chrms:
-            return
-        xannotation = XAnnotation(sf_annotation)
-        xannotation.set_with_chr(b_with_chr)
-        xannotation.load_rmsk_annotation()
-        xannotation.index_rmsk_annotation()
+    #     bam_info = BamInfo(sf_bam, self.sf_reference)
+    #     b_with_chr = bam_info.is_chrm_contain_chr()
+    #     m_chrms = bam_info.get_all_reference_names()
+    #     site_chrm = bam_info.process_chrm_name(site_chrm1, b_with_chr)
+    #     if site_chrm not in m_chrms:
+    #         return
+    #     xannotation = XAnnotation(sf_annotation)
+    #     xannotation.set_with_chr(b_with_chr)
+    #     xannotation.load_rmsk_annotation()
+    #     xannotation.index_rmsk_annotation()
 
-        m_new_candidate_sites = {}
-        xbam = XBamInfo(sf_bam, sf_barcode_bam, self.sf_reference)
-        xbam.index_reference_name_id()
-        bamfile = xbam.open_bam_file(sf_bam)  ##open bam file
-        barcode_bamfile = xbam.open_bam_file(sf_barcode_bam)  ##open barcode bam file
-        for site_pos in m_candidate_pos:  ####candidate site position # structure: {barcode:[alignmts]}
-            if site_pos < iextend:
-                continue
-            # n_barcode_diff, n_barcode_share = xbam.check_barcode_diff_v2(bamfile, site_chrm, site_pos, iextend)
-            # print site_chrm1, site_pos, " test1!!!!!!!!!"#############################################################
-            m_site_algnmts = xbam.parse_alignments_for_one_site_v2(bamfile, barcode_bamfile, site_chrm, site_pos,
-                                                                   iextend)
-            if m_site_algnmts == None:  ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                continue
-            n_barcode = len(m_site_algnmts)
-            n_discordant_pair = 0
-            n_one_in_rep_region_pair = 0
-            n_both_in_rep_region_pair = 0
-            for barcode in m_site_algnmts:
-                l_algnmts = m_site_algnmts[barcode]
-                for algnmt in l_algnmts:  ####Note, alignment here is in converted format: barcode as chromosome
-                    barcode_algnmt = BarcodeAlignment(algnmt)
-                    chrm = barcode_algnmt.get_chrm()
-                    map_pos = barcode_algnmt.get_map_pos()
-                    mate_chrm = barcode_algnmt.get_mate_chrm()
-                    mate_map_pos = int(algnmt.next_reference_start)
-                    template_lth = algnmt.template_length
+    #     m_new_candidate_sites = {}
+    #     xbam = XBamInfo(sf_bam, sf_barcode_bam, self.sf_reference)
+    #     xbam.index_reference_name_id()
+    #     bamfile = xbam.open_bam_file(sf_bam)  ##open bam file
+    #     barcode_bamfile = xbam.open_bam_file(sf_barcode_bam)  ##open barcode bam file
+    #     for site_pos in m_candidate_pos:  ####candidate site position # structure: {barcode:[alignmts]}
+    #         if site_pos < iextend:
+    #             continue
+    #         # n_barcode_diff, n_barcode_share = xbam.check_barcode_diff_v2(bamfile, site_chrm, site_pos, iextend)
+    #         # print site_chrm1, site_pos, " test1!!!!!!!!!"#############################################################
+    #         m_site_algnmts = xbam.parse_alignments_for_one_site_v2(bamfile, barcode_bamfile, site_chrm, site_pos,
+    #                                                                iextend)
+    #         if m_site_algnmts == None:  ####!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    #             continue
+    #         n_barcode = len(m_site_algnmts)
+    #         n_discordant_pair = 0
+    #         n_one_in_rep_region_pair = 0
+    #         n_both_in_rep_region_pair = 0
+    #         for barcode in m_site_algnmts:
+    #             l_algnmts = m_site_algnmts[barcode]
+    #             for algnmt in l_algnmts:  ####Note, alignment here is in converted format: barcode as chromosome
+    #                 barcode_algnmt = BarcodeAlignment(algnmt)
+    #                 chrm = barcode_algnmt.get_chrm()
+    #                 map_pos = barcode_algnmt.get_map_pos()
+    #                 mate_chrm = barcode_algnmt.get_mate_chrm()
+    #                 mate_map_pos = int(algnmt.next_reference_start)
+    #                 template_lth = algnmt.template_length
 
-                    xalgnmt = XAlignment()
-                    b_discordant = xalgnmt.is_discordant_pair_no_unmap(chrm, mate_chrm, template_lth, i_is, f_dev)
-                    if b_discordant == True:
-                        n_discordant_pair += 1
-                    if algnmt.is_unmapped or algnmt.mate_is_unmapped:
-                        continue
+    #                 xalgnmt = XAlignment()
+    #                 b_discordant = xalgnmt.is_discordant_pair_no_unmap(chrm, mate_chrm, template_lth, i_is, f_dev)
+    #                 if b_discordant == True:
+    #                     n_discordant_pair += 1
+    #                 if algnmt.is_unmapped or algnmt.mate_is_unmapped:
+    #                     continue
 
-                    ###1. consider first/mate reads only once?
-                    ###2. consider different chrom with the 'site_chrm' and 'site_pos'???
-                    if algnmt.is_read1 == True:
-                        b_one_in_rep, b_both_in_rep = xalgnmt.is_TE_caused_discordant_pair(chrm, map_pos, mate_chrm,
-                                                                                           mate_map_pos, xannotation)
-                        if b_one_in_rep:
-                            n_one_in_rep_region_pair += 1
-                        if b_both_in_rep:
-                            n_both_in_rep_region_pair += 1
+    #                 ###1. consider first/mate reads only once?
+    #                 ###2. consider different chrom with the 'site_chrm' and 'site_pos'???
+    #                 if algnmt.is_read1 == True:
+    #                     b_one_in_rep, b_both_in_rep = xalgnmt.is_TE_caused_discordant_pair(chrm, map_pos, mate_chrm,
+    #                                                                                        mate_map_pos, xannotation)
+    #                     if b_one_in_rep:
+    #                         n_one_in_rep_region_pair += 1
+    #                     if b_both_in_rep:
+    #                         n_both_in_rep_region_pair += 1
 
-            # m_new_candidate_sites[site_pos] = (
-            #     str(n_barcode), str(n_discordant_pair), str(n_one_in_rep_region_pair), str(n_both_in_rep_region_pair),
-            #     str(n_barcode_diff), str(n_barcode_share))
-            m_new_candidate_sites[site_pos] = (
-                str(n_barcode), str(n_discordant_pair), str(n_one_in_rep_region_pair), str(n_both_in_rep_region_pair))
-        xbam.close_bam_file(barcode_bamfile)  ##close barcode bam file
-        xbam.close_bam_file(bamfile)  ##close bam file
+    #         # m_new_candidate_sites[site_pos] = (
+    #         #     str(n_barcode), str(n_discordant_pair), str(n_one_in_rep_region_pair), str(n_both_in_rep_region_pair),
+    #         #     str(n_barcode_diff), str(n_barcode_share))
+    #         m_new_candidate_sites[site_pos] = (
+    #             str(n_barcode), str(n_discordant_pair), str(n_one_in_rep_region_pair), str(n_both_in_rep_region_pair))
+    #     xbam.close_bam_file(barcode_bamfile)  ##close barcode bam file
+    #     xbam.close_bam_file(bamfile)  ##close bam file
 
-        ##write out the combined results
-        sf_candidate_list_disc = sf_candidate_list + global_values.DISC_SUFFIX_FILTER
-        with open(sf_candidate_list_disc, "w") as fout_disc:
-            for pos in m_new_candidate_sites:
-                fout_disc.write(str(pos) + "\t")
-                fout_disc.write(str(m_candidate_pos[pos]) + "\t")
-                lth = len(m_new_candidate_sites[pos])
-                for i in range(lth):
-                    fout_disc.write(str(m_new_candidate_sites[pos][i]) + "\t")
-                fout_disc.write("\n")
+    #     ##write out the combined results
+    #     sf_candidate_list_disc = sf_candidate_list + global_values.DISC_SUFFIX_FILTER
+    #     with open(sf_candidate_list_disc, "w") as fout_disc:
+    #         for pos in m_new_candidate_sites:
+    #             fout_disc.write(str(pos) + "\t")
+    #             fout_disc.write(str(m_candidate_pos[pos]) + "\t")
+    #             lth = len(m_new_candidate_sites[pos])
+    #             for i in range(lth):
+    #                 fout_disc.write(str(m_new_candidate_sites[pos][i]) + "\t")
+    #             fout_disc.write("\n")
 
-    ##filter out some false positive ones using the discordant reads
-    def filter_candidate_sites_by_discordant_pairs(self, m_candidate_sites, iextend, i_is, f_dev, sf_annotation,
-                                                   n_one_in_rep_cutoff, n_both_in_rep_cutoff):
-        sf_disc_working_folder = self.working_folder + global_values.DISC_FOLDER
-        if os.path.exists(sf_disc_working_folder) == False:
-            cmd = "mkdir {0}".format(sf_disc_working_folder)
-            #Popen(cmd, shell=True, stdout=PIPE).communicate()
-            self.cmd_runner.run_cmd_small_output(cmd)
-        sf_disc_working_folder += '/'
-        self.output_candidate_sites_by_chrm(m_candidate_sites, sf_disc_working_folder, global_values.DISC_SUFFIX)
 
-        l_chrm_records = []
-        for chrm in m_candidate_sites:
-            if len(chrm) > 5:  ###filter out those contigs!!!!!!! It's better to have a blacklist!!!!!!!!!!!!!!!!!!!!!!
-                continue
-            record = (
-            chrm, self.sf_bam, self.sf_barcode_bam, iextend, i_is, f_dev, sf_annotation, sf_disc_working_folder,
-            global_values.DISC_SUFFIX)
-            l_chrm_records.append(record)
-            # self.run_filter_by_discordant_pair_by_chrom(record) ##########################################################
-        pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_filter_by_discordant, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
-        pool.close()
-        pool.join()
+   # CS COMMENTED OUT 5/7/24
+    # ##filter out some false positive ones using the discordant reads
+    # def filter_candidate_sites_by_discordant_pairs(self, m_candidate_sites, iextend, i_is, f_dev, sf_annotation,
+    #                                                n_one_in_rep_cutoff, n_both_in_rep_cutoff):
+    #     sf_disc_working_folder = self.working_folder + global_values.DISC_FOLDER
+    #     if os.path.exists(sf_disc_working_folder) == False:
+    #         cmd = "mkdir {0}".format(sf_disc_working_folder)
+    #         #Popen(cmd, shell=True, stdout=PIPE).communicate()
+    #         self.cmd_runner.run_cmd_small_output(cmd)
+    #     sf_disc_working_folder += '/'
+    #     self.output_candidate_sites_by_chrm(m_candidate_sites, sf_disc_working_folder, global_values.DISC_SUFFIX)
 
-        m_new_candidate_sites = {}
-        for chrm in m_candidate_sites:  ####candidate site chromosome # read in by chrm
-            sf_candidate_list_disc = sf_disc_working_folder + chrm + global_values.DISC_SUFFIX + global_values.DISC_SUFFIX_FILTER
-            if os.path.exists(sf_candidate_list_disc) == False:
-                continue
-            with open(sf_candidate_list_disc) as fin_disc:
-                for line in fin_disc:
-                    fields = line.split()
-                    pos = int(fields[0])
-                    n_barcode = int(fields[-6])
-                    n_discordant_pair = int(fields[-5])
-                    n_one_in_rep_region_pair = int(fields[-4])
-                    n_both_in_rep_region_pair = int(fields[-3])
-                    n_barcode_diff = int(fields[-2])
-                    n_barcode_share = int(fields[-1])
+    #     l_chrm_records = []
+    #     for chrm in m_candidate_sites:
+    #         if len(chrm) > 5:  ###filter out those contigs!!!!!!! It's better to have a blacklist!!!!!!!!!!!!!!!!!!!!!!
+    #             continue
+    #         record = (
+    #         chrm, self.sf_bam, self.sf_barcode_bam, iextend, i_is, f_dev, sf_annotation, sf_disc_working_folder,
+    #         global_values.DISC_SUFFIX)
+    #         l_chrm_records.append(record)
+    #         # self.run_filter_by_discordant_pair_by_chrom(record) ##########################################################
+    #     pool = Pool(self.n_jobs)
+    #     pool.map(unwrap_self_filter_by_discordant, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
+    #     pool.close()
+    #     pool.join()
 
-                    if n_one_in_rep_region_pair < n_one_in_rep_cutoff:
-                        continue
-                    if n_both_in_rep_region_pair < n_both_in_rep_cutoff:
-                        continue
+    #     m_new_candidate_sites = {}
+    #     for chrm in m_candidate_sites:  ####candidate site chromosome # read in by chrm
+    #         sf_candidate_list_disc = sf_disc_working_folder + chrm + global_values.DISC_SUFFIX + global_values.DISC_SUFFIX_FILTER
+    #         if os.path.exists(sf_candidate_list_disc) == False:
+    #             continue
+    #         with open(sf_candidate_list_disc) as fin_disc:
+    #             for line in fin_disc:
+    #                 fields = line.split()
+    #                 pos = int(fields[0])
+    #                 n_barcode = int(fields[-6])
+    #                 n_discordant_pair = int(fields[-5])
+    #                 n_one_in_rep_region_pair = int(fields[-4])
+    #                 n_both_in_rep_region_pair = int(fields[-3])
+    #                 n_barcode_diff = int(fields[-2])
+    #                 n_barcode_share = int(fields[-1])
 
-                    if chrm not in m_new_candidate_sites:
-                        m_new_candidate_sites[chrm] = {}
-                    if pos not in m_new_candidate_sites[chrm]:
-                        if (chrm not in m_candidate_sites) or (pos not in m_candidate_sites[chrm]):
-                            continue
-                        n_clip = m_candidate_sites[chrm][pos][0]
-                        m_new_candidate_sites[chrm][pos] = (
-                            n_clip, n_barcode, n_discordant_pair, n_both_in_rep_region_pair, n_barcode_diff,
-                            n_barcode_share)
-        return m_new_candidate_sites
+    #                 if n_one_in_rep_region_pair < n_one_in_rep_cutoff:
+    #                     continue
+    #                 if n_both_in_rep_region_pair < n_both_in_rep_cutoff:
+    #                     continue
+
+    #                 if chrm not in m_new_candidate_sites:
+    #                     m_new_candidate_sites[chrm] = {}
+    #                 if pos not in m_new_candidate_sites[chrm]:
+    #                     if (chrm not in m_candidate_sites) or (pos not in m_candidate_sites[chrm]):
+    #                         continue
+    #                     n_clip = m_candidate_sites[chrm][pos][0]
+    #                     m_new_candidate_sites[chrm][pos] = (
+    #                         n_clip, n_barcode, n_discordant_pair, n_both_in_rep_region_pair, n_barcode_diff,
+    #                         n_barcode_share)
+    #     return m_new_candidate_sites
 
     def run_filter_by_barcode_coverage(self, record):
         site_chrm1 = record[0]
@@ -1254,56 +1261,58 @@ class TELocator():
                         fout_candidate_sites.write(s_feature + "\t")
                     fout_candidate_sites.write("\n")
 
+
+   # CS COMMENTED OUT 5/7/24
     ####Two situations will be kept:
     # 1. the site have both left and right clipped reads, and mate reads fall in repeat region
     # 2. The site has nearby sites, that form a cluster and the cluster have both left and right clpped reads
     # def is_candidate_clip_position(self, pos, m_clip_pos, iextend, n_left_cutoff, n_right_cutoff, n_mate_cutoff):
     #     if
 
-    ####according to the clipped reads (left, right) clip:
-    # 1. the clip position either has left_clipped and right_clipped reads, or
-    # 2. the clip position has left (right) clipped reads, and nearby clipped position has right (left) clip reads
-    ####According to barcode:
-    # 1. at least 20 barcodes are shared between the left and right regions
-    # 2.
-    def first_stage_filter(self, sf_working_folder):
-        bam_info = BamInfo(self.sf_bam, self.sf_reference)
-        m_chrm_names = bam_info.get_all_reference_names()
-        m_all_sites = {}
+    # ####according to the clipped reads (left, right) clip:
+    # # 1. the clip position either has left_clipped and right_clipped reads, or
+    # # 2. the clip position has left (right) clipped reads, and nearby clipped position has right (left) clip reads
+    # ####According to barcode:
+    # # 1. at least 20 barcodes are shared between the left and right regions
+    # # 2.
+    # def first_stage_filter(self, sf_working_folder):
+    #     bam_info = BamInfo(self.sf_bam, self.sf_reference)
+    #     m_chrm_names = bam_info.get_all_reference_names()
+    #     m_all_sites = {}
 
-        for chrm in m_chrm_names:
-            m_clip_pos = {}
-            sf_clip_sites = sf_working_folder + "{0}{1}".format(chrm, CLIP_POS_SUFFIX)
-            if os.path.exists(sf_clip_sites) == False:
-                continue
-            sf_disc_sites = sf_working_folder + global_values.DISC_FOLDER + "/" + "{0}{1}{2}".format(chrm, global_values.DISC_SUFFIX,
-                                                                                       global_values.DISC_SUFFIX_FILTER)
-            if os.path.exists(sf_disc_sites) == False:
-                continue
-            with open(sf_clip_sites) as fin_clip:  # read in the sites from file
-                for line in fin_clip:
-                    fields = line.split()
-                    pos = int(fields[0])
-                    n_left_clip = int(fields[1])
-                    n_right_clip = int(fields[2])
-                    n_mate_in_rep = int(fields[3])
-                    m_clip_pos[pos] = (n_left_clip, n_right_clip, n_mate_in_rep)
+    #     for chrm in m_chrm_names:
+    #         m_clip_pos = {}
+    #         sf_clip_sites = sf_working_folder + "{0}{1}".format(chrm, CLIP_POS_SUFFIX)
+    #         if os.path.exists(sf_clip_sites) == False:
+    #             continue
+    #         sf_disc_sites = sf_working_folder + global_values.DISC_FOLDER + "/" + "{0}{1}{2}".format(chrm, global_values.DISC_SUFFIX,
+    #                                                                                    global_values.DISC_SUFFIX_FILTER)
+    #         if os.path.exists(sf_disc_sites) == False:
+    #             continue
+    #         with open(sf_clip_sites) as fin_clip:  # read in the sites from file
+    #             for line in fin_clip:
+    #                 fields = line.split()
+    #                 pos = int(fields[0])
+    #                 n_left_clip = int(fields[1])
+    #                 n_right_clip = int(fields[2])
+    #                 n_mate_in_rep = int(fields[3])
+    #                 m_clip_pos[pos] = (n_left_clip, n_right_clip, n_mate_in_rep)
 
-                    ##TDList: Need to process the clipped reads
-                    # need to collect the clipped part, and re-align to the reference
+    #                 ##TDList: Need to process the clipped reads
+    #                 # need to collect the clipped part, and re-align to the reference
 
-                    # 1. find all the clipped position, and then re-align the clipped part ###count the number of clipped reads
-                    # 1.1 number of left clipped, and number of right clipped reads
-                    # 1.2 number of (discordant, clipped) reads
-                    # 2. for each clip position, find all the discordant pairs             ###count the number of discordant pairs
-                    # 3.
+    #                 # 1. find all the clipped position, and then re-align the clipped part ###count the number of clipped reads
+    #                 # 1.1 number of left clipped, and number of right clipped reads
+    #                 # 1.2 number of (discordant, clipped) reads
+    #                 # 2. for each clip position, find all the discordant pairs             ###count the number of discordant pairs
+    #                 # 3.
 
-                    # 4. Align the assembled contigs to the reference (align the repeat copies to the assembled contigs????)
-                    # 5. call out the events
-                    # 6.
+    #                 # 4. Align the assembled contigs to the reference (align the repeat copies to the assembled contigs????)
+    #                 # 5. call out the events
+    #                 # 6.
 
-                    # 7.
-                    ####
+    #                 # 7.
+    #                 ####
 
     # def merge_sites_features(self, s_working_folder, m_sites_barcode, sf_out):
     def _get_chrm_id_name(self, samfile):

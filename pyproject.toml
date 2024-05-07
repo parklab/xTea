@@ -18,12 +18,19 @@ requires-python = ">=3.6"
 license = {file = "LICENSE"}
 
 dependencies = [
-    "pysam"
+    "pysam",
+    "sortedcontainers",
+    "numpy",
+    "pandas",
+    "pyranges"
 ]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q"
+addopts = [
+    "-ra -q",
+    "--import-mode=importlib",
+]
 testpaths = [
     "tests"
 ]
