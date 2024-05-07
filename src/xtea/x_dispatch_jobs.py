@@ -136,16 +136,6 @@ class Job_Scheduler():
                 self.gnrt_assembly_script_phased(chrm, pos)
 
 
-    def build_sbatch_script(self, sf_sites, sf_script):
-        m_sites = self._load_sites(sf_sites)
-        l_jobs = ['#!/bin/bash']
-        for chrm in m_sites:
-            for pos in m_sites[chrm]:
-                sf_cmd = "{0}{1}_{2}_{3}.sh".format(self.cmd_folder, chrm, pos, CMD_ASM_SUFFIX)
-                sbatch_cmd = "sbatch --mem=5G --partition=short --time=0-00:30:00 -o hostname_%j.out {0}".format(sf_cmd)
-                l_jobs.append(sbatch_cmd)
-        self.write_out(sf_script, l_jobs)
-
     def build_bsub_script(self, sf_sites, sf_script):
         m_sites = self._load_sites(sf_sites)
         l_jobs = ['#!/bin/bash']
@@ -156,7 +146,3 @@ class Job_Scheduler():
                 sbatch_cmd = "bsub -q park_short -n 1 -W 00:45  -o %j.out -R {0} {1}".format(s_mem, sf_cmd)
                 l_jobs.append(sbatch_cmd)
         self.write_out(sf_script, l_jobs)
-
-#
-# 2.for each site, sbatch each command chrm by chrm
-#

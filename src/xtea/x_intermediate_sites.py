@@ -8,35 +8,7 @@ import global_values
 import numpy as np
 
 class XIntemediateSites():
-    def parse_sites_with_clip_cutoff(self, m_clip_pos_freq, cutoff_left_clip, cutoff_right_clip):
-        i_clip_mate_in_rep = 2  ########################################################################################
-        m_candidate_sites = {}
-        for chrm in m_clip_pos_freq:
-            for pos in m_clip_pos_freq[chrm]:
-                ####here need to check the nearby region
-                nearby_left_freq = 0
-                nearby_right_freq = 0
-                nearby_mate_in_rep = 0
-                for i in range(-1 * global_values.NEARBY_REGION, global_values.NEARBY_REGION):
-                    i_tmp_pos = pos + i
-                    if i_tmp_pos in m_clip_pos_freq[chrm]:
-                        nearby_left_freq += m_clip_pos_freq[chrm][i_tmp_pos][0]
-                        nearby_right_freq += m_clip_pos_freq[chrm][i_tmp_pos][1]
-                        nearby_mate_in_rep += m_clip_pos_freq[chrm][i_tmp_pos][2]
-
-                # if nearby_left_freq >= cutoff_left_clip and nearby_right_freq >= cutoff_right_clip \
-                #         and nearby_mate_in_rep >= i_clip_mate_in_rep:
-
-                # for this version, doesn't check whether the clipped part is mapped to a repeat region
-                if nearby_left_freq >= cutoff_left_clip and nearby_right_freq >= cutoff_right_clip:
-                    if chrm not in m_candidate_sites:
-                        m_candidate_sites[chrm] = {}
-                    i_left_cnt = m_clip_pos_freq[chrm][pos][0]
-                    i_right_cnt = m_clip_pos_freq[chrm][pos][1]
-                    i_mate_in_rep_cnt = m_clip_pos_freq[chrm][pos][2]
-                    m_candidate_sites[chrm][pos] = (i_left_cnt, i_right_cnt, i_mate_in_rep_cnt)
-        return m_candidate_sites
-
+    
 ####
     def parse_sites_with_clip_cutoff_for_chrm(self, m_clip_pos_freq, cutoff_left_clip, cutoff_right_clip,
                                               cutoff_clip_mate_in_rep):
@@ -163,22 +135,6 @@ class XIntemediateSites():
         return m_list
 
     ####
-    def load_in_candidate_list_one_line(self, sf_candidate_list):
-        m_list = {}
-        with open(sf_candidate_list) as fin_candidate_sites:
-            for line in fin_candidate_sites:
-                fields = line.split()
-                if len(fields)<3:
-                    print((fields, "does not have enough fields"))
-                    continue
-                chrm = fields[0]
-                pos = int(fields[1])
-                if chrm not in m_list:
-                    m_list[chrm] = {}
-                m_list[chrm][pos]=line.rstrip()
-        return m_list
-
-    ####
     def load_in_candidate_list_str_version(self, sf_candidate_list):
         m_list = {}
         with open(sf_candidate_list) as fin_candidate_sites:
@@ -197,80 +153,6 @@ class XIntemediateSites():
                     m_list[chrm][pos].append(s_value)
         return m_list
 
-    def load_in_candidate_list2(self, sf_candidate_list):
-        m_list = {}
-        with open(sf_candidate_list) as fin_candidate_sites:
-            for line in fin_candidate_sites:
-                fields = line.split()
-                chrm = fields[0]
-                pos = int(fields[1])
-                if chrm not in m_list:
-                    m_list[chrm] = {}
-                if pos not in m_list[chrm]:
-                    m_list[chrm][pos] = []
-                for ivalue in fields[2:]:
-                    m_list[chrm][pos].append(ivalue) #here save str
-        return m_list
-
-    def is_in_existing_list(self, ins_chrm, ins_pos, m_sites, i_win):
-        if ins_chrm not in m_sites:
-            return False
-        for i in range(ins_pos-i_win, ins_pos+i_win):
-            if (i+ins_pos) in m_sites[ins_chrm]:
-                return True
-        return False
-
-    # In the previous step (call_TEI_candidate_sites), some sites close to each other may be introduced together
-    # If there are more than 1 site close to each other, than use the peak site as a representative
-    def call_peak_candidate_sites(self, m_candidate_sites, peak_window):#
-        m_peak_candidate_sites = {}
-        for chrm in m_candidate_sites:
-            l_pos = list(m_candidate_sites[chrm].keys())
-            l_pos.sort()  ###sort the candidate sites
-            pre_pos = -1
-            set_cluster = set()
-            for pos in l_pos:
-                if pre_pos == -1:
-                    pre_pos = pos
-                    set_cluster.add(pre_pos)
-                    continue
-
-                if pos - pre_pos > peak_window:  # find the peak in the cluster
-                    max_clip = 0
-                    tmp_candidate_pos = 0
-                    for tmp_pos in set_cluster:
-                        tmp_left_clip = int(m_candidate_sites[chrm][tmp_pos][0]) #left clip
-                        tmp_right_clip = int(m_candidate_sites[chrm][tmp_pos][1]) #right clip
-                        tmp_all_clip = tmp_left_clip + tmp_right_clip #all the clip
-                        if max_clip < tmp_all_clip:
-                            tmp_candidate_pos = tmp_pos
-                            max_clip = tmp_all_clip
-                    set_cluster.clear()
-                    if chrm not in m_peak_candidate_sites:
-                        m_peak_candidate_sites[chrm] = {}
-                    if tmp_candidate_pos not in m_peak_candidate_sites[chrm]:
-                        m_peak_candidate_sites[chrm][tmp_candidate_pos] = [max_clip]
-                pre_pos = pos
-                set_cluster.add(pre_pos)
-
-            # push out the last group 
-            max_clip = 0
-            tmp_candidate_pos = 0
-            ####check the standard derivation
-            for tmp_pos in set_cluster:
-                tmp_left_clip = int(m_candidate_sites[chrm][tmp_pos][0])
-                tmp_right_clip = int(m_candidate_sites[chrm][tmp_pos][1])
-                tmp_all_clip = tmp_left_clip + tmp_right_clip
-                if max_clip < tmp_all_clip:
-                    tmp_candidate_pos = tmp_pos
-                    max_clip = tmp_all_clip
-            if chrm not in m_peak_candidate_sites:
-                m_peak_candidate_sites[chrm] = {}
-            if tmp_candidate_pos not in m_peak_candidate_sites[chrm]:
-                ##Here, use list in order to output the list (by call the output_candidate_sites function)
-                m_peak_candidate_sites[chrm][tmp_candidate_pos] = [max_clip]
-        return m_peak_candidate_sites
-####
     ####In this version, we will calculate the standard derivation of the left and right clip cluster
     # In the previous step (call_TEI_candidate_sites), some sites close to each other may be introduced together
     # If there are more than 1 site close to each other, than use the peak site as a representative
@@ -348,157 +230,7 @@ class XIntemediateSites():
                 ##Here, use list in order to output the list (by call the output_candidate_sites function)
                 m_peak_candidate_sites[chrm][tmp_candidate_pos] = [max_clip, f_lclip_std, f_rclip_std, f_clip_std]
         return m_peak_candidate_sites
-####
 
-    # This version is designed for long reads which doesn't have exact accurate breakpoints.
-    # For each cluster, we use the "medium" position as the representative position
-    # If there are more than 1 site close to each other, than use the peak site as a representative
-    ####m_candidate_sites in format: where m_candidate_sites[chrm][pos][0][0/1/2] is num of left/right/contained
-    #### reads happen at site chrm:pos
-    def call_peak_candidate_sites_lrd(self, m_candidate_sites, peak_window, b_save=False):
-        m_peak_candidate_sites = {}
-        m_brkpnts_sites={}
-        for chrm in m_candidate_sites:
-            l_pos = list(m_candidate_sites[chrm].keys())
-            l_pos.sort()  ###sort the candidate sites
-            pre_pos = -1
-            l_clip_pos=[]
-            for pos in l_pos:
-                if pre_pos == -1:
-                    pre_pos = pos
-                    l_clip_pos.append(pre_pos)
-                    continue
-
-                #if end of a cluster, then check this cluster
-                if pos - pre_pos > peak_window:  # find the peak in the cluster
-                    total_clip=0
-                    total_lclip=0
-                    total_rclip=0
-                    total_contained=0
-                    total_focal_all=0
-                    l_tmp_medium=[]
-                    for tmp_pos in l_clip_pos:
-                        tmp_left_clip = int(m_candidate_sites[chrm][tmp_pos][0][0]) #left clip
-                        total_lclip+=tmp_left_clip
-                        tmp_right_clip = int(m_candidate_sites[chrm][tmp_pos][0][1]) #right clip
-                        total_rclip+=tmp_right_clip
-                        tmp_contained = int(m_candidate_sites[chrm][tmp_pos][0][2])  # contained case
-                        total_contained+=tmp_contained
-                        tmp_all_clip = tmp_left_clip + tmp_right_clip + tmp_contained #all the clip
-                        l_tmp_medium.append(tmp_all_clip)
-                        total_clip+=tmp_all_clip
-                    n_elements=len(l_clip_pos)
-                    if n_elements>0:#
-                        #find the medium position
-                        i_cnt_half=total_clip/2
-                        i_tmp_medium=0
-                        i_tmp_idx=0
-                        for tmp_value in l_tmp_medium:
-                            i_tmp_medium+=tmp_value
-                            if i_tmp_medium>=i_cnt_half:
-                                break
-                            i_tmp_idx+=1
-                        tmp_candidate_pos=l_clip_pos[i_tmp_idx] ####this is the medium position
-                        tmp_focal_start=tmp_candidate_pos-global_values.LRD_BRKPNT_FOCAL_REGIN
-                        tmp_focal_end=tmp_candidate_pos+global_values.LRD_BRKPNT_FOCAL_REGIN
-                        #tmp_candidate_pos = l_clip_pos[n_elements/2]#select the medium pos
-                        ####before delete the sites, save the breakpoints for each cluster
-                        if b_save==True:
-                            if chrm not in m_brkpnts_sites:
-                                m_brkpnts_sites[chrm] = {}
-                            if tmp_candidate_pos not in m_brkpnts_sites[chrm]:
-                                m_brkpnts_sites[chrm][tmp_candidate_pos]=[]
-                            for tmp_pos2 in l_clip_pos:
-                                #here we need to extend
-                                tmp_left_clip2 = int(m_candidate_sites[chrm][tmp_pos2][0][0])  # left clip
-                                tmp_right_clip2 = int(m_candidate_sites[chrm][tmp_pos2][0][1])  # right clip
-                                tmp_contained2 = int(m_candidate_sites[chrm][tmp_pos2][0][2])  # contained case
-                                l_tmp_lclip=[tmp_pos2]* tmp_left_clip2
-                                l_tmp_rclip=[tmp_pos2]* tmp_right_clip2
-                                l_tmp_contain=[tmp_pos2]* tmp_contained2
-                                m_brkpnts_sites[chrm][tmp_candidate_pos].extend(l_tmp_lclip)
-                                m_brkpnts_sites[chrm][tmp_candidate_pos].extend(l_tmp_rclip)
-                                m_brkpnts_sites[chrm][tmp_candidate_pos].extend(l_tmp_contain)
-
-                                if tmp_pos2>=tmp_focal_start and tmp_pos2<=tmp_focal_end:
-                                    #total_focal_all+=(tmp_left_clip2+tmp_right_clip2+tmp_contained2)
-                                    total_focal_all += tmp_contained2
-
-                                #m_brkpnts_sites[chrm][tmp_candidate_pos].append(tmp_pos2)#save the position
-                            #in a [-50,50] region, count the number of number of supported reads
-####
-                        f_tmp_std = self.calc_std_derivation(m_brkpnts_sites[chrm][tmp_candidate_pos])
-                        del l_clip_pos[:]
-                        if chrm not in m_peak_candidate_sites:
-                            m_peak_candidate_sites[chrm] = {}
-                        if tmp_candidate_pos not in m_peak_candidate_sites[chrm]:
-                            m_peak_candidate_sites[chrm][tmp_candidate_pos] = [total_clip, total_lclip, total_rclip,
-                                                                               total_contained, total_focal_all, f_tmp_std]
-                pre_pos = pos
-                l_clip_pos.append(pre_pos)
-
-            # push out the last group
-            n_elements = len(l_clip_pos)
-            if n_elements>0:
-                total_clip = 0
-                total_lclip = 0
-                total_rclip = 0
-                total_contained = 0
-                total_focal_all = 0
-                l_tmp_medium=[]
-                for tmp_pos in l_clip_pos:
-                    tmp_left_clip = int(m_candidate_sites[chrm][tmp_pos][0][0])  # left clip
-                    total_lclip += tmp_left_clip
-                    tmp_right_clip = int(m_candidate_sites[chrm][tmp_pos][0][1])  # right clip
-                    total_rclip += tmp_right_clip
-                    tmp_contained = int(m_candidate_sites[chrm][tmp_pos][0][2])  # contained case
-                    total_contained += tmp_contained
-                    tmp_all_clip = tmp_left_clip + tmp_right_clip + tmp_contained  # all the clip
-                    l_tmp_medium.append(tmp_all_clip)
-                    total_clip += tmp_all_clip
-
-                i_cnt_half = total_clip / 2
-                i_tmp_medium = 0
-                i_tmp_idx = 0
-                for tmp_value in l_tmp_medium:
-                    i_tmp_medium += tmp_value
-                    if i_tmp_medium >= i_cnt_half:
-                        break
-                    i_tmp_idx += 1
-                tmp_candidate_pos = l_clip_pos[i_tmp_idx]
-                tmp_focal_start = tmp_candidate_pos - global_values.LRD_BRKPNT_FOCAL_REGIN
-                tmp_focal_end = tmp_candidate_pos + global_values.LRD_BRKPNT_FOCAL_REGIN
-                #tmp_candidate_pos = l_clip_pos[n_elements / 2]  #select the medium pos
-                ####before delete the sites, save the breakpoints for each cluster
-                if b_save == True:
-                    if chrm not in m_brkpnts_sites:
-                        m_brkpnts_sites[chrm] = {}
-                    if tmp_candidate_pos not in m_brkpnts_sites[chrm]:
-                        m_brkpnts_sites[chrm][tmp_candidate_pos] = []
-                    for tmp_pos2 in l_clip_pos:
-                        # here we need to extend
-                        tmp_left_clip2 = int(m_candidate_sites[chrm][tmp_pos2][0][0])  # left clip
-                        tmp_right_clip2 = int(m_candidate_sites[chrm][tmp_pos2][0][1])  # right clip
-                        tmp_contained2 = int(m_candidate_sites[chrm][tmp_pos2][0][2])  # contained case
-                        l_tmp_lclip = [tmp_pos2] * tmp_left_clip2
-                        l_tmp_rclip = [tmp_pos2] * tmp_right_clip2
-                        l_tmp_contain = [tmp_pos2] * tmp_contained2
-                        m_brkpnts_sites[chrm][tmp_candidate_pos].extend(l_tmp_lclip)
-                        m_brkpnts_sites[chrm][tmp_candidate_pos].extend(l_tmp_rclip)
-                        m_brkpnts_sites[chrm][tmp_candidate_pos].extend(l_tmp_contain)
-
-                        if tmp_pos2 >= tmp_focal_start and tmp_pos2 <= tmp_focal_end:
-                            total_focal_all += tmp_contained2
-
-                f_tmp_std = self.calc_std_derivation(m_brkpnts_sites[chrm][tmp_candidate_pos])
-                del l_clip_pos[:]
-                if chrm not in m_peak_candidate_sites:
-                    m_peak_candidate_sites[chrm] = {}
-                if tmp_candidate_pos not in m_peak_candidate_sites[chrm]:
-                    m_peak_candidate_sites[chrm][tmp_candidate_pos] = [total_clip, total_lclip, total_rclip,
-                                                                       total_contained, total_focal_all, f_tmp_std]
-        return m_peak_candidate_sites, m_brkpnts_sites
-####
 ####
     def merge_clip_disc(self, sf_disc_tmp, sf_clip, sf_out):
         with open(sf_out, "w") as fout_list:

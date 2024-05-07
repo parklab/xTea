@@ -66,68 +66,6 @@ class gVCF():
         shead+=("#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\t"+s_sample_id+"\n")
         return shead
 
-####
-    def prepare_head_hg19(self, b_chr):
-        s_chr=""
-        if b_chr==True:
-            s_chr="chr"
-        sinfo = "##contig=<ID={0}1,length=249250621>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}2,length=243199373>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}3,length=198022430>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}4,length=191154276>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}5,length=180915260>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}6,length=171115067>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}7,length=159138663>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}8,length=146364022>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}9,length=141213431>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}10,length=135534747>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}11,length=135006516>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}12,length=133851895>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}13,length=115169878>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}14,length=107349540>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}15,length=102531392>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}16,length=90354753>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}17,length=81195210>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}18,length=78077248>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}19,length=59128983>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}20,length=63025520>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}21,length=48129895>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}22,length=51304566>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}X,length=155270560>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}Y,length=59373566>\n".format(s_chr)
-        return sinfo
-
-####
-    def prepare_head_hg38(self, b_chr):
-        s_chr = ""
-        if b_chr == True:
-            s_chr = "chr"
-        sinfo = "##contig=<ID={0}1,length=248956422>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}2,length=242193529>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}3,length=198295559>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}4,length=190214555>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}5,length=181538259>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}6,length=170805979>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}7,length=159345973>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}8,length=145138636>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}9,length=138394717>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}10,length=133797422>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}11,length=135086622>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}12,length=133275309>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}13,length=114364328>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}14,length=107043718>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}15,length=101991189>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}16,length=90338345>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}17,length=83257441>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}18,length=80373285>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}19,length=58617616>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}20,length=64444167>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}21,length=46709983>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}22,length=50818468>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}X,length=156040895>\n".format(s_chr)
-        sinfo += "##contig=<ID={0}Y,length=57227415>\n".format(s_chr)
-        return sinfo
-
     def prepare_head_other(self):#
         sinfo=""
         sinfo += "##ALT=<ID=INS:ME:SVA,Description=\"Insertion of SVA element\">\n"

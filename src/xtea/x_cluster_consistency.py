@@ -18,16 +18,6 @@ class ClusterChecker():
         if (float(n_hit) / float(n_all_cnt)) < ratio:
             return False, -1, -1
         return True, l_boundary, r_boundary
-    ####
-    #most of the left disc should be non_rc, while most of the right disc should be rc
-    def _is_disc_orientation_consistency(self, n_l_rc, n_l_non_rc, n_r_rc, n_r_non_rc, ratio):
-        b_l_consist=True
-        if ((n_l_rc+n_l_non_rc) > 0) and (float(n_l_non_rc)/float(n_l_rc+n_l_non_rc) < ratio):
-            b_l_consist = False
-        b_r_consist = True
-        if ((n_r_rc + n_r_non_rc) > 0) and (float(n_r_rc) / float(n_r_rc + n_r_non_rc) < ratio):
-            b_r_consist = False
-        return b_l_consist and b_r_consist
 
     ####
     # return value is the interval of l_pos

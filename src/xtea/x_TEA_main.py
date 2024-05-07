@@ -298,12 +298,6 @@ def automatic_gnrt_parameters_case_control(sf_bam_list, sf_ref, s_working_folder
           .format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2]))
     return par_rcd, rcd
 
-####
-def adjust_cutoff_tumor(ncutoff=-1, i_adjust=1):
-    if ncutoff-i_adjust>1:
-        ncutoff=ncutoff-i_adjust
-    return ncutoff
-
 ##main function
 if __name__ == '__main__':
     (options, args) = parse_option()

@@ -183,69 +183,6 @@ class XReference():
         pool.map(unwrap_gnrt_flank_regions, list(zip([self] * len(l_records), l_records)), 1)
         pool.close()
         pool.join()
-
-    ####
-    ####generate flank regions for given regions
-    def gnrt_flank_region_for_regions(self, sf_sites, i_extend, n_jobs, sf_ref, s_working_folder,
-                                      b_left=True, b_right=True):
-        xsites = XSites(sf_sites)
-        m_sites = xsites.load_in_sites_of_regions()
-
-        if s_working_folder[-1] != "/":
-            s_working_folder += "/"
-        flank_folder = s_working_folder + global_values.FLANK_FOLDER
-        if os.path.exists(flank_folder) == False:
-            cmd = "mkdir {0}".format(flank_folder)
-            #Popen(cmd, shell=True, stdout=PIPE).communicate()
-            self.cmd_runner.run_cmd_small_output(cmd)
-
-        l_records = []
-        for chrm in m_sites:
-            tmp_rcd=(chrm, sf_sites, sf_ref, i_extend, flank_folder, b_left, b_right)
-            l_records.append(tmp_rcd)
-            #self.run_gnrt_flank_region_for_chrm(tmp_rcd) ################
-        pool = Pool(n_jobs)
-        pool.map(unwrap_gnrt_flank_regions_for_regions, list(zip([self] * len(l_records), l_records)), 1)
-        pool.close()
-        pool.join()
-
-####
-
-####
-    # #this function is used to get flanks of candidate site, then align to the assembled contigs
-    # #to call out TE insertion or other SVs
-    # def gnrt_flank_region_for_sites_in_list(self, l_sites, i_extend, n_jobs, sf_ref, s_working_folder):
-    #     # xsites = XSites(sf_sites)
-    #     # m_sites = xsites.load_in_sites()
-    #     m_sites={}
-    #     for site_rcd in l_sites:
-    #         # each in format: (sf_bam, ins_chrm, ins_pos, sf_tmp)
-    #         ins_chrm = site_rcd[1]
-    #         ins_pos = int(site_rcd[2])
-    #         if ins_chrm not in m_sites:
-    #             m_sites[ins_chrm]={}
-    #         m_sites[ins_chrm][ins_pos]=1
-    #
-    #     if s_working_folder[-1] != "/":
-    #         s_working_folder += "/"
-    #     flank_folder = s_working_folder + global_values.FLANK_FOLDER
-    #     if os.path.exists(flank_folder) == False:
-    #         cmd = "mkdir {0}".format(flank_folder)
-    #         #Popen(cmd, shell=True, stdout=PIPE).communicate()
-    #         self.cmd_runner.run_cmd_small_output(cmd)
-    #
-    #     l_records = []
-    #     for chrm in m_sites:
-    #         tmp_rcd=(chrm, sf_sites, sf_ref, i_extend, flank_folder)
-    #         l_records.append(tmp_rcd)
-    #         #self.run_gnrt_flank_region_for_chrm(tmp_rcd) ################
-    #
-    #     pool = Pool(n_jobs)
-    #     pool.map(unwrap_gnrt_flank_regions, zip([self] * len(l_records), l_records), 1)
-    #     pool.close()
-    #     pool.join()
-#####
-
     ####
     def gnrt_flank_regions_of_polymerphic_insertions(self, l_sites, i_extend1, sf_ref, sf_out):
         i_extend=abs(i_extend1)
@@ -285,32 +222,6 @@ class XReference():
                 m_polym_fl_l1_flank[s_id]=(s_left_head, s_left_region, s_right_head, s_right_region)
         f_fa.close()
         return m_polym_fl_l1_flank
-####
-####
-    #generate the target sequence for given sites
-    def gnrt_target_flank_seq_for_sites(self, sf_sites, i_extend1, n_jobs, sf_ref, s_working_folder):
-        i_extend=abs(i_extend1)
-        xsites = XSites(sf_sites)
-        m_sites = xsites.load_in_sites()
-
-        if s_working_folder[-1] != "/":
-            s_working_folder += "/"
-        flank_folder = s_working_folder + global_values.FLANK_FOLDER
-        if os.path.exists(flank_folder) == False:
-            cmd = "mkdir {0}".format(flank_folder)
-            # Popen(cmd, shell=True, stdout=PIPE).communicate()
-            self.cmd_runner.run_cmd_small_output(cmd)
-
-        l_records = []
-        for chrm in m_sites:
-            tmp_rcd = (chrm, sf_sites, sf_ref, i_extend, flank_folder)
-            l_records.append(tmp_rcd)
-            # self.run_gnrt_flank_region_for_chrm(tmp_rcd) ################
-
-        pool = Pool(n_jobs)
-        pool.map(unwrap_gnrt_target_regions, list(zip([self] * len(l_records), l_records)), 1)
-        pool.close()
-        pool.join()
 
 ####
     # gnrt the left and right flank regions for each candidate site
@@ -363,14 +274,6 @@ class XReference():
                 m_bins[chrm].append((tmp_pos, block_end))
                 tmp_pos=block_end
         return m_bins
-
-    ##get index by chrm position
-    def get_bin_by_pos(self, chrm, pos, bin_size, m_bins):
-        bin_index=-1
-        if chrm not in m_bins:
-            return bin_index
-        bin_index = pos/bin_size
-        return m_bins[chrm][bin_index] #return [start, end) of the bin
 
     #Given sites, get the seqs in ref of those sites
     #record within l_sites in format: (chrm, istart, iend)

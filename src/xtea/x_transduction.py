@@ -39,10 +39,6 @@ class XTransduction():
     def set_boundary_extend(self, extnd):
         self._boundary_extnd=extnd
 
-    def set_abnormal_insert_size(self, i_is):
-        if i_is>self._abnormal_insert_size:
-            self._abnormal_insert_size=i_is
-
     #re-select from the very beginning sites to check those:
     #1. transduction comes polymorphic full length L1s (rescue those filtered out at the original "disc" step)
     #2. orphan transductions (rescue those filtered out at the originial "disc" step
@@ -582,24 +578,6 @@ class XTransduction():
                     fout_new.write(m_all_td[ins_chrm][ins_pos]+"\n")
 
 ####
-    def _cnt_support_pairs(self, m_disc):
-        n_pairs = 0
-        n_max_chrm = 0
-        s_max_chrm = ""
-        for mate_chrm in m_disc:
-            n_temp = len(m_disc[mate_chrm])
-            if n_temp > n_max_chrm:
-                n_max_chrm = n_temp
-                s_max_chrm = mate_chrm
-            n_pairs += n_temp
-        l_tmp = m_disc[s_max_chrm].sort()  # sort the list
-        n_tmp = len(l_tmp)
-        mid_pos = -1
-        if n_tmp>0:
-            mid_pos = l_tmp[n_tmp // 2]
-        return s_max_chrm, n_max_chrm, mid_pos
-
-####
     #1. check whether has two-side discordant reads (filter out those only has one side)
     #2. check whether has two-side clipped reads, and whether all are polyA-reads
     #3. check whether in repetitive region of the same type
@@ -689,65 +667,6 @@ class XTransduction():
                 return True
         return False
 
-####
-    # for each site, collect the disc and clip reads not aligned to consensus
-    def collect_transduction_clip_disc_reads(self, sf_clip_algnmt, sf_disc_algnmt, m_picked_sites, m_ins_category, 
-                                             min_clip_lth, sf_clip_fa, sf_disc_fa):
-        m_sites = {}
-        for ins_chrm in m_picked_sites:
-            for ins_pos in m_picked_sites[ins_chrm]:
-                s_site = "{0}{1}{2}".format(ins_chrm, global_values.SEPERATOR, ins_pos)
-                if s_site in m_ins_category[global_values.TWO_SIDE]:#skip those insertions with two side information
-                    continue
-                m_sites[s_site] = 1
-        # collect the clipped reads
-        # For clip reads, e.g.:4~11019868~R~0~11019545~98~0 [chrm, map-pos, clip_dir, rev-comp, ins_pos, cnt, sample]
-        with open(sf_clip_fa, "w") as fout_clip:
-            samfile = pysam.AlignmentFile(sf_clip_algnmt, "r", reference_filename=self.sf_reference)
-            for algnmt in samfile.fetch():
-                read_info = algnmt.query_name
-                read_fields = read_info.split(global_values.SEPERATOR)
-                rid_tmp = "{0}{1}{2}".format(read_fields[0], global_values.SEPERATOR, read_fields[-3])
-                if rid_tmp not in m_sites:
-                    continue
-                read_seq = algnmt.query_sequence
-                # if unmapped, then save the unmapped clipped reads
-                b_save = False
-                if algnmt.is_unmapped == True:
-                    b_save = True
-                else:
-                    l_cigar = algnmt.cigar
-                    b_save = self._is_large_clipped(l_cigar, min_clip_lth)
-
-                if b_save == True:
-                    fout_clip.write(">" + read_info + "\n")
-                    fout_clip.write(read_seq + "\n")
-            samfile.close()
-        ####
-        # collect the discordant reads
-        # For disc reads, e.g.: read-id~0~181192671~3~181192845~0 [rid, is-first, pos, ins-chrm, ins-pos, sample]
-        with open(sf_disc_fa, "w") as fout_disc:
-            samfile = pysam.AlignmentFile(sf_disc_algnmt, "r", reference_filename=self.sf_reference)
-            for algnmt in samfile.fetch():
-                read_info = algnmt.query_name
-                read_fields = read_info.split(global_values.SEPERATOR)
-                rid_tmp = "{0}{1}{2}".format(read_fields[-3], global_values.SEPERATOR, read_fields[-2])
-                if rid_tmp not in m_sites:
-                    continue
-                read_seq = algnmt.query_sequence
-                # if unmapped, then save the unmapped clipped reads
-                b_save = False
-                if algnmt.is_unmapped == True:
-                    b_save = True
-                else:
-                    l_cigar = algnmt.cigar
-                    b_save = self._is_large_clipped(l_cigar, min_clip_lth)
-
-                if b_save == True:
-                    fout_disc.write(">" + read_info + "\n")
-                    fout_disc.write(read_seq + "\n")
-            samfile.close()
-####
 ####
     # sf_clip_alignmt: the alignment on flank regions (reads not mapped (or clipped) to consensus)
     def parse_transduction_clip_algnmt(self, sf_clip_alignmt, flank_lth):
@@ -979,101 +898,6 @@ class XTransduction():
                     m_slct[ins_chrm]={}
                 m_slct[ins_chrm][ins_pos]=(n_cnt, n_polyA)
         return m_slct
-####
-####
-    # sf_clip_alignmt: the alignment on flank regions (reads not mapped (or clipped) to consensus)
-    def parse_clip_algnmt_rescued(self, sf_clip_alignmt, flank_lth):
-        samfile = pysam.AlignmentFile(sf_clip_alignmt, "r", reference_filename=self.sf_reference)
-        m_l_n_source_cand = {}  # candidate whose clipped parts well aligned to several flanking regions
-        m_r_n_source_cand = {}
-        for algnmt in samfile.fetch():
-            read_info = algnmt.query_name
-            read_info_fields = read_info.split(global_values.SEPERATOR)
-
-            ori_chrm = read_info_fields[0]
-            ref_mpos = int(read_info_fields[1])  ##clip position on the reference
-            ori_clip_flag = read_info_fields[2]
-            ori_insertion_pos = int(read_info_fields[4])
-
-            if abs(ref_mpos - ori_insertion_pos) > global_values.NEARBY_CLIP:  # only focus on the clipped reads nearby
-                continue
-            if algnmt.is_unmapped == True:  ####skip the unmapped reads
-                continue
-            if algnmt.mapping_quality >= global_values.MINIMAL_TRANSDUCT_MAPQ:#should be multiple mapped
-                continue
-
-            hit_flank_id = algnmt.reference_name  # e.g. chrY~3443451~3449565~L1HS~0L
-
-            hit_flank_fields=hit_flank_id.split(global_values.SEPERATOR)
-            if len(hit_flank_fields)<2 or hit_flank_fields[-2]==global_values.S_POLYMORPHIC:
-                continue
-
-            ####Skip those aligned to transduction decoy sequence
-            if hit_flank_id == global_values.TD_DECOY_LINE or hit_flank_id == global_values.TD_DECOY_SVA or \
-                            hit_flank_id == global_values.TD_DECOY_ALU:
-                continue
-
-            b_left = True  # left clip
-            if ori_clip_flag == global_values.FLAG_RIGHT_CLIP:
-                b_left = False  # right clip
-
-            bmapped_cutoff = global_values.TD_CLIP_QLFD_RATIO #by default 0.85
-            l_cigar = algnmt.cigar
-            b_clip_qualified_algned, n_map_bases = self.is_clipped_part_qualified_algnmt(l_cigar, bmapped_cutoff)
-            if b_clip_qualified_algned == False:  # skip the unqualified re-aligned parts
-                continue
-
-            flank_id_fields = hit_flank_id.split(global_values.SEPERATOR)
-            chrm_fl_L1 = flank_id_fields[0]
-            source_start = int(flank_id_fields[1])
-            source_end = int(flank_id_fields[2])
-            sourc_rc = flank_id_fields[-1][0]
-
-            if (ori_chrm == chrm_fl_L1) and (
-                    abs(ref_mpos - source_start) < global_values.MIN_POLYMORPHIC_SOURCE_DIST
-            or abs(ref_mpos - source_end) < global_values.MIN_POLYMORPHIC_SOURCE_DIST):
-                continue
-
-            # here need to process the chrom, and keep it consistent with the final list
-            if len(chrm_fl_L1) > 3 and chrm_fl_L1[:3] == "chr":  # contain
-                if len(ori_chrm) <= 3 or ori_chrm[:3] != "chr":
-                    chrm_fl_L1 = chrm_fl_L1[3:]  # trim the "chr"
-
-            # calc the map position on the flank [convert to the reference genome]
-            map_pos = algnmt.reference_start
-            dist_from_rep = map_pos
-            if flank_id_fields[-1][-1] == "L":  # left-flank region
-                dist_from_rep = flank_lth - map_pos
-
-            if b_left == True:  # for left-clipped reads
-                if ori_chrm not in m_l_n_source_cand:
-                    m_l_n_source_cand[ori_chrm] = {}
-                if ori_insertion_pos not in m_l_n_source_cand[ori_chrm]:
-                    m_l_n_source_cand[ori_chrm][ori_insertion_pos] = []
-                m_l_n_source_cand[ori_chrm][ori_insertion_pos].append(dist_from_rep)
-            else:
-                if ori_chrm not in m_r_n_source_cand:
-                    m_r_n_source_cand[ori_chrm] = {}
-                if ori_insertion_pos not in m_r_n_source_cand[ori_chrm]:
-                    m_r_n_source_cand[ori_chrm][ori_insertion_pos] = []
-                m_r_n_source_cand[ori_chrm][ori_insertion_pos].append(dist_from_rep)
-        samfile.close()
-        return m_l_n_source_cand, m_r_n_source_cand
-
-####
-    def re_selct_clip_reads(self, sf_fq, m_transdct, sf_out):
-        with pysam.FastxFile(sf_fq) as fin, open(sf_out, "w") as fout:
-            for entry in fin:
-                sid=entry.name
-                s_seq=entry.sequence
-                read_info_fields = sid.split(global_values.SEPERATOR)
-
-                ori_chrm = read_info_fields[0]
-                ori_insertion_pos = int(read_info_fields[4])
-                if (ori_chrm not in m_transdct) or (ori_insertion_pos not in m_transdct[ori_chrm]):
-                    continue
-                fout.write(">"+sid+"\n")
-                fout.write(s_seq+"\n")
 
 ####
     def re_select_disc_reads(self, sf_disc_sam, m_transdct, sf_out):
@@ -1417,12 +1241,6 @@ class XTransduction():
             return False, 0
         return True, n_map
 
-    def is_consecutive_polyA_T(self, seq):
-        if ("AAAAA" in seq) or ("TTTTT" in seq) or ("AATAA" in seq) or ("TTATT" in seq):
-            return True
-        else:
-            return False
-
     def is_consecutive_polyA(self, seq):
         if (("AAAAA" in seq) or ("AATAA" in seq)):
             return True
@@ -1491,72 +1309,3 @@ class XTransduction():
                     n_disc_trsdct=m_orphan[ins_chrm][ins_pos][1]+m_orphan[ins_chrm][ins_pos][2]
                     m_transduction[ins_chrm][ins_pos] = (False, True, n_disc_trsdct, trsdct_info)
         return m_transduction
-####
-####
-    # In this version, the transduction candidates are called out only by discordant reads
-    # then, in this function, for each candidate, extract the related information
-    def _extract_transduct_info(self, m_list, m_transduct, m_lclip_transduct, m_rclip_transduct, m_td_polyA, BIN_SIZE):
-        m_info = {}
-        ckcluster = ClusterChecker()
-        for ins_chrm in m_list:
-            for ins_pos in m_list[ins_chrm]:
-                if (ins_chrm not in m_transduct) or (ins_pos not in m_transduct[ins_chrm]):
-                    continue
-
-                record = m_transduct[ins_chrm][ins_pos]
-                b_l_trsdct = record[0]
-                n_disc_trsdct = record[2]
-                trsdct_info = record[3]
-
-                # for the clip information
-                n_clip_trsdct = 0
-                peak_ref_clip_pos = -1
-                if b_l_trsdct == True:  # left-transduction
-                    if (ins_chrm in m_lclip_transduct) and (ins_pos in m_lclip_transduct[ins_chrm]):
-                        # m_lclip_pos = m_lclip_transduct[ins_chrm][ins_pos]
-                        l1_pos, l1_nbr, l1_acm, l2p, l2n, l2a = ckcluster.find_first_second_peak(m_lclip_transduct,
-                                                                                            ins_chrm,
-                                                                                            ins_pos, BIN_SIZE)
-                        n_clip_trsdct = l1_acm
-                        peak_ref_clip_pos = l1_pos
-                else:
-                    if (ins_chrm in m_rclip_transduct) and (ins_pos in m_rclip_transduct[ins_chrm]):
-                        # m_rclip_pos = m_rclip_transduct[ins_chrm][ins_pos]
-                        l1_pos, l1_nbr, l1_acm, l2p, l2n, l2a = ckcluster.find_first_second_peak(m_rclip_transduct,
-                                                                                            ins_chrm,
-                                                                                            ins_pos, BIN_SIZE)
-                        n_clip_trsdct = l1_acm
-                        peak_ref_clip_pos = l1_pos
-
-                # for the poly-A
-                # number of polyA reads
-                n_polyA = 0
-                if (ins_chrm in m_td_polyA) and (ins_pos in m_td_polyA[ins_chrm]):
-                    if b_l_trsdct == True:
-                        n_polyA = m_td_polyA[ins_chrm][ins_pos][0]
-                    else:
-                        n_polyA = m_td_polyA[ins_chrm][ins_pos][1]
-
-                # save the information
-                if ins_chrm not in m_info:
-                    m_info[ins_chrm] = {}
-                rcd_info = (b_l_trsdct, n_clip_trsdct, peak_ref_clip_pos, n_disc_trsdct, n_polyA)
-                m_info[ins_chrm][ins_pos] = (trsdct_info, rcd_info)
-        return m_info
-####
-    ####
-    def _load_in_representative_sites(self, sf_candidate_list):
-        m_list = {}
-        with open(sf_candidate_list) as fin_candidate_sites:
-            for line in fin_candidate_sites:
-                fields = line.split()
-                if len(fields) < 2:
-                    print(fields, "does not have enough fields")
-                    continue
-                chrm = fields[0]
-                pos = int(fields[1])
-                if chrm not in m_list:
-                    m_list[chrm] = {}
-                m_list[chrm][pos]=pos
-        return m_list
-    ####

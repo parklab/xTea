@@ -77,32 +77,10 @@ class RepType():
             return self.PSUDOGENE_vcf
         return "unkown"
 
-####parse out the specific repeat type
-    def parse_out_all_rep_type(self, i_rep_type):
-        l_rep_type = []
-        if i_rep_type & 1 != 0:
-            l_rep_type.append(self.REP_TYPE_L1)
-        if i_rep_type & 2 != 0:
-            l_rep_type.append(self.REP_TYPE_ALU)
-        if i_rep_type & 4 != 0:
-            l_rep_type.append(self.REP_TYPE_SVA)
-        if i_rep_type & 8 != 0:
-            l_rep_type.append(self.REP_TYPE_HERV)
-        if i_rep_type & 16 != 0:#mitochondrial
-            l_rep_type.append(self.REP_TYPE_MIT)
-        if i_rep_type & 32 != 0:
-            l_rep_type.append(self.REP_TYPE_MSTA)
-        if i_rep_type & 64 != 0:
-            l_rep_type.append(self.PSUDOGENE)
-        return l_rep_type
-####
-####
     def get_L1_str(self):
         return self.REP_TYPE_L1
-
     def get_Alu_str(self):
         return self.REP_TYPE_ALU
-
     def get_SVA_str(self):
         return self.REP_TYPE_SVA
     def get_HERV_str(self):

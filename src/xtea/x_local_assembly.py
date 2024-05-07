@@ -39,9 +39,6 @@ class XLocalAssembly():
         #Popen(cmd, shell=True, stdout=PIPE).communicate()
         self.cmd_runner.run_cmd_small_output(cmd)
 
-    def run_cmd_with_out(self, cmd, sf_out):
-        self.cmd_runner.run_cmd_to_file(cmd, sf_out)
-
     # 2. run local assembly for all candidate sites locally
     ####for hap1, hap2, and unknown, we have 3 different assembly
     def assemble_all_phased_TEIs_locally(self, sf_sites, n_jobs):
@@ -135,51 +132,6 @@ class XLocalAssembly():
         pool.join()
 
     ##assemble the phased reads
-    def assemble_collected_phased_reads(self, sf_reads_folder, sf_sites, n_jobs, s_working_folder):
-        xsites = XSites(sf_sites)
-        m_sites = xsites.load_in_sites()
-        l_chrm_records = []
-        for chrm in m_sites:
-            for pos in m_sites[chrm]:
-                sf_asm_folder = s_working_folder + "{0}_{1}/".format(chrm, pos)
-                self._create_folder(sf_asm_folder)
-
-                sf_reads_all = sf_reads_folder + "{0}_{1}.fa".format(chrm, pos)
-                if os.path.exists(sf_reads_all) == True:
-                    sf_asm_folder_all = sf_asm_folder + "{0}/".format(global_values.ALL_HAP)
-                    self._create_folder(sf_asm_folder_all)
-                    l_chrm_records.append((sf_reads_all, sf_asm_folder_all))
-
-                sf_reads_hap1 = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, global_values.HAP1)
-                if os.path.exists(sf_reads_hap1) == True:
-                    sf_asm_folder_hap1 = sf_asm_folder + "{0}/".format(global_values.HAP1)
-                    self._create_folder(sf_asm_folder_hap1)
-                    l_chrm_records.append((sf_reads_hap1, sf_asm_folder_hap1))
-
-                sf_reads_hap2 = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, global_values.HAP2)
-                if os.path.exists(sf_reads_hap2) == True:
-                    sf_asm_folder_hap2 = sf_asm_folder + "{0}/".format(global_values.HAP2)
-                    self._create_folder(sf_asm_folder_hap2)
-                    l_chrm_records.append((sf_reads_hap2, sf_asm_folder_hap2))
-
-                sf_reads_hap_unkown = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, global_values.HAP_UNKNOWN)
-                if os.path.exists(sf_reads_hap_unkown) == True:
-                    sf_asm_folder_hap_unknown = sf_asm_folder + "{0}/".format(global_values.HAP_UNKNOWN)
-                    self._create_folder(sf_asm_folder_hap_unknown)
-                    l_chrm_records.append((sf_reads_hap_unkown, sf_asm_folder_hap_unknown))
-
-                sf_reads_hap_discord = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, global_values.HAP_DISCORD)
-                if os.path.exists(sf_reads_hap_discord) == True:
-                    sf_asm_folder_hap_disc = sf_asm_folder + "{0}/".format(global_values.HAP_DISCORD)
-                    self._create_folder(sf_asm_folder_hap_disc)
-                    l_chrm_records.append((sf_reads_hap_discord, sf_asm_folder_hap_disc))
-
-        pool = Pool(n_jobs)
-        pool.map(unwrap_self_assembly, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
-        pool.close()
-        pool.join()
-
-    ##assemble the phased reads
     def assemble_collected_phased_reads_v2(self, sf_reads_folder, sf_sites, n_jobs, s_working_folder):
         xsites = XSites(sf_sites)
         m_sites = xsites.load_in_sites()
@@ -230,32 +182,3 @@ class XLocalAssembly():
             cmd = "mkdir {0}".format(s_folder)
             #Popen(cmd, shell=True, stdout=PIPE).communicate()
             self.run_cmd(cmd)
-
-    # dispatch the assembly jobs on the cluster
-    def dispatch_assembly_tasks_on_cluster(self, sf_sites, sf_script):
-        # 1. write the code to the script
-        scheduler = Job_Scheduler(self.working_folder)
-        scheduler.write_jobs_to_scripts(sf_sites)
-        scheduler.build_bsub_script(sf_sites, sf_script)
-        return
-
-
-    # 2. run local assembly for all candidate sites locally
-    def assemble_all_TEIs_locally(self, sf_sites, n_jobs):
-        reads_folder = self.working_folder + global_values.READS_FOLDER + "/"
-        if os.path.exists(reads_folder) == False:
-            return
-        asm_folder = self.working_folder + global_values.ASM_FOLDER + "/"
-        self._create_folder(asm_folder)
-        self.assemble_collected_reads(reads_folder, sf_sites, n_jobs, asm_folder)
-
-    # (2). run local assembly for all candidate sites on a cluster
-    def assemble_all_TEIs_slurm_cluster(self, sf_sites):
-        reads_folder = self.working_folder + global_values.READS_FOLDER + "/"
-        if os.path.exists(reads_folder) == False:
-            return
-        asm_folder = self.working_folder + global_values.ASM_FOLDER + "/"
-        self._create_folder(asm_folder)
-        sf_script = self.working_folder + "run_cluster_asm.sh"
-        self.dispatch_assembly_tasks_on_cluster(sf_sites, sf_script)
-

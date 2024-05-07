@@ -79,38 +79,6 @@ class X_BasicInfo():
             f_cov += m_info[s_bam][0]
         n_sample = len(m_info)
         return f_cov, f_cov/float(n_sample)
-#
-    # for now, coverage is merged if there are several bams in the list
-    def get_cov_is_rlth_one_sample(self, sf_bam, s_sample_name, sf_ref, search_win, b_force=False):#
-        f_cov = 0
-        rlth = 0
-        mean_is = 0
-        std_var = 0
-        n_sample = 1
-        sf_basic_info = self.working_folder + s_sample_name+"."+global_values.BASIC_INFO_FILE
-        m_info = {}
-        b_gnrt = True
-        if os.path.isfile(sf_basic_info) == True and b_force == False:
-            # first already exist, and is not forced to re-calc
-            m_tmp_info = self.load_basic_info_from_file(sf_basic_info)
-            if len(m_tmp_info) > 0:  # load successfully
-                m_info = m_tmp_info
-                b_gnrt = False
-        for s_bam in m_info:
-            f_cov += m_info[s_bam][0]
-            rlth += m_info[s_bam][1]
-            mean_is += m_info[s_bam][2]
-            std_var += m_info[s_bam][3]
-
-        if b_gnrt == True:
-            (f_cov, rlth, mean_is, std_var)=self.collect_basic_info_one_sample(sf_bam, sf_ref, search_win)
-            m_tmp_info={}
-            m_tmp_info[s_sample_name]=(f_cov, rlth, mean_is, std_var)
-            self.dump_basic_info_to_file(m_tmp_info, sf_basic_info)####
-        n_sample = len(m_info)
-        if n_sample == 0:
-            return (0, 0, 0, 0)
-        return (f_cov, rlth, mean_is, std_var)
 
 ####
     ####calc the coverage for given bam
@@ -200,52 +168,6 @@ class X_BasicInfo():
 
                 m_sample_info[sf_bam]=(f_ave_cov, rlth, mean_is, std_var)
         return m_sample_info
-
-    # collect the basic information of samples
-    # randomely select some sites, and calc the coverage, insert size, and read length
-    def collect_basic_info_one_sample(self, sf_bam, sf_ref, search_win):
-        # first randomly select some points for check the coverage
-        n_sites = global_values.N_RANDOM_SITES
-        l_sites = self._random_slct_site(sf_bam, sf_ref, n_sites)
-        l_tmp_info = self.collect_basic_info_of_sites2(l_sites, sf_bam, search_win, search_win)
-
-        acm_is = 0
-        acm_is_squre = 0
-        n_pairs = 0
-        m_rlth = {}
-        f_ave_cov = 0
-        l_cov = []
-        for record in l_tmp_info:
-            ins_chrm = record[0]
-            ins_pos = record[1]
-            flcov = record[2]
-            frcov = record[3]
-            dom_rlth = record[4]
-            acm_is += record[5]
-            acm_is_squre += record[6]
-            n_pairs += record[7]
-
-            f_cov = (flcov + frcov) / 2
-            if f_cov >= global_values.MIN_COV_RANDOM_SITE:  # for WES, skip those intron regions
-                l_cov.append(f_cov)
-
-            if dom_rlth not in m_rlth:
-                m_rlth[dom_rlth] = 1
-            else:
-                m_rlth[dom_rlth] += 1
-
-        # for coverage
-        l_cov.sort()
-        n_slct_sites = len(l_cov)
-        if n_slct_sites > 0:
-            f_ave_cov = l_cov[int(n_slct_sites / 2)]
-
-        # for read length
-        rlth = self._calc_read_length(m_rlth)
-        # for insert size
-        mean_is, std_var = self._calc_insert_size(acm_is, acm_is_squre, n_pairs)
-        return f_ave_cov, rlth, mean_is, std_var
-
 
     ####save the basic information to file
     #each line in format: bam_name, f_ave_cov, rlth, mean_is, std_var

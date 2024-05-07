@@ -79,48 +79,6 @@ class ReadDepth(X_BasicInfo):
         return (chrm, insertion_pos, flcov, frcov)
 
 ####
-    #calculate the local read depth of given sites
-    #sf_sites: the interested sites
-    #search_win: collect reads in this range
-    #focal_win: calc the depth in this range
-    def calc_coverage_of_sites(self, sf_sites, sf_bam_list, search_win, focal_win):
-        m_site_cov = {}
-        with open(sf_bam_list) as fin_bams:
-            for line in fin_bams:
-                sf_bam=line.rstrip()
-
-                l_records = []
-                with open(sf_sites) as fin_list:
-                    for line in fin_list:
-                        fields = line.split()
-                        chrm = fields[0]
-                        pos = int(fields[1])#candidate insertion site
-                        l_records.append(((chrm, pos, search_win, focal_win), sf_bam, self.working_folder))
-
-                pool = Pool(self.n_jobs)
-                l_sites_cov=pool.map(unwrap_self_calc_depth_for_site, list(zip([self] * len(l_records), l_records)), 1)
-                pool.close()
-                pool.join()
-
-                for record in l_sites_cov:
-                    ins_chrm=record[0]
-                    ins_pos=record[1]
-                    flcov=record[2]
-                    frcov=record[3]
-
-                    if ins_chrm not in m_site_cov:
-                        m_site_cov[ins_chrm]={}
-                    if ins_pos not in m_site_cov[ins_chrm]:
-                        m_site_cov[ins_chrm][ins_pos] = []
-                        m_site_cov[ins_chrm][ins_pos].append(0)
-                        m_site_cov[ins_chrm][ins_pos].append(0)
-
-                    m_site_cov[ins_chrm][ins_pos][0] += flcov
-                    m_site_cov[ins_chrm][ins_pos][1] += frcov
-        return m_site_cov
-####
-
-####
     # calc the read depth for one site
     def _calc_depth_one_site2(self, record):
         chrm = record[0][0]
@@ -281,29 +239,6 @@ class ReadDepth(X_BasicInfo):
                 continue
             l_site_cov.append(f_cov)
         return l_site_cov
-####
-
-    def calc_coverage_samples(self, sf_bam_list, sf_ref, search_win):
-        m_sample_cov={}
-        #first randomly select some points for check the coverage
-        n_sites=global_values.N_RANDOM_SITES
-        with open(sf_bam_list) as fin_bams:
-            for line in fin_bams:
-                sf_bam=line.rstrip()
-
-                l_sites=self._random_slct_site(sf_bam, sf_ref, n_sites)
-                l_sites_cov=self.calc_coverage_of_sites2(l_sites, sf_bam, search_win, search_win)
-                l_sites_cov.sort()
-                n_slct_sites=len(l_sites_cov)
-                m_sample_cov[sf_bam]=l_sites_cov[int(n_slct_sites/2)]
-        return m_sample_cov
-
-    def get_total_cov(self, m_sample_cov):
-        i_total=0
-        for sample in m_sample_cov:
-            i_total+=m_sample_cov[sample]
-        return i_total
-####
 ####
     def _process_chrm_name(self, b_tmplt_with_chr, chrm):
         b_chrm_with_chr = False

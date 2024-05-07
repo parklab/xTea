@@ -11,26 +11,6 @@ import global_values
 from x_polyA import *
 from bwa_align import *
 
-class OneClipRead():
-    def __init__(self):
-        self.left_brk_pos = -1
-        self.left_brk_lth = 0
-        self.right_brk_pos = -1
-        self.right_brk_lth = 0
-
-    def is_left_clip(self):
-        if self.left_brk_pos == -1:
-            return False
-        else:
-            return True
-
-    def is_right_clip(self):
-        if self.right_brk_pos == -1:
-            return False
-        else:
-            return True
-
-####
 ##Function: pool.map doesnt' accept function in the class
 ##So, use this wrapper to solve this
 def unwrap_self_cnt_clip(arg, **kwarg):
@@ -231,64 +211,6 @@ class ClipReadInfo():
             if n_cnt>n_half:
                 return False
         return True
-
-    ####This function return:
-    ####1. dictionary of clip position, ##in format {chrm: {map_pos: (left_cnt, right_cnt)}}
-    ####2. all the clipped part in fastq format
-    def collect_clipped_reads_with_position(self, sf_all_clip_fq, sf_annotation):
-        samfile = pysam.AlignmentFile(self.sf_bam, "rb", reference_filename=self.sf_reference)
-        bam_info = BamInfo(self.sf_bam, self.sf_reference)
-        b_with_chr = bam_info.is_chrm_contain_chr()
-
-        references = samfile.references
-        l_chrm_records = []
-        for chrm in references:
-            l_chrm_records.append((chrm, self.sf_bam, self.working_folder, sf_annotation, b_with_chr))
-        samfile.close()
-
-        pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_cnt_clip, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
-        pool.close()
-        pool.join()
-
-        m_clip_freq = {}  ##in format {chrm: {map_pos: (left_cnt, right_cnt, mate_within_rep_cnt)}}
-        for chrm in references:#
-            sf_clip_pos = self.working_folder + chrm + global_values.CLIP_POS_SUFFIX
-            if os.path.isfile(sf_clip_pos) == False:
-                print(("Error: Position file for chrom {0} doesn't exist!!!!".format(chrm)))
-                continue
-
-            m_clip_pos_freq = {}
-            with open(sf_clip_pos) as fin_clip_pos:
-                for line in fin_clip_pos:
-                    fields = line.split()
-                    cur_pos = int(fields[0])
-                    left_cnt = int(fields[1])
-                    right_cnt = int(fields[2])
-                    mate_within_rep_cnt = int(fields[3])
-                    m_clip_pos_freq[cur_pos] = []
-                    m_clip_pos_freq[cur_pos].append(left_cnt)
-                    m_clip_pos_freq[cur_pos].append(right_cnt)
-                    m_clip_pos_freq[cur_pos].append(mate_within_rep_cnt)
-            m_clip_freq[chrm] = m_clip_pos_freq
-
-        ##merge the clipped reads
-        with open(sf_all_clip_fq, "w") as fout_all:
-            for chrm in references:
-                sf_clip_fq = self.working_folder + chrm + global_values.CLIP_FQ_SUFFIX
-                with open(sf_clip_fq) as fin_clip:
-                    for line in fin_clip:
-                        fout_all.write(line)
-        return m_clip_freq
-
-    def _get_chrm_id_name(self, samfile):
-        m_chrm = {}
-        references = samfile.references
-        for schrm in references:
-            chrm_id = samfile.get_tid(schrm)
-            m_chrm[chrm_id] = schrm
-        m_chrm[-1] = "*"
-        return m_chrm
 
     ####return two files:
     ####1. the clip_position
@@ -597,51 +519,6 @@ class ClipReadInfo():
             m_clip_freq[chrm][mpos][0] -= 1
         else:
             m_clip_freq[chrm][mpos][1] -= 1
-
-    ##note, the clip_pos and chrm is saved in the read name
-    def correct_num_of_clip_by_realignment(self, sf_ref, sf_annotation, sf_all_clip_fq, m_clip_freq):
-        bam_info = BamInfo(self.sf_bam, self.sf_reference)
-        b_with_chr = bam_info.is_chrm_contain_chr()
-
-        xannotation = XAnnotation(sf_annotation)
-        xannotation.set_with_chr(b_with_chr)
-        xannotation.load_rmsk_annotation()
-        xannotation.index_rmsk_annotation()
-
-        sf_clip_bam = self.working_folder + "all" + global_values.CLIP_BAM_SUFFIX
-        bwa_algn=BWAlign(global_values.BWA_PATH, global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
-        bwa_algn.realign_clipped_reads(sf_ref, sf_all_clip_fq, sf_clip_bam)
-
-        with open(sf_clip_bam) as fin_sam:
-            for line in fin_sam:
-                fields = line.split()
-                if line[0] == "@":
-                    continue
-
-                qname = fields[0]
-                flag = int(fields[1])
-                if flag & 256 != 0:  # secondary alignment
-                    continue
-                if flag & 2048 != 0:  # supplementary alignment
-                    continue
-
-                b_fake = False
-                if flag & 4 != 0:  # unmapped read
-                    b_fake = True
-                chrm = fields[2]
-                pos = int(fields[3])
-
-                b_within_rep, rep_start = xannotation.is_within_repeat_region(chrm, pos)
-                if b_within_rep == False:
-                    b_fake = True
-                if b_fake == True:
-                    qname_fields = qname.split(global_values.SEPERATOR)
-                    # chrm, map_pos, global_values.FLAG_LEFT_CLIP, first_read
-                    ori_chrm = qname_fields[-4]
-                    ori_mpos = int(qname_fields[-3])
-                    sflag = qname_fields[-2]
-                    self.decrease_clip_freq(ori_chrm, ori_mpos, sflag, m_clip_freq)
-        return m_clip_freq
 
     ###this version, first get all the list for each chrom, then sort, and then count the number
     ###This version will consume less memory
@@ -1223,63 +1100,6 @@ class LContigClipReadInfo():
                     fout_clip.write(clip_seq + "\n")
         bamfile.close()
 ####
-####
-    # collect the clipped parts for contigs or long reads of given site
-    def collect_clipped_parts_lr_by_region(self, record):
-        sf_bam = record[0]
-        chrm = record[1]# this is the chrm in the bam file
-        ins_pos=record[2]
-        iextend=record[3]#will extract reads in region chrm:(ins_pos+/- iextend)
-        islack = record[4] #slack around the breakpoint
-        working_folder = record[5]
-
-        left_boundary=ins_pos-iextend
-        if left_boundary<0:
-            left_boundary=0
-        right_boundary=ins_pos+iextend
-
-        bamfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference)
-        s_site="{0}_{1}".format(chrm, ins_pos)
-        sf_out = working_folder + s_site + global_values.LCLIP_FA_SUFFIX
-        with open(sf_out, "w") as fout_clip:
-            for algnmt in bamfile.fetch(chrm, left_boundary, right_boundary):#
-                l_cigar = algnmt.cigar
-                map_pos = algnmt.reference_start  # the mapping position
-                query_seq = algnmt.query_sequence
-                query_name=algnmt.query_name
-                if query_seq == None: ###why this happen??????
-                    continue
-                seq_lenth = len(query_seq)
-                lclip_len = 0
-                if l_cigar[0][0] == 4:# left-clip
-                    brkpnt = ins_pos - islack
-                    lclip_len = l_cigar[0][1]
-                    clip_pos = map_pos
-                    if lclip_len > 100:
-                        if brkpnt < clip_pos and brkpnt > (clip_pos - lclip_len):
-                            #print "left-clip", algnmt.query_name
-                            clip_seq = query_seq[:lclip_len]
-                            shead = chrm + global_values.SEPERATOR + str(ins_pos) + global_values.SEPERATOR + query_name + "L"
-                            fout_clip.write(">" + shead + "\n")
-                            fout_clip.write(clip_seq + "\n")
-
-                if l_cigar[-1][0] == 4:# right clipped
-                    brkpnt = ins_pos + islack
-                    rclip_len = l_cigar[-1][1]
-                    if rclip_len < 100:
-                        continue
-                    clip_pos = map_pos + seq_lenth - lclip_len - rclip_len
-                    if brkpnt > clip_pos and brkpnt < (clip_pos + rclip_len):
-                        #print "right-clip", algnmt.query_name
-                        clip_seq = query_seq[-1 * rclip_len:]
-                        shead = chrm + global_values.SEPERATOR + str(ins_pos) + global_values.SEPERATOR + query_name + "R"
-                        fout_clip.write(">" + shead + "\n")
-                        fout_clip.write(clip_seq + "\n")
-
-                #####also to consider the case that totally contained in the long read
-                #####whole inserted ones
-                #####
-        bamfile.close()
 
     ####This function:
     ####1. given dictionary of clip position, ##in format {chrm: {map_pos: (left_cnt, right_cnt)}}

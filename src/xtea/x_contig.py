@@ -49,14 +49,6 @@ class XTEContig():
     def run_cmd_with_out(self, cmd, sf_out):
         self.cmd_runner.run_cmd_to_file(cmd, sf_out)
 
-    def align_long_contig(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
-        cmd = "{0} -x asm5 --cs -a -t {1} {2} {3} > {4}".format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
-        self.run_cmd(cmd)
-
-    def align_short_contig_minimap2(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
-        cmd = "{0} -x sr --cs -a -t {1} {2} {3} > {4}".format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
-        self.run_cmd(cmd)
-
     ###this version use self-defined parameters
     def align_short_contigs_minimap2_v2_sam(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
         cmd = "{0} -k15 -w5 --sr --frag=yes -A2 -B8 -O12,32 -E2,1 -r150 -p.5 -N20 -f10000,50000 -n2 " \
@@ -75,37 +67,8 @@ class XTEContig():
         self.run_cmd(cmd)
         cmd = "samtools index {0}".format(sf_algnmt)
         self.run_cmd(cmd)
-####
-    ####this version use self-defined parameters
-    ####this version has smaller penalty for gap opening and extension
-    ####-Y option, use soft-clip as supplementary alignment
-    def align_short_contigs_2_cns_minimap2(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
-        cmd = "{0} -k11 -w5 --sr --frag=yes -A2 -B4 -O4,8 -E2,1 -r150 -p.5 -N5 -n1 " \
-              "-m20 -s30 -g200 -2K50m --MD --heap-sort=yes --secondary=no --cs -a -t {1} {2} {3} " \
-              "| samtools view -hSb - | samtools sort -o {4} -" \
-            .format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
-        self.run_cmd(cmd)
-        cmd = "samtools index {0}".format(sf_algnmt)
-        self.run_cmd(cmd)
-
-    def splice_algn_contigs_2_ref_minimap2(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
-        cmd = "{0} -ax splice -t {1} {2} {3} " \
-              "| samtools view -hSb - | samtools sort -o {4} -" \
-            .format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
-        self.run_cmd(cmd)
-        cmd = "samtools index {0}".format(sf_algnmt)
-        self.run_cmd(cmd)
 
 ####
-
-    def align_contigs_2_reference_genome(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
-        cmd = "{0} -ax asm5 " \
-              "-t {1} {2} {3} " \
-              "| samtools view -hSb - | samtools sort -o {4} -" \
-            .format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
-        self.run_cmd(cmd)
-        cmd = "samtools index {0}".format(sf_algnmt)
-        self.run_cmd(cmd)
 
     def align_short_contigs_with_secondary_supplementary(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
         cmd = "{0} -k15 -w5 --sr --frag=yes -A2 -B8 -O12,32 -E2,1 -r150 -p.5 -N20 -f10000,50000 -n2 " \
@@ -115,17 +78,7 @@ class XTEContig():
         self.run_cmd(cmd)
         cmd = "samtools index {0}".format(sf_algnmt)
         self.run_cmd(cmd)
-
-    def align_short_contigs_with_secondary_supplementary2(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
-        sf_tmp=sf_algnmt+".sam"
-        sf_tmp2 = sf_algnmt + ".bam"
-        cmd = "{0} -k15 -w5 --sr --frag=yes -A2 -B8 -O12,32 -E2,1 -r150 -p.5 -N20 -f10000,50000 -n2 " \
-              "-m20 -s40 -g200 -2K50m --heap-sort=yes --secondary=yes --cs -a -t {1} {2} {3} > {4}" \
-              " && samtools view -hSb {5} > {6} && samtools sort -o {7} {8}" \
-            .format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_tmp, sf_tmp, sf_tmp2, sf_algnmt, sf_tmp2)
-        self.run_cmd(cmd)
-        cmd = "samtools index {0}".format(sf_algnmt)
-        self.run_cmd(cmd)
+ 
 
     def align_short_contig_minimap2_in_bam(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
         cmd = "{0} -x sr --cs -a -t {1} {2} {3} | samtools view -hSb - | " \
@@ -169,22 +122,6 @@ class XTEContig():
                     self.run_cmd(cmd)
                 sf_algnmt = "{0}/{1}_{2}.sam".format(sf_algnmt_folder, chrm, tmp_pos)
                 self.align_short_contig_bwa(sf_asm, sf_flank, 1, sf_algnmt)
-
-    def align_flanks_to_contig(self, sf_sites):
-        l_records = []
-        m_chrms = {}
-        with open(sf_sites) as fin_sites:
-            for line in fin_sites:
-                fields = line.split()
-                chrm = fields[0]
-                m_chrms[chrm] = 1
-        for chrm in m_chrms:
-            l_records.append((chrm, self.working_folder, sf_sites))
-
-        pool = Pool(self.n_jobs)
-        pool.map(unwrap_align_contig, list(zip([self] * len(l_records), l_records)), 1)
-        pool.close()
-        pool.join()
 
     ###align flank to phased contigs by chromosome
     def run_align_flank_to_phased_contig_by_chrm(self, record):
@@ -255,23 +192,6 @@ class XTEContig():
             #self.run_align_flank_to_phased_contig_by_chrm((chrm, self.working_folder, sf_sites))
         pool = Pool(self.n_jobs)
         pool.map(unwrap_align_phased_contig, list(zip([self] * len(l_records), l_records)), 1)
-        pool.close()
-        pool.join()
-
-####
-    ####align the flank to contigs specified in the l_rcds
-    #each record in format (sf_asm, sf_flanks, sf_algnmt, ins_chrm, ins_pos)
-    def align_flanks_to_contig_2(self, l_rcds):
-        pool = Pool(self.n_jobs)
-        pool.map(unwrap_align_flanks_to_contig, list(zip([self] * len(l_rcds), l_rcds)), 1)
-        pool.close()
-        pool.join()
-#
-    ####align the flank to contigs specified in the l_rcds
-    #each record in format (sf_asm, sf_flanks, sf_algnmt, ins_chrm, ins_pos)
-    def align_contig_to_target_ref(self, l_rcds):
-        pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_align_contig_to_target_seq, list(zip([self] * len(l_rcds), l_rcds)), 1)
         pool.close()
         pool.join()
 
@@ -362,40 +282,6 @@ class XTEContig():
 
                 if abs(i_right_pos - i_left_pos) >= (flank_length + i_slack):  ##left and right are concatenate
                     fout_chrm_true_positive.write(line)
-
-    def filter_out_non_TE_from_asm(self, sf_sites, flank_length, f_map_cutoff, i_slack, sf_kept_sites):
-        l_records = []
-        m_chrms = {}
-        with open(sf_sites) as fin_sites:
-            for line in fin_sites:
-                fields = line.split()
-                chrm = fields[0]
-                m_chrms[chrm] = 1
-        for chrm in m_chrms:
-            sf_chrm_out = self.working_folder + global_values.FILTER_FOLDER + "/"
-            if os.path.isdir(sf_chrm_out) == False:
-                cmd = "mkdir {0}".format(sf_chrm_out)
-                self.run_cmd(cmd)
-            sf_chrm_out += "{0}.filtered".format(chrm)
-            record = (sf_sites, chrm, flank_length, f_map_cutoff, i_slack, sf_chrm_out)
-            l_records.append(record)
-
-            # self.run_filter_out_non_TE_from_asm_by_chrm(record) ######################################################
-
-        pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_filter_by_asm, list(zip([self] * len(l_records), l_records)), 1)
-        pool.close()
-        pool.join()
-
-        with open(sf_kept_sites, "w") as fout_final:
-            for chrm in m_chrms:
-                sf_chrm_list = self.working_folder + global_values.FILTER_FOLDER + "/" + "{0}.filtered".format(chrm)
-                if os.path.isfile(sf_chrm_list) == False:
-                    continue
-                # print sf_chrm_list ###################################################################################
-                with open(sf_chrm_list) as fin_chrm_list:
-                    for line in fin_chrm_list:
-                        fout_final.write(line)
 
     # parse out the inserted part, from the flank region alignments
     # left_pos and right_pos are the map position on the contigs
@@ -1084,13 +970,6 @@ class XTEContig():
         ###align the second  clipped part
         sf_2clip_algnmt = s_seq_folder + stype + ".2nd_clip_2_ref.bam"
         self.align_short_contigs_minimap2_v2(sf_ref, sf_2clip, self.n_jobs, sf_2clip_algnmt)
-###
-    ####
-    ####
-    def add_to_final_rslt(self, m_list, m_seqs, sf_list, sf_seq):
-        with open(sf_list) as fin_list:
-            for line in fin_list:
-                fields = line.split()
 
     def call_final_list_from_hap(self, sf_list, gntp, m_final_list):
         with open(sf_list) as fin_list:
