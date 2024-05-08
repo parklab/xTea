@@ -6,7 +6,7 @@ import os
 import pysam
 from subprocess import *
 from multiprocessing import Pool
-from clip_read import ClipReadInfo
+from xtea.clip_read import ClipReadInfo
 from xtea.x_annotation import *
 from xtea.x_alignments import *
 from xtea.x_intermediate_sites import *
