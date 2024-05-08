@@ -9,26 +9,11 @@
 import os
 
 import global_values
-from x_TEI_locator import *
-from x_local_assembly import *
-from x_intermediate_sites import *
-from x_reference import *
-from x_clip_disc_filter import *
-from x_somatic_calling import *
-from x_reads_collection import *
-from x_mutation import *
-from x_gene_annotation import *
-from x_genotype_feature import *
-from x_basic_info import *
-from x_parameter import *
-from x_post_filter import *
-from x_mosaic_calling import *
-from x_joint_calling import *
-from x_igv import *
-from x_gvcf import *
-from x_genotype_classify_sklearn import *
-from x_genotype_classify import *
-from x_orphan_transduction import *
+from x_TEI_locator import TE_Multi_Locator
+from x_intermediate_sites import XIntemediateSites
+from x_basic_info import X_BasicInfo
+from x_parameter import Parameters
+
 
 def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_force=False, b_tumor=False, f_purity=0.45):
     ####1. collect the basic information
@@ -65,17 +50,22 @@ def get_clipped_reads(options,repeat,annot_path_dict):
     # b_tumor=options.tumor #whether this is tumor sample
     # f_purity=options.purity #tumor purity, by default 0.45
     # b_resume=options.resume #resume the running, which will skip the step if output file already exists
-    ## s_working_folder = options.wfolder
-    #  b_se = options.single  ##single end reads or not, default is not
+    # s_working_folder = options.wfolder
+    # b_se = options.single  ##single end reads or not, default is not
     # b_mosaic=options.mosaic #this is for mosaic calling from normal tissue
 
     # site_clip_cutoff=options.siteclip #this is the cutoff for the exact position, use larger value for 10X
     # global_values.set_initial_min_clip_cutoff(site_clip_cutoff)
     # wfolder_pub_clip = options.cwfolder #public clip folder
 
+    # DISC SPECIFIC
+    # sf_candidate_list = options.input
+    # sf_out = options.output
+
     ###take in the normal illumina reads (10x will be viewed as normal illumina)
     print("Working on \"clipped reads\" step!")
 
+    b_force = False # removed command line option
     sf_bam_list = options.input_bam_list
     n_jobs = options.cores
 
@@ -92,6 +82,8 @@ def get_clipped_reads(options,repeat,annot_path_dict):
     cutoff_right_clip = options.rc
     cutoff_clip_mate_in_rep = options.cr
 
+    rcd = None
+    basic_rcd = None
     if b_resume is False or os.path.isfile(sf_out) is False:
         if cutoff_left_clip is None or cutoff_right_clip is None or cutoff_clip_mate_in_rep is None:
             rcd, basic_rcd=automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
@@ -116,15 +108,9 @@ def get_clipped_reads(options,repeat,annot_path_dict):
                                                                     wfolder_pub_clip, b_force, max_cov_cutoff, sf_out)
 
     print("Working on \"disc\" step!")
-    sf_bam_list = options.bam  ###read in a bam list file
-    s_working_folder = options.wfolder
-    n_jobs = options.cores
-    sf_annotation = options.annotation
-    sf_candidate_list = options.input
-    sf_out = options.output
-    sf_ref = options.ref  ###reference genome, some cram file require this file to open
+
     PEAK_WINDOW = 100
-    if options.postFmosaic or options.somatic:#for mosaic events
+    if options.postFmosaic or options.somatic: #for mosaic events
         PEAK_WINDOW = 30
 
     if b_resume == False or os.path.isfile(sf_out) == False:
@@ -136,12 +122,13 @@ def get_clipped_reads(options,repeat,annot_path_dict):
         xfilter.output_candidate_sites(m_sites_clip_peak, sf_peak_sites)  # output the sites
         m_original_sites.clear()  #release the memory
 
-        b_force = True
-        rcd, basic_rcd = automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
-                                                    b_force, b_tumor, f_purity)
-        rlth = basic_rcd[1]  # read length
-        mean_is = basic_rcd[2]  # mean insert size
-        std_var = basic_rcd[3]  # standard derivation
+        if rcd is None or basic_rcd is None:
+            rcd, basic_rcd = automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
+                                                        b_force, b_tumor, f_purity)
+            rlth = basic_rcd[1]  # read length
+            mean_is = basic_rcd[2]  # mean insert size
+            std_var = basic_rcd[3]  # standard derivation
+            
         max_is = int(mean_is + 3 * std_var) + int(rlth)
         iextend = max_is
         i_is = 100000  ###set the insert size a large value, by default 100k

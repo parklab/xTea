@@ -3,7 +3,7 @@
 ##@@contact: corinne_sexton@hms.harvard.edu
 
 import configargparse
-# from locate_insertions import get_clipped_reads
+from xtea.locate_insertions import get_clipped_reads
 
 ## run_xtea -c config.toml -i bam_list (or file) -o output_dir
 ##          --repeat_type <list> --run_type germline (default)
@@ -81,7 +81,6 @@ if __name__ == '__main__':
                                                      options.genome_reference,
                                                      options.genome)
             
-            print(annot_path_dict)
             #perform clip step:
             # get_clipped_reads(options,r,annot_path_dict)
 
