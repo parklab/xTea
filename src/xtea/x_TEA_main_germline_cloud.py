@@ -6,28 +6,28 @@
 ####
 import os
 from shutil import copyfile
-import global_values
-from x_TEI_locator import *
-from x_local_assembly import *
-from x_intermediate_sites import *
-from x_reference import *
-from x_clip_disc_filter import *
-from x_somatic_calling import *
+import xtea.global_values
+from xtea.x_TEI_locator import *
+from xtea.x_local_assembly import *
+from xtea.x_intermediate_sites import *
+from xtea.x_reference import *
+from xtea.x_clip_disc_filter import *
+from xtea.x_somatic_calling import *
 from optparse import OptionParser
-from x_reads_collection import *
-from x_mutation import *
-from x_gene_annotation import *
-from x_genotype_feature import *
-from x_basic_info import *
-from x_parameter import *
-from x_post_filter import *
-from x_mosaic_calling import *
-from x_joint_calling import *
-from x_igv import *
-from x_gvcf import *
-from x_genotype_classify_sklearn import *
-from x_genotype_classify import *
-from x_orphan_transduction import *
+from xtea.x_reads_collection import *
+from xtea.x_mutation import *
+from xtea.x_gene_annotation import *
+from xtea.x_genotype_feature import *
+from xtea.x_basic_info import *
+from xtea.x_parameter import *
+from xtea.x_post_filter import *
+from xtea.x_mosaic_calling import *
+from xtea.x_joint_calling import *
+from xtea.x_igv import *
+from xtea.x_gvcf import *
+from xtea.x_genotype_classify_sklearn import *
+from xtea.x_genotype_classify import *
+from xtea.x_orphan_transduction import *
 #
 ####
 ##parse the options

@@ -4,12 +4,12 @@
 
 
 import pysam
-from x_annotation import *
-from x_alignments import *
-from x_intermediate_sites import *
-import global_values
-from x_polyA import *
-from bwa_align import *
+from xtea.x_annotation import *
+from xtea.x_alignments import *
+from xtea.x_intermediate_sites import *
+import xtea.global_values
+from xtea.x_polyA import *
+from xtea.bwa_align import *
 
 ##Function: pool.map doesnt' accept function in the class
 ##So, use this wrapper to solve this

@@ -6,10 +6,10 @@
 
 import os
 from optparse import OptionParser
-from x_clip_disc_filter import *
-from x_genotype_feature import *
-from x_transduction import *
-from x_orphan_transduction import *
+from xtea.x_clip_disc_filter import *
+from xtea.x_genotype_feature import *
+from xtea.x_transduction import *
+from xtea.x_orphan_transduction import *
 
 ####
 class CaseControlMode():

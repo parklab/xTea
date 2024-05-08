@@ -18,10 +18,10 @@
 ####07/14/19, Add the black-list filtering step.
 ####
 
-import global_values
-from x_annotation import *
-from x_black_list import *
-from x_rep_type import *
+import xtea.global_values
+from xtea.x_annotation import *
+from xtea.x_black_list import *
+from xtea.x_rep_type import *
 
 class XPostFilter():
     def __init__(self, swfolder, n_jobs):

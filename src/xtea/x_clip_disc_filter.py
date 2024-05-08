@@ -24,20 +24,19 @@
 
 ####
 import os
-import sys
 import pysam
 from subprocess import *
 from multiprocessing import Pool
-from x_alignments import *
-from x_annotation import *
-from x_coverage import *
-from bwa_align import *
-from x_transduction import *
-from x_cluster_consistency import *
-from x_polyA import *
-import global_values
-from x_log import *
-from x_genotype_feature import *
+from xtea.x_alignments import *
+from xtea.x_annotation import *
+from xtea.x_coverage import *
+from xtea.bwa_align import *
+from xtea.x_transduction import *
+from xtea.x_cluster_consistency import *
+from xtea.x_polyA import *
+import xtea.global_values
+from xtea.x_log import *
+from xtea.x_genotype_feature import *
 
 def unwrap_self_collect_clip_disc_reads(arg, **kwarg):
     return XClipDisc.collect_clipped_disc_reads_by_region(*arg, **kwarg)

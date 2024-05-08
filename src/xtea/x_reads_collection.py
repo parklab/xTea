@@ -7,10 +7,10 @@ import sys
 import pysam
 from subprocess import *
 from multiprocessing import Pool
-from x_alignments import *
-from x_annotation import *
-from x_sites import *
-import global_values
+from xtea.x_alignments import *
+from xtea.x_annotation import *
+from xtea.x_sites import *
+import xtea.global_values
 
 
 def unwrap_self_collect_phased_reads(arg, **kwarg):

@@ -10,9 +10,9 @@ import sys
 import pysam
 from subprocess import *
 from multiprocessing import Pool
-from x_sites import *
-import global_values
-from cmd_runner import *
+from xtea.x_sites import *
+import xtea.global_values
+from xtea.cmd_runner import *
 
 ####
 class XChromosome():

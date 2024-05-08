@@ -22,8 +22,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from interval import Interval
-from node import Node
+from xtea.interval import Interval
+from xtea.node import Node
 from numbers import Number
 from sortedcontainers import SortedDict
 from copy import copy

@@ -12,8 +12,8 @@
 ####3. screenshot discordant and clipped reads only
 ####
 
-from x_post_filter import *
-from x_somatic_calling import *
+from xtea.x_post_filter import *
+from xtea.x_somatic_calling import *
 
 ####
 ####this is inherited from XPostFilter class

@@ -3,7 +3,7 @@
 ##@@contact: chong_chu@hms.harvard.edu
 ##
 import os
-from intervaltree import IntervalTree
+from xtea.intervaltree import IntervalTree
 
 class XBlackList():
     def __init__(self):

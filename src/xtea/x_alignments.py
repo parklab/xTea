@@ -3,12 +3,10 @@
 ##@@contact: chong.simon.chu@gmail.com
 
 import os
-import sys
 import pysam
-from x_intermediate_sites import *
-from x_reference import *
-import global_values
-from disc_cluster import *
+from xtea.x_intermediate_sites import *
+from xtea.x_reference import *
+from xtea.disc_cluster import *
 
 #
 def unwrap_self_extract_reads_for_region(arg, **kwarg):

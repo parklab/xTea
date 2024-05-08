@@ -7,11 +7,11 @@ import sys
 import pysam
 from subprocess import *
 from multiprocessing import Pool
-from x_alignments import *
-from x_dispatch_jobs import *
-from clip_read import LContigClipReadInfo
-import global_values
-from cmd_runner import *
+from xtea.x_alignments import *
+from xtea.x_dispatch_jobs import *
+from xtea.clip_read import LContigClipReadInfo
+import xtea.global_values
+from xtea.cmd_runner import *
 
 ####
 ####

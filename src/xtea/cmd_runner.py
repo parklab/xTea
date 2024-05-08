@@ -2,7 +2,7 @@
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
 ##@@contact: chong_chu@hms.harvard.edu
 
-import subprocess, select
+import subprocess
 import os
 class CMD_RUNNER():
     ####This is assume the output is small amount of data

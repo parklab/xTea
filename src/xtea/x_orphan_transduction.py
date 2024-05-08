@@ -3,11 +3,11 @@
 ##@@contact: chong.simon.chu@gmail.com
 
 from multiprocessing import Pool
-from x_transduction import *
-from x_polyA import *
-from x_black_list import *
-from x_post_filter import XTEARsltParser
-import global_values
+from xtea.x_transduction import *
+from xtea.x_polyA import *
+from xtea.x_black_list import *
+from xtea.x_post_filter import XTEARsltParser
+import xtea.global_values
 
 
 def unwrap_parse_td_sibling_from_bam(arg, **kwarg):

@@ -11,10 +11,10 @@
 #           4. Genotype probability
 
 import pysam
-from x_TSD import *
-from x_rep_type import *
-from x_reference import *
-from cmd_runner import *
+from xtea.x_TSD import *
+from xtea.x_rep_type import *
+from xtea.x_reference import *
+from xtea.cmd_runner import *
 
 
 

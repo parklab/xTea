@@ -4,9 +4,9 @@
 
 ##collect the featues of each insertion
 
-from x_alignments import *
-from global_values import *
-from x_polyA import *
+from xtea.x_alignments import *
+from xtea.global_values import *
+from xtea.x_polyA import *
 import pysam
 
 def unwrap_self_collect_clip_disc_features(arg, **kwarg):

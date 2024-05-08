@@ -14,9 +14,9 @@
 # 3) rescue the potential somatic full length L1 (with lots of transdcutions point to, thus form coverage island)
 
 import os
-from x_rep_type import *
-import global_values
-from cmd_runner import *
+from xtea.x_rep_type import *
+import xtea.global_values
+from xtea.md_runner import *
 from optparse import OptionParser
 
 ####

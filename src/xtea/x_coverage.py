@@ -7,10 +7,10 @@
 import os
 import pysam
 import random
-from x_alignments import *
+from xtea.x_alignments import *
 from multiprocessing import Pool
-from x_reference import *
-from x_basic_info import *
+from xtea.x_reference import *
+from xtea.x_basic_info import *
 
 def unwrap_self_calc_depth_for_site(arg, **kwarg):
     return ReadDepth._calc_depth_one_site(*arg, **kwarg)

@@ -11,7 +11,6 @@ import os
 from subprocess import *
 from optparse import OptionParser
 import ntpath
-#import global_values
 
 ILLUMINA="illumina"
 X10="10X"

@@ -8,8 +8,8 @@
 
 ####update on 01/27/2019: replace the query module from binary tree (with bug) to interval tree
 
-import global_values
-from intervaltree import IntervalTree
+import xtea.global_values
+from xtea.intervaltree import IntervalTree
 
 class GFF3():
     def __init__(self, sf_gff3):

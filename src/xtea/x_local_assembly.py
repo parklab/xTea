@@ -9,13 +9,13 @@ import sys
 import pysam
 from subprocess import *
 from multiprocessing import Pool
-from x_alignments import *
-from x_dispatch_jobs import *
-from x_contig import *
-from x_annotation import *
-from x_sites import *
-import global_values
-from cmd_runner import *
+from xtea.x_alignments import *
+from xtea.x_dispatch_jobs import *
+from xtea.x_contig import *
+from xtea.x_annotation import *
+from xtea.x_sites import *
+import xtea.global_values
+from xtea.cmd_runner import *
 
 ##Function: pool.map doesnt' accept function in the class
 ##So, use this wrapper to solve this

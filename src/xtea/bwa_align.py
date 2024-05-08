@@ -4,8 +4,8 @@
 
 import pysam
 import os
-import global_values
-from cmd_runner import *
+import xtea.global_values
+from xtea.cmd_runner import *
 
 class BWAlign():
     def __init__(self, BWA_PATH, BWA_REALIGN_CUTOFF, n_jobs):

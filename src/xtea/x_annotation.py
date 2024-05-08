@@ -9,12 +9,10 @@
 ####Revision on 03/04/2019
 ####Use interval tree to replace binary search
 
-import os
-import sys
+
 import pysam
-import global_values
-from cmd_runner import *
-from intervaltree import IntervalTree
+from xtea.cmd_runner import *
+from xtea.intervaltree import IntervalTree
 
 ####
 class XAnnotation():

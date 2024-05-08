@@ -10,17 +10,17 @@ import os
 import sys
 import pysam
 from subprocess import *
-from x_alignments import *
-from bwa_align import *
-from x_reference import *
-from x_cluster_consistency import *
-import global_values
-from cmd_runner import *
-from x_intermediate_sites import *
-from x_post_filter import *
-from x_annotation import *
-from x_coverage import *
-from x_genotype_feature import *
+from xtea.x_alignments import *
+from xtea.bwa_align import *
+from xtea.x_reference import *
+from xtea.x_cluster_consistency import *
+import xtea.global_values
+from xtea.cmd_runner import *
+from xtea.x_intermediate_sites import *
+from xtea.x_post_filter import *
+from xtea.x_annotation import *
+from xtea.x_coverage import *
+from xtea.x_genotype_feature import *
 
 #
 class XTransduction():

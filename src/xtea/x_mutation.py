@@ -7,10 +7,10 @@ import sys
 import pysam
 from subprocess import *
 from multiprocessing import Pool
-from x_sites import *
-from bwa_align import *
-import global_values
-from cmd_runner import *
+from xtea.x_sites import *
+from xtea.bwa_align import *
+import xtea.global_values
+from xtea.cmd_runner import *
 
 def unwrap_self_algn_read(arg, **kwarg):
     return XMutation.align_reads_to_cns_one_site(*arg, **kwarg)
