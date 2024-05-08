@@ -82,7 +82,7 @@ if __name__ == '__main__':
                                                      options.genome)
             
             #perform clip step:
-            # get_clipped_reads(options,r,annot_path_dict)
+            get_clipped_reads(options,r,annot_path_dict)
 
             #clip
             #disc
