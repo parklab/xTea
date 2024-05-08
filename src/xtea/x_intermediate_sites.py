@@ -4,7 +4,7 @@
 
 import os
 from subprocess import *
-import global_values
+import xtea.global_values
 import numpy as np
 
 class XIntemediateSites():

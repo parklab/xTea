@@ -8,11 +8,11 @@
 ####
 import os
 
-import global_values
-from x_TEI_locator import TE_Multi_Locator
-from x_intermediate_sites import XIntemediateSites
-from x_basic_info import X_BasicInfo
-from x_parameter import Parameters
+import xtea.global_values
+from xtea.x_TEI_locator import TE_Multi_Locator
+from xtea.x_intermediate_sites import XIntemediateSites
+from xtea.x_basic_info import X_BasicInfo
+from xtea.x_parameter import Parameters
 
 
 def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_force=False, b_tumor=False, f_purity=0.45):

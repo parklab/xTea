@@ -1,5 +1,3 @@
-import os
-import global_values
 
 class PrototypeParameters():
     def __init__(self):

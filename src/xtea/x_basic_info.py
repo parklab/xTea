@@ -10,9 +10,9 @@
 import os
 import pysam
 import random
-from x_alignments import *
+from xtea.x_alignments import *
 from multiprocessing import Pool
-from x_reference import *
+from xtea.x_reference import *
 
 def unwrap_self_collect_basic_info_for_site(arg, **kwarg):
     return X_BasicInfo._collect_basic_info_one_site(*arg, **kwarg)

@@ -3,17 +3,16 @@
 ##@@contact: chong_chu@hms.harvard.edu
 
 import os
-import sys
 import pysam
 from subprocess import *
 from multiprocessing import Pool
 from clip_read import ClipReadInfo
-from x_annotation import *
-from x_alignments import *
-from x_intermediate_sites import *
-from bwa_align import *
-from global_values import *
-from cmd_runner import *
+from xtea.x_annotation import *
+from xtea.x_alignments import *
+from xtea.x_intermediate_sites import *
+from xtea.bwa_align import *
+from xtea.global_values import *
+from xtea.cmd_runner import *
 
 class TE_Multi_Locator():
     def __init__(self, sf_list, s_working_folder, n_jobs, sf_ref):
