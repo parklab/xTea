@@ -1,0 +1,17 @@
+# Default Parameters for xTea
+
+[required_arguments]
+input_bam_list = '.'
+repeat_type = ['ALU','L1','SVA']
+mode = 'germline'
+sample_name = "sample_id"
+
+[insertion_detection_params]
+
+[annotation_directories]
+rep_lib_annot_dir = "../rep_lib_annotation/"
+genome_reference = "hg38.fa"
+
+[output_directories]
+output_dir = "results/"
+tmp_dir = "results/tmp"

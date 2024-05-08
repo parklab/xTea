@@ -1,8 +1,7 @@
 # Default Parameters for xTea
 
-[command_line]
-version = '.'
-id = '.'
+[required_arguments]
+input_bam_list = '.'
 bam = '.'
 x10 = '.'
 

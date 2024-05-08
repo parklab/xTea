@@ -521,9 +521,11 @@ class TELocator():
             ##collect the clip positions
             initial_clip_pos_freq_cutoff = global_values.INITIAL_MIN_CLIP_CUTOFF ##########################################################################
             print(("Initial minimum clip cutoff is {0}".format(initial_clip_pos_freq_cutoff)))
+            # done in parallel
             clip_info.collect_clip_positions(sf_annotation, initial_clip_pos_freq_cutoff, b_se, sf_pub_folder) ##save clip pos by chrm
             print(("Output info: Collect clipped parts for file ", self.sf_bam))
             sf_all_clip_fq_ori=sf_clip_working_folder+sf_bam_name + CLIP_FQ_SUFFIX
+            # done in parallel
             clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
 ####
             if os.path.isfile(sf_all_clip_fq)==True or os.path.islink(sf_all_clip_fq)==True:

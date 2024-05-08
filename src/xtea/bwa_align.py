@@ -192,6 +192,7 @@ class BWAlign():
         sf_unmap_fa = sf_out + "_unmapped_phase1.fa"
         max_clip_len = 2
         #here at the same time, will keep those short polyA ones in a seperate file
+        # CS creates 3 files, 2 fasta files (polyA and unmapped) and 1 sam file (total map in consensus seq)
         sf_polyA_fa=sf_out+"_partial_polyA.fa"
         self.get_fully_mapped_algnmts(sf_sam_cns, sf_ref_cns, max_clip_len, sf_fully_sam, sf_unmap_fa, sf_polyA_fa)
 

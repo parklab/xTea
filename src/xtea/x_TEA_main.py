@@ -6,6 +6,8 @@
 ####
 import os
 from shutil import copyfile
+from optparse import OptionParser
+
 import global_values
 from x_TEI_locator import *
 from x_local_assembly import *
@@ -13,7 +15,6 @@ from x_intermediate_sites import *
 from x_reference import *
 from x_clip_disc_filter import *
 from x_somatic_calling import *
-from optparse import OptionParser
 from x_reads_collection import *
 from x_mutation import *
 from x_gene_annotation import *
@@ -36,9 +37,6 @@ def parse_option():
     parser.add_option("-P", "--preprocess",
                       action="store_true", dest="preprocess", default=False,
                       help="Preprocessing stpes")
-    parser.add_option("-Q","--collectclip",
-                      action="store_true", dest="collect_clip", default=False,
-                      help="Call clipped reads from alignment")
     parser.add_option("-C", "--clip",
                       action="store_true", dest="clip", default=False,
                       help="Call candidate TEI sites from clipped reads")
@@ -61,9 +59,6 @@ def parse_option():
     parser.add_option("--sibling",
                       action="store_true", dest="sibling", default=False,
                       help="Call sibling transduction for sites")
-    parser.add_option("--spectrum",
-                      action="store_true", dest="spectrum", default=False,
-                      help="Spectrum analysis by tumor type")
 
     parser.add_option("-B", "--barcode",
                       action="store_true", dest="barcode", default=False,
@@ -80,12 +75,6 @@ def parse_option():
     parser.add_option("-F", "--filter_asm",
                       action="store_true", dest="filter_asm", default=False,
                       help="Filter out candidate sites from assembly")
-    parser.add_option("-G", "--contig_realign",
-                      action="store_true", dest="contig_realign", default=False,
-                      help="Filter out candidate sites from assembly")
-    parser.add_option("-T", "--trace",
-                      action="store_true", dest="trace", default=False,
-                      help="Trace the sources of TEIs")
     parser.add_option("-A", "--assembly",
                       action="store_true", dest="assembly", default=False,
                       help="Do local assembly for collected reads")
@@ -95,12 +84,6 @@ def parse_option():
     parser.add_option("-M", "--map",
                       action="store_true", dest="map", default=False,
                       help="map flank regions to the assembled contigs")
-    parser.add_option("-V", "--visualization",
-                      action="store_true", dest="visualization", default=False,
-                      help="Show the heatmap figure of the selected regions")
-    parser.add_option("-K", "--withflank",
-                      action="store_true", dest="withflank", default=False,
-                      help="Keep the flank regions with the repeat copies")
     parser.add_option("-J", "--joint",
                       action="store_true", dest="joint", default=False,
                       help="Joint calling")
@@ -157,14 +140,8 @@ def parse_option():
     parser.add_option("--flk_map",
                       action="store_true", dest="flk_map", default=False,
                       help="Map flanks to contigs")
-    parser.add_option("--analysis",
-                      action="store_true", dest="analysis", default=False,
-                      help="Result analysis")
     parser.add_option("--flank", dest="flank", default=False,
                       help="flank regions")
-    parser.add_option("--sv",
-                      action="store_true", dest="sv", default=False,
-                      help="Call promoted SVs")
     parser.add_option("--gene",
                       action="store_true", dest="gene", default=False,
                       help="Check whether the insertion falls in genes")
@@ -191,8 +168,6 @@ def parse_option():
                       help="The reference file ", metavar="FILE")
     parser.add_option("-a", "--annotation", dest="annotation",
                       help="The annotation file ", metavar="FILE")
-    # parser.add_option("-c", "--copies", dest="copies",
-    #                   help="Repeat copies ", metavar="FILE")
     parser.add_option("-b", "--bam", dest="bam",
                       help="Input bam file", metavar="FILE")
     parser.add_option("-d", "--barcode_bam", dest="barcode_bam",
@@ -207,8 +182,6 @@ def parse_option():
                       help="number of cores")
     parser.add_option("-e", "--extend", dest="extend", type="int", default=0,
                       help="extend length")
-    parser.add_option("-u", "--dup", dest="duplication",
-                      help="duplication files", metavar="FILE")
     parser.add_option("--fflank", dest="fflank",
                       help="flank region file", metavar="FILE")
     parser.add_option("--flklen", dest="flklen", type="int",
@@ -235,14 +208,6 @@ def parse_option():
                       help="minimum length of the insertion for future analysis")
     parser.add_option("--cov", dest="cov", type="float", default=30.0,
                       help="approximate read depth")
-    parser.add_option("--iniclip", dest="iniclip", type="int", default=2,
-                      help="initial minimum clip cutoff")
-    parser.add_option("--af1", dest="af1", type="float", default=0.005,
-                      help="minimal allel fraction")
-    parser.add_option("--af2", dest="af2", type="float", default=0.45,
-                      help="minimal allel fraction")
-    parser.add_option("--rmsk_extnd", dest="rmsk_extnd", type="int", default=100,
-                      help="Length of the left extended region when loading the repeatmasker output")
     parser.add_option("--rtype", dest="rep_type", type="int", default=1,
                       help="type of repeats: 1-L1, 2-Alu, 4-SVA, 8-HERV, 16-MIT, 32-MSTA")
     parser.add_option("--blacklist", dest="blacklist", default="null",
@@ -319,51 +284,10 @@ if __name__ == '__main__':
     f_purity=options.purity#tumor purity, by default 0.45
     b_resume=options.resume#resume the running, which will skip the step if output file already exist
 
-    if options.preprocess:  #preprocess steps
-        s_working_folder = options.wfolder
-        sf_ref = options.reference
-        sf_annotation = options.annotation
-        sf_out_fa = options.output
-        flank_lth = options.extend
-        b_with_flank = options.withflank  # if not set then no flank region
 
-        b_bed_fmt=options.bed
-        x_annotation = XAnnotation(sf_annotation)
-        i_lextnd=options.rmsk_extnd
-        global_values.set_load_rmsk_left_extnd(i_lextnd)
-        if b_bed_fmt==True:
-            x_annotation.collect_seqs_of_TE_from_ref_bed_fmt(sf_ref, sf_out_fa, flank_lth)
-        else:# this is for repeatmasker output
-            b_with_chr = x_annotation.is_ref_chrm_with_chr(sf_ref)
-            x_annotation.set_with_chr(b_with_chr)  # if chrm in reference has "chr", then True, otherwise False
-            x_annotation.load_rmsk_annotation()
-            # x_annotation.collect_flank_regions_of_TE_from_ref(sf_ref, flank_lth, sf_out_fa) #only get the flank regions
-            x_annotation.collect_seqs_of_TE_from_ref(sf_ref, flank_lth, b_with_flank, sf_out_fa)
-            x_annotation.bwa_index_TE_seqs(sf_out_fa)
-
-    elif options.flank:#preprocess the flank regions steps
-        s_working_folder = options.wfolder
-        sf_ref = options.reference
-        sf_annotation = options.annotation
-        sf_out_fa = options.output
-        flank_lth = options.extend
-
-        x_annotation = XAnnotation(sf_annotation)
-        b_with_chr = x_annotation.is_ref_chrm_with_chr(sf_ref)
-        x_annotation.set_with_chr(b_with_chr)  # if chrm in reference has "chr", then True, otherwise False
-        b_bed_fmt = options.bed
-        if b_bed_fmt==True:
-            print("load from bed")
-            x_annotation.load_annotation_no_extnd_from_bed()
-        else:
-            print("load from rmsk")
-            x_annotation.load_rmsk_annotation_no_extnd()
-
-        x_annotation.collect_flank_regions_of_TE_from_ref(sf_ref, flank_lth, sf_out_fa)  # only get the flank regions
-        x_annotation.bwa_index_TE_seqs(sf_out_fa)
 
 ####
-    elif options.clip:  ###take in the normal illumina reads (10x will be viewed as normal illumina)
+    if options.clip:  ###take in the normal illumina reads (10x will be viewed as normal illumina)
         print("Working on \"clip\" step!")
 
         sf_bam_list = options.input

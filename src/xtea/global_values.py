@@ -243,11 +243,6 @@ DOWN_STREAM_REGION="down_stream"
 UP_DOWN_GENE=1500
 NON_GENE="not_gene_region"
 
-#force to clean the file
-FORCE_CLEAN=False
-def set_force_clean():
-    global FORCE_CLEAN
-    FORCE_CLEAN=True
 ###############################################################################
 ###############################################################################
 ####originally used in l_asm.py
