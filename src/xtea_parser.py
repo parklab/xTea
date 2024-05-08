@@ -7,9 +7,7 @@
 
 
 import os
-from subprocess
 import argparse
-import ntpath
 
 
 def make_parser():
@@ -124,8 +122,8 @@ if __name__ == '__main__':
     if b_version==True:
         print(("xTea %s for short and linked reads on hg38\n" % S_VERSION))
     else:
-        sf_id = options.id
-        sf_bams = options.bam ###input is a bam file
+        sf_id = options.id # type: ignore
+        sf_bams = options.bam # type: ignore ###input is a bam file
         sf_bams_10X = options.x10
         sf_sbatch_sh = options.output  # this is the shell for submitting the jobs
         s_wfolder = options.wfolder

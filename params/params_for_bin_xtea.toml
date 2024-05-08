@@ -1,0 +1,183 @@
+# Default Parameters for xTea
+
+[command_line]
+version = '.'
+id = '.'
+bam = '.'
+x10 = '.'
+
+decompress = '.'
+mosaic = '.'
+case_control = '.'
+denovo = '.'
+tumor = '.'
+reptype = '.'
+
+
+[insertion_detection_params]
+user = false # Use user specific parameters instead of automatically calculated ones
+
+
+flklen = 3000 # TODO: flank region file??
+nclip = 3 # cutoff of minimum # of clipped reads
+cliprep = 1 # cutoff of minimum # of clipped reads whose mates map in repetitive regions
+ndisc = 5 # cutoff of minimum # of discordant pair
+nfilterclip = 3 # cutoff of minimum # of clipped reads in filtering step
+nfdisc = 5 # cutoff of minimum # of discordant pair of each sample in filtering step
+teilen = 50 # minimum length of the insertion for future analysis
+hard = false # hard-cut for fitering out coverage abnormal candidates
+purity = 0.45 # tumor purity set at 45%
+
+
+
+
+[external_files]
+blacklist = '.'
+gene = '.'
+ref = '.' # Homo_sapiens_assembly38.fa
+lib = '.'
+xtea = '.'
+par = '.' # rep_lib_annotation/Alu/hg38/hg38_Alu.out
+    # ?? cns = '.' #rep_lib_annotation/consensus/ALU.fa (not used or parsed in x_TEA_Main.py)
+    # ?? -r rep_lib_annotation/Alu/hg38/hg38_AluJabc_copies_with_flank.fa
+    # --cp
+
+
+
+[IO_paths]
+path = '.'
+output = '.'
+
+
+[failure_behavior]
+resume = '.'
+force = '.'
+flag = '.'
+
+
+[scheduler_params]
+lsf = '.'
+slurm = '.'
+cores = '.'
+memory = '.'
+partition = '.'
+time = '.'
+
+
+
+# -P preprocess
+# -Q","--collectclip
+-C", "--clip
+-S", "--single
+-D", "--discordant
+-N", "--filter_csn
+--transduction
+--sibling"
+--spectrum
+-B", "--barcode
+-E", "--collect
+-I", "--mutation
+-U", "--collect_Illumina
+-F", "--filter_asm
+-G", "--contig_realign
+-T", "--trace
+-A", "--assembly
+-L", "--local
+-M", "--map
+-V", "--visualization
+-K", "--withflank
+-J", "--joint
+--mit
+--dna
+--cbs
+--sva
+--gntp_feature
+--postF
+--gntp_classify
+--train_gntp
+--postFmosaic
+--igv
+--case_control
+--tumor
+--gVCF
+--bed
+--mosaic
+--flk_map
+-analysis
+--flank
+--sv"
+--gene
+--somatic
+--somatic_hc
+--single_sample
+
+
+-i", "--input"
+--input2", dest="input2", default="",
+                      help="input file2 ", metavar="FILE")
+    parser.add_option("-r", "--reference", dest="reference",
+                      help="The reference file ", metavar="FILE")
+    parser.add_option("-a", "--annotation", dest="annotation",
+                      help="The annotation file ", metavar="FILE")
+    # parser.add_option("-c", "--copies", dest="copies",
+    #                   help="Repeat copies ", metavar="FILE")
+    parser.add_option("-b", "--bam", dest="bam",
+                      help="Input bam file", metavar="FILE")
+    parser.add_option("-d", "--barcode_bam", dest="barcode_bam",
+                      help="Input barcode indexed bam file", metavar="FILE")
+    parser.add_option("-o", "--output", dest="output",
+                      help="The output file", metavar="FILE")
+    parser.add_option("-p", "--path", dest="wfolder", type="string", default="./",
+                      help="Working folder")
+    parser.add_option("--cp", dest="cwfolder", type="string",
+                      help="Working folder for shared clipped reads")
+    parser.add_option("-n", "--cores", dest="cores", type="int", default=1,
+                      help="number of cores")
+    parser.add_option("-e", "--extend", dest="extend", type="int", default=0,
+                      help="extend length")
+    parser.add_option("-u", "--dup", dest="duplication",
+                      help="duplication files", metavar="FILE")
+    parser.add_option("--fflank", dest="fflank",
+                      help="flank region file", metavar="FILE")
+    parser.add_option("--flklen", dest="flklen", type="int",
+                      help="flank region file")
+    parser.add_option("--purity", dest="purity", type="float", default=0.45,#by default tumor purity set to 45%
+                      help="Tumor purity")
+    parser.add_option("--ref", dest="ref",
+                      help="repeat consensus/copies", metavar="FILE")
+    parser.add_option("--cns", dest="cns",
+                      help="repeat consensus", metavar="FILE")
+    parser.add_option("--sc", dest="siteclip", type="int", default=2,
+                      help="cutoff of minimum # of clipped reads at the exact position, use larger value for 10X")
+    parser.add_option("--lc", dest="lclip", type="int", default=3,
+                      help="cutoff of minimum # of left clipped reads")
+    parser.add_option("--rc", dest="rclip", type="int", default=3,
+                      help="cutoff of minimum # of rightt clipped reads")
+    parser.add_option("--cr", dest="cliprep", type="int", default=1,
+                      help="cutoff of minimum # of clipped parts fall in repeats")
+    parser.add_option("--nd", dest="ndisc", type="int", default=5,
+                      help="cutoff of minimum # of discordant pair")
+    parser.add_option("--nb", dest="nbarcode", type="int", default=500,
+                      help="cutoff of maximum # of molecure coverage")
+    parser.add_option("--teilen", dest="teilen", type="int",
+                      help="minimum length of the insertion for future analysis")
+    parser.add_option("--cov", dest="cov", type="float", default=30.0,
+                      help="approximate read depth")
+    parser.add_option("--iniclip", dest="iniclip", type="int", default=2,
+                      help="initial minimum clip cutoff")
+    parser.add_option("--af1", dest="af1", type="float", default=0.005,
+                      help="minimal allel fraction")
+    parser.add_option("--af2", dest="af2", type="float", default=0.45,
+                      help="minimal allel fraction")
+    parser.add_option("--rmsk_extnd", dest="rmsk_extnd", type="int", default=100,
+                      help="Length of the left extended region when loading the repeatmasker output")
+    parser.add_option("--rtype", dest="rep_type", type="int", default=1,
+                      help="type of repeats: 1-L1, 2-Alu, 4-SVA, 8-HERV, 16-MIT, 32-MSTA")
+    parser.add_option("--blacklist", dest="blacklist", default="null",
+                      help="Reference panel database for filtering, or a blacklist region", metavar="FILE")
+    parser.add_option("--model", dest="model", default="null",
+                      help="Already trained model (.pkl file) for genotype classification", metavar="FILE")
+
+
+
+
