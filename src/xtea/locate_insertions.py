@@ -93,6 +93,7 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
 
 
+
         #by default, if number of clipped reads is larger than this value, then discard
         max_cov_cutoff=int(15*basic_rcd[0])
 
