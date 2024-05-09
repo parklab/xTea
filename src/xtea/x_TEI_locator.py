@@ -36,17 +36,11 @@ class TE_Multi_Locator():
                                                         cutoff_right_clip, cutoff_clip_mate_in_rep, b_mosaic,
                                                         sf_clip_folder, b_force, max_cov, sf_out):
         cnt = 0
-        s_sample_bam = ""
-        b_set = False
-        with open(self.sf_list) as fin_bam_list:
-            i_idx_bam=0#indicates which bam this is
-            for line in fin_bam_list:  ###for each bam file
-                fields=line.split()
-                if len(fields)<2:
-                    print(("Error input bam file {0}!!!".format(line.rstrip())))
-                    continue
-                sf_ori_bam = fields[0]
-                s_read_type=fields[1].rstrip()
+        sf_ori_bam = ""
+        # with open(self.sf_list) as fin_bam_list: # CS EDIT
+            for sf_ori_bam in sf_list:  ###for each bam file # CS EDIT
+                i_idx_bam=0 #indicates which bam this is 
+                s_read_type="illumina" # BIG TODO BROKEN 10X SUPPORT!!!
                 print(("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)))
                 if xtea.global_values.X10 == s_read_type:###for 10X, we use a larger cutoff, as more clipped reads
                     print(("10X bam! Set the initial cutoff as {0}".format(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)))
@@ -60,9 +54,6 @@ class TE_Multi_Locator():
 
                 if len(sf_ori_bam) <= 1:
                     continue
-                if b_set == False:
-                    s_sample_bam = sf_ori_bam
-                    b_set = True
 
                 b_cutoff = True
                 cutoff_hit_rep_copy=xtea.global_values.INITIAL_MIN_CLIP_CUTOFF
@@ -88,7 +79,7 @@ class TE_Multi_Locator():
                 i_idx_bam+=1
 
         # get all the chromsomes names
-        bam_info = BamInfo(s_sample_bam, self.sf_ref)
+        bam_info = BamInfo(sf_ori_bam, self.sf_ref)
         b_with_chr = bam_info.is_chrm_contain_chr()
         m_chrms = bam_info.get_all_reference_names()
 
