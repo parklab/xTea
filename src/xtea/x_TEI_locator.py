@@ -38,45 +38,45 @@ class TE_Multi_Locator():
         cnt = 0
         sf_ori_bam = ""
         # with open(self.sf_list) as fin_bam_list: # CS EDIT
-            for sf_ori_bam in sf_list:  ###for each bam file # CS EDIT
-                i_idx_bam=0 #indicates which bam this is 
-                s_read_type="illumina" # BIG TODO BROKEN 10X SUPPORT!!!
-                print(("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)))
-                if xtea.global_values.X10 == s_read_type:###for 10X, we use a larger cutoff, as more clipped reads
-                    print(("10X bam! Set the initial cutoff as {0}".format(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)))
-                    xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
+        for sf_ori_bam in sf_list:  ###for each bam file # CS EDIT
+            i_idx_bam=0 #indicates which bam this is 
+            s_read_type="illumina" # BIG TODO BROKEN 10X SUPPORT!!!
+            print(("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)))
+            if xtea.global_values.X10 == s_read_type:###for 10X, we use a larger cutoff, as more clipped reads
+                print(("10X bam! Set the initial cutoff as {0}".format(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)))
+                xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
+            else:
+                if cutoff_left_clip<=2 and b_mosaic==True:#
+                    print("Clip cutoff is small (<=2) , we are using 1 for initial cutoff")
+                    xtea.global_values.set_initial_min_clip_cutoff(1)#for low coverage data, set this to 1
                 else:
-                    if cutoff_left_clip<=2 and b_mosaic==True:#
-                        print("Clip cutoff is small (<=2) , we are using 1 for initial cutoff")
-                        xtea.global_values.set_initial_min_clip_cutoff(1)#for low coverage data, set this to 1
-                    else:
-                        xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
+                    xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
 
-                if len(sf_ori_bam) <= 1:
-                    continue
+            if len(sf_ori_bam) <= 1:
+                continue
 
-                b_cutoff = True
-                cutoff_hit_rep_copy=xtea.global_values.INITIAL_MIN_CLIP_CUTOFF
+            b_cutoff = True
+            cutoff_hit_rep_copy=xtea.global_values.INITIAL_MIN_CLIP_CUTOFF
 
-                # view the barcode bam as normal illumina bam
-                # for each alignment, has one output
-                sf_out_tmp = self.working_folder + xtea.global_values.CLIP_TMP + '{0}'.format(cnt)
-                cnt += 1
+            # view the barcode bam as normal illumina bam
+            # for each alignment, has one output
+            sf_out_tmp = self.working_folder + xtea.global_values.CLIP_TMP + '{0}'.format(cnt)
+            cnt += 1
 
-                caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
-                # s_working_folder + xtea.global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
-                sf_new_pub=""
-                if len(sf_clip_folder)==0 or sf_clip_folder==None:
-                    print("public folder is null!!!!")
-                    continue
-                if sf_clip_folder[-1]=="/":
-                    sf_new_pub=sf_clip_folder+"{0}/".format(i_idx_bam)
-                else:
-                    sf_new_pub = sf_clip_folder + "/{0}/".format(i_idx_bam)
-                caller.call_TEI_candidate_sites_from_clip_reads_v2(sf_annotation, sf_rep_cns, sf_ref, b_se,
-                                                                   cutoff_hit_rep_copy, cutoff_hit_rep_copy, b_cutoff,
-                                                                   sf_new_pub, i_idx_bam, b_force, max_cov, sf_out_tmp)
-                i_idx_bam+=1
+            caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
+            # s_working_folder + xtea.global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
+            sf_new_pub=""
+            if len(sf_clip_folder)==0 or sf_clip_folder==None:
+                print("public folder is null!!!!")
+                continue
+            if sf_clip_folder[-1]=="/":
+                sf_new_pub=sf_clip_folder+"{0}/".format(i_idx_bam)
+            else:
+                sf_new_pub = sf_clip_folder + "/{0}/".format(i_idx_bam)
+            caller.call_TEI_candidate_sites_from_clip_reads_v2(sf_annotation, sf_rep_cns, sf_ref, b_se,
+                                                                cutoff_hit_rep_copy, cutoff_hit_rep_copy, b_cutoff,
+                                                                sf_new_pub, i_idx_bam, b_force, max_cov, sf_out_tmp)
+            i_idx_bam+=1
 
         # get all the chromsomes names
         bam_info = BamInfo(sf_ori_bam, self.sf_ref)
