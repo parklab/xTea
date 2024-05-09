@@ -48,15 +48,15 @@ class TE_Multi_Locator():
                 sf_ori_bam = fields[0]
                 s_read_type=fields[1].rstrip()
                 print(("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)))
-                if global_values.X10 == s_read_type:###for 10X, we use a larger cutoff, as more clipped reads
-                    print(("10X bam! Set the initial cutoff as {0}".format(global_values.INITIAL_MIN_CLIP_CUTOFF_X10)))
-                    global_values.set_initial_min_clip_cutoff(global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
+                if xtea.global_values.X10 == s_read_type:###for 10X, we use a larger cutoff, as more clipped reads
+                    print(("10X bam! Set the initial cutoff as {0}".format(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)))
+                    xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
                 else:
                     if cutoff_left_clip<=2 and b_mosaic==True:#
                         print("Clip cutoff is small (<=2) , we are using 1 for initial cutoff")
-                        global_values.set_initial_min_clip_cutoff(1)#for low coverage data, set this to 1
+                        xtea.global_values.set_initial_min_clip_cutoff(1)#for low coverage data, set this to 1
                     else:
-                        global_values.set_initial_min_clip_cutoff(global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
+                        xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
 
                 if len(sf_ori_bam) <= 1:
                     continue
@@ -65,15 +65,15 @@ class TE_Multi_Locator():
                     b_set = True
 
                 b_cutoff = True
-                cutoff_hit_rep_copy=global_values.INITIAL_MIN_CLIP_CUTOFF
+                cutoff_hit_rep_copy=xtea.global_values.INITIAL_MIN_CLIP_CUTOFF
 
                 # view the barcode bam as normal illumina bam
                 # for each alignment, has one output
-                sf_out_tmp = self.working_folder + global_values.CLIP_TMP + '{0}'.format(cnt)
+                sf_out_tmp = self.working_folder + xtea.global_values.CLIP_TMP + '{0}'.format(cnt)
                 cnt += 1
 
                 caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
-                # s_working_folder + global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
+                # s_working_folder + xtea.global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
                 sf_new_pub=""
                 if len(sf_clip_folder)==0 or sf_clip_folder==None:
                     print("public folder is null!!!!")
@@ -101,7 +101,7 @@ class TE_Multi_Locator():
                     continue
                 m_sites_chrm = {}
                 for i in range(cnt):
-                    sf_tmp = self.working_folder + global_values.CLIP_TMP + "{0}".format(i)
+                    sf_tmp = self.working_folder + xtea.global_values.CLIP_TMP + "{0}".format(i)
                     if os.path.isfile(sf_tmp) == False:
                         print(("Errors happen, file {0} doens't exist!".format(sf_tmp)))
                         continue
@@ -150,7 +150,7 @@ class TE_Multi_Locator():
                     # Popen(cmd, shell=True, stdout=PIPE).communicate()
                     #
                     # sf_peak_events = sf_out + ".peak_events.txt"
-                    # self.chain_regions(sf_out_merged_sorted, global_values.NEARBY_REGION, cutoff_left_clip, cutoff_right_clip,
+                    # self.chain_regions(sf_out_merged_sorted, xtea.global_values.NEARBY_REGION, cutoff_left_clip, cutoff_right_clip,
                     #                    cutoff_clip_mate_in_rep, sf_out, sf_peak_events)
 
 ####
@@ -175,17 +175,17 @@ class TE_Multi_Locator():
                 sf_ori_bam = fields[0]
                 s_read_type = fields[1].rstrip()
                 print(("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)))
-                if global_values.X10 == s_read_type:  ###for 10X, we use a larger cutoff, as more clipped reads
+                if xtea.global_values.X10 == s_read_type:  ###for 10X, we use a larger cutoff, as more clipped reads
                     print(("10X bam! Set the initial cutoff as {0}".format(
-                        global_values.INITIAL_MIN_CLIP_CUTOFF_X10)))
-                    global_values.set_initial_min_clip_cutoff(global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
+                        xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)))
+                    xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
                 else:
                     if cutoff_left_clip <= 3:#
                         print("Clip cutoff is small (<=3), keep all the clipped reads (initial cutoff set as 1)!!!")
-                        global_values.set_initial_min_clip_cutoff(1)  # for low coverage data, set this to 1
+                        xtea.global_values.set_initial_min_clip_cutoff(1)  # for low coverage data, set this to 1
                     else:
-                        global_values.set_initial_min_clip_cutoff(
-                            global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
+                        xtea.global_values.set_initial_min_clip_cutoff(
+                            xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
                 if len(sf_ori_bam) <= 1:
                     continue
                 if b_set == False:
@@ -193,15 +193,15 @@ class TE_Multi_Locator():
                     b_set = True
 
                 b_cutoff = True
-                cutoff_hit_rep_copy = global_values.INITIAL_MIN_CLIP_CUTOFF
+                cutoff_hit_rep_copy = xtea.global_values.INITIAL_MIN_CLIP_CUTOFF
 
                 # view the barcode bam as normal illumina bam
                 # for each alignment, has one output
-                sf_out_tmp = self.working_folder + global_values.CLIP_TMP + '{0}'.format(cnt)
+                sf_out_tmp = self.working_folder + xtea.global_values.CLIP_TMP + '{0}'.format(cnt)
                 cnt += 1
 
                 caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
-                # s_working_folder + global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
+                # s_working_folder + xtea.global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
                 sf_new_pub = ""
                 if len(sf_clip_folder) == 0 or sf_clip_folder == None:
                     print("public folder is null!!!!")
@@ -230,7 +230,7 @@ class TE_Multi_Locator():
                     continue
                 m_sites_chrm = {}
                 for i in range(cnt):
-                    sf_tmp = self.working_folder + global_values.CLIP_TMP + "{0}".format(i)
+                    sf_tmp = self.working_folder + xtea.global_values.CLIP_TMP + "{0}".format(i)
                     if os.path.isfile(sf_tmp) == False:
                         print(("Errors happen, file {0} doens't exist!".format(sf_tmp)))
                         continue
@@ -345,10 +345,10 @@ class TE_Multi_Locator():
                 m_sites_discord, m_sites_raw_disc = caller.filter_candidate_sites_by_discordant_pairs_non_barcode(
                     m_sites, iext, i_is, f_dev, sf_annotation, tmp_cutoff)
                 xfilter = XIntemediateSites()
-                sf_out_tmp = self.working_folder + global_values.DISC_TMP + '{0}'.format(cnt)
+                sf_out_tmp = self.working_folder + xtea.global_values.DISC_TMP + '{0}'.format(cnt)
                 xfilter.output_candidate_sites(m_sites_discord, sf_out_tmp)
 
-                sf_raw_tmp=self.working_folder+global_values.RAW_DISC_TMP+'{0}'.format(cnt)
+                sf_raw_tmp=self.working_folder+xtea.global_values.RAW_DISC_TMP+'{0}'.format(cnt)
                 xfilter.output_candidate_sites(m_sites_raw_disc, sf_raw_tmp)
                 cnt += 1
 
@@ -356,7 +356,7 @@ class TE_Multi_Locator():
         #  and output in a single file
         m_merged_sites = {}
         for i in range(cnt):
-            sf_tmp = self.working_folder + global_values.DISC_TMP + '{0}'.format(i)
+            sf_tmp = self.working_folder + xtea.global_values.DISC_TMP + '{0}'.format(i)
             with open(sf_tmp) as fin_tmp:
                 for line in fin_tmp:
                     fields = line.split()
@@ -395,7 +395,7 @@ class TE_Multi_Locator():
         #  and output in a single file
         m_merged_raw_sites = {}
         for i in range(cnt):
-            sf_tmp = self.working_folder + global_values.RAW_DISC_TMP + '{0}'.format(i)
+            sf_tmp = self.working_folder + xtea.global_values.RAW_DISC_TMP + '{0}'.format(i)
             with open(sf_tmp) as fin_tmp:
                 for line in fin_tmp:
                     fields = line.split()
@@ -503,7 +503,7 @@ class TELocator():
             self.cmd_runner.run_cmd_small_output(cmd)
 
         #this is the local folder for the current read type to save the tmp files
-        sf_clip_working_folder = self.working_folder + global_values.CLIP_FOLDER + "/{0}/".format(idx_bam)
+        sf_clip_working_folder = self.working_folder + xtea.global_values.CLIP_FOLDER + "/{0}/".format(idx_bam)
         if os.path.exists(sf_clip_working_folder) == False:
             cmd = "mkdir -p {0}".format(sf_clip_working_folder)
             #Popen(cmd, shell=True, stdout=PIPE).communicate()
@@ -518,7 +518,7 @@ class TELocator():
         if os.path.islink(sf_all_clip_fq)==False or b_force==True:
             print(("Collected clipped reads file {0} doesn't exist. Generate it now!".format(sf_all_clip_fq)))
             ##collect the clip positions
-            initial_clip_pos_freq_cutoff = global_values.INITIAL_MIN_CLIP_CUTOFF ##########################################################################
+            initial_clip_pos_freq_cutoff = xtea.global_values.INITIAL_MIN_CLIP_CUTOFF ##########################################################################
             print(("Initial minimum clip cutoff is {0}".format(initial_clip_pos_freq_cutoff)))
             # done in parallel
             clip_info.collect_clip_positions(sf_annotation, initial_clip_pos_freq_cutoff, b_se, sf_pub_folder) ##save clip pos by chrm
@@ -538,7 +538,7 @@ class TELocator():
         sf_algnmt = self.working_folder + sf_bam_name + CLIP_BAM_SUFFIX
         print(("Output info: Re-align clipped parts for file ", self.sf_bam))
 
-        bwa_align=BWAlign(global_values.BWA_PATH, global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
+        bwa_align=BWAlign(xtea.global_values.BWA_PATH, xtea.global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
         bwa_align.two_stage_realign(sf_rep_cns, sf_ref, sf_all_clip_fq, sf_algnmt)
 
         ####cnt number of clipped reads aligned to repeat copies from the re-alignment
@@ -573,7 +573,7 @@ class TELocator():
             self.cmd_runner.run_cmd_small_output(cmd)
 
         # this is the local folder for the current read type to save the tmp files
-        sf_clip_working_folder = self.working_folder + global_values.CLIP_FOLDER + "/{0}/".format(idx_bam)
+        sf_clip_working_folder = self.working_folder + xtea.global_values.CLIP_FOLDER + "/{0}/".format(idx_bam)
         if os.path.exists(sf_clip_working_folder) == False:
             cmd = "mkdir -p {0}".format(sf_clip_working_folder)
             # Popen(cmd, shell=True, stdout=PIPE).communicate()
@@ -587,7 +587,7 @@ class TELocator():
         clip_info.set_working_folder(sf_clip_working_folder)
 
         ##collect the clip positions
-        initial_clip_pos_freq_cutoff = global_values.INITIAL_MIN_CLIP_CUTOFF  ##########################################################################
+        initial_clip_pos_freq_cutoff = xtea.global_values.INITIAL_MIN_CLIP_CUTOFF  ##########################################################################
         print(("Initial minimum clip cutoff is {0}".format(initial_clip_pos_freq_cutoff)))
         clip_info.collect_clip_positions(sf_annotation, initial_clip_pos_freq_cutoff, b_se,
                                          sf_pub_folder)  ##save clip pos by chrm
@@ -606,7 +606,7 @@ class TELocator():
         sf_algnmt = self.working_folder + sf_bam_name + CLIP_BAM_SUFFIX
         print(("Output info: Re-align clipped parts for file ", self.sf_bam))
 
-        bwa_align = BWAlign(global_values.BWA_PATH, global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
+        bwa_align = BWAlign(xtea.global_values.BWA_PATH, xtea.global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
         bwa_align.two_stage_realign(sf_rep_cns, sf_ref, sf_all_clip_fq, sf_algnmt)
 
         ####cnt number of clipped reads aligned to repeat copies from the re-alignment
@@ -622,7 +622,7 @@ class TELocator():
             os.remove(sf_algnmt)
 ####
     def collect_all_clipped_reads_only(self, sf_annotation, b_se, s_working_folder, wfolder_pub_clip):
-        sf_clip_working_folder = s_working_folder + global_values.CLIP_FOLDER + "/"
+        sf_clip_working_folder = s_working_folder + xtea.global_values.CLIP_FOLDER + "/"
         if len(sf_clip_working_folder)>1 and sf_clip_working_folder[-1]!="/":
             sf_clip_working_folder+="/"
         if os.path.exists(sf_clip_working_folder) == False:
@@ -689,7 +689,7 @@ class TELocator():
         xbam.close_bam_file(bamfile)  ##close bam file
 
         ##write out the combined results
-        sf_candidate_list_disc = sf_candidate_list + global_values.DISC_SUFFIX_FILTER
+        sf_candidate_list_disc = sf_candidate_list + xtea.global_values.DISC_SUFFIX_FILTER
         with open(sf_candidate_list_disc, "w") as fout_disc:
             for pos in m_new_candidate_sites:
                 fout_disc.write(str(pos) + "\t")
@@ -697,20 +697,20 @@ class TELocator():
 
 
     def filter_candidate_sites_by_barcode_coverage(self, m_candidate_sites, iextend, i_cov_cutoff):
-        sf_disc_working_folder = self.working_folder + global_values.DISC_FOLDER
+        sf_disc_working_folder = self.working_folder + xtea.global_values.DISC_FOLDER
         if os.path.exists(sf_disc_working_folder) == False:
             cmd = "mkdir {0}".format(sf_disc_working_folder)
             #Popen(cmd, shell=True, stdout=PIPE).communicate()
             self.cmd_runner.run_cmd_small_output(cmd)
         sf_disc_working_folder += '/'
-        self.output_candidate_sites_by_chrm(m_candidate_sites, sf_disc_working_folder, global_values.DISC_SUFFIX)
+        self.output_candidate_sites_by_chrm(m_candidate_sites, sf_disc_working_folder, xtea.global_values.DISC_SUFFIX)
 
         l_chrm_records = []
         for chrm in m_candidate_sites:
             if len(chrm) > 5:  ###filter out those contigs!!!!!!! It's better to have a blacklist!!!!!!!!!!!!!!!!!!!!!!
                 continue
             record = (
-                chrm, self.sf_bam, self.sf_barcode_bam, iextend, i_cov_cutoff, sf_disc_working_folder, global_values.DISC_SUFFIX)
+                chrm, self.sf_bam, self.sf_barcode_bam, iextend, i_cov_cutoff, sf_disc_working_folder, xtea.global_values.DISC_SUFFIX)
             l_chrm_records.append(record)
 
         pool = Pool(self.n_jobs)
@@ -720,7 +720,7 @@ class TELocator():
 
         m_new_candidate_sites = {}
         for chrm in m_candidate_sites:  ####candidate site chromosome # read in by chrm
-            sf_candidate_list_disc = sf_disc_working_folder + chrm + global_values.DISC_SUFFIX + global_values.DISC_SUFFIX_FILTER
+            sf_candidate_list_disc = sf_disc_working_folder + chrm + xtea.global_values.DISC_SUFFIX + xtea.global_values.DISC_SUFFIX_FILTER
             if os.path.exists(sf_candidate_list_disc) == False:
                 continue
             with open(sf_candidate_list_disc) as fin_disc:
@@ -774,8 +774,8 @@ class TELocator():
         i_min_copy_len=0
         boundary_extnd=0
         ####For SVA, because the rmsk annotation is bad, so we extend a little bit
-        if global_values.IS_CALL_SVA is True:
-            boundary_extnd=global_values.SVA_ANNOTATION_EXTND
+        if xtea.global_values.IS_CALL_SVA is True:
+            boundary_extnd=xtea.global_values.SVA_ANNOTATION_EXTND
         xannotation.load_rmsk_annotation_with_extnd_with_lenth_cutoff(boundary_extnd, i_min_copy_len)
         xannotation.index_rmsk_annotation_interval_tree()
 
@@ -813,7 +813,7 @@ class TELocator():
         bamfile.close()
 ####
         ##write out the combined results
-        sf_candidate_list_disc = sf_candidate_list + global_values.DISC_SUFFIX_FILTER
+        sf_candidate_list_disc = sf_candidate_list + xtea.global_values.DISC_SUFFIX_FILTER
         with open(sf_candidate_list_disc, "w") as fout_disc:
             for pos in m_new_candidate_sites:
                 fout_disc.write(str(pos) + "\t")
@@ -823,7 +823,7 @@ class TELocator():
                     fout_disc.write(str(m_new_candidate_sites[pos][i]) + "\t")
                 fout_disc.write("\n")
         #save the raw disc results
-        sf_candidate_list_raw_disc=sf_candidate_list + global_values.RAW_DISC_SUFFIX_FILTER
+        sf_candidate_list_raw_disc=sf_candidate_list + xtea.global_values.RAW_DISC_SUFFIX_FILTER
         with open(sf_candidate_list_raw_disc, "w") as fout_disc_raw:
             for pos in m_raw_disc_sites:
                 fout_disc_raw.write(str(pos) + "\t")
@@ -836,13 +836,13 @@ class TELocator():
     ###This one feed in the normal illumina data, and count the discordant pairs of the left and right regions
     def filter_candidate_sites_by_discordant_pairs_non_barcode(self, m_candidate_sites, iextend, i_is, f_dev,
                                                                sf_annotation, n_discordant_cutoff):
-        sf_disc_working_folder = self.working_folder + global_values.DISC_FOLDER
+        sf_disc_working_folder = self.working_folder + xtea.global_values.DISC_FOLDER
         if os.path.exists(sf_disc_working_folder) == False:
             cmd = "mkdir {0}".format(sf_disc_working_folder)
             #Popen(cmd, shell=True, stdout=PIPE).communicate()
             self.cmd_runner.run_cmd_small_output(cmd)
         sf_disc_working_folder += '/'
-        self.output_candidate_sites_by_chrm(m_candidate_sites, sf_disc_working_folder, global_values.DISC_SUFFIX)
+        self.output_candidate_sites_by_chrm(m_candidate_sites, sf_disc_working_folder, xtea.global_values.DISC_SUFFIX)
         xchrm=XChromosome()
         l_chrm_records = []
         for chrm in m_candidate_sites:
@@ -851,7 +851,7 @@ class TELocator():
                 continue
 
             l_chrm_records.append(
-                (chrm, self.sf_bam, iextend, i_is, f_dev, sf_annotation, sf_disc_working_folder, global_values.DISC_SUFFIX))
+                (chrm, self.sf_bam, iextend, i_is, f_dev, sf_annotation, sf_disc_working_folder, xtea.global_values.DISC_SUFFIX))
 
         pool = Pool(self.n_jobs)
         pool.map(unwrap_self_filter_by_discordant_non_barcode, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
@@ -860,7 +860,7 @@ class TELocator():
 
         m_new_candidate_sites = {}
         for chrm in m_candidate_sites:  ####candidate site chromosome # read in by chrm
-            sf_candidate_list_disc = sf_disc_working_folder + chrm + global_values.DISC_SUFFIX + global_values.DISC_SUFFIX_FILTER
+            sf_candidate_list_disc = sf_disc_working_folder + chrm + xtea.global_values.DISC_SUFFIX + xtea.global_values.DISC_SUFFIX_FILTER
             if os.path.exists(sf_candidate_list_disc) == False:
                 continue
             with open(sf_candidate_list_disc) as fin_disc:
@@ -886,7 +886,7 @@ class TELocator():
         #RAW_DISC_SUFFIX_FILTER
         m_raw_disc_sites = {}  # for each site, save the raw discordant reads
         for chrm in m_candidate_sites:  ####candidate site chromosome # read in by chrm
-            sf_candidate_list_raw_disc = sf_disc_working_folder + chrm + global_values.DISC_SUFFIX + global_values.RAW_DISC_SUFFIX_FILTER
+            sf_candidate_list_raw_disc = sf_disc_working_folder + chrm + xtea.global_values.DISC_SUFFIX + xtea.global_values.RAW_DISC_SUFFIX_FILTER
             if os.path.exists(sf_candidate_list_raw_disc) == False:
                 continue
             with open(sf_candidate_list_raw_disc) as fin_disc:

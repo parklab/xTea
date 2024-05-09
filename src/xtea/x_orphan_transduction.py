@@ -78,7 +78,7 @@ class XOrphanTransduction(XTransduction):
                         # different bams must have same pattern! (same source, same-side-cluster)
                         if blcluster != tmp_rcd[0] or brcluster != tmp_rcd[1] or s_src_chrm != tmp_rcd[2]:
                             continue
-                        if abs(i_src_pos - tmp_rcd[3]) > global_values.MAX_NORMAL_INSERT_SIZE:
+                        if abs(i_src_pos - tmp_rcd[3]) > xtea.global_values.MAX_NORMAL_INSERT_SIZE:
                             continue
                         if tmp_rcd[4] > nspot:
                             m_merged_info[tmp_chrm][tmp_pos] = (
@@ -149,7 +149,7 @@ class XOrphanTransduction(XTransduction):
         m_rdisc = {}
         l_local_nrc_disc_pos=[]
         l_local_rc_disc_pos=[]
-        max_is = global_values.MAX_NORMAL_INSERT_SIZE
+        max_is = xtea.global_values.MAX_NORMAL_INSERT_SIZE
         xchrm = XChromosome()
         for algnmt in samfile.fetch(chrm_in_bam, start_pos, end_pos):##fetch reads mapped to "chrm:start_pos-end_pos"
             ##here need to skip the secondary and supplementary alignments?
@@ -165,7 +165,7 @@ class XOrphanTransduction(XTransduction):
             l_cigar = algnmt.cigar
             if len(l_cigar) < 1:  #wrong alignment
                 continue
-            if algnmt.mapping_quality < global_values.MINIMUM_DISC_MAPQ:
+            if algnmt.mapping_quality < xtea.global_values.MINIMUM_DISC_MAPQ:
                 continue
 
             query_name = algnmt.query_name
@@ -207,11 +207,11 @@ class XOrphanTransduction(XTransduction):
                             l_local_rc_disc_pos.append(map_pos)
         # make sure, one of the side form unique cluster (come from dominant chromosome)
         b_lclstr, s_lmchrm, i_lpos, nlspt = self._form_unique_cluster(m_ldisc, n_half_disc_cutoff,
-                                                                      global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
-                                                                      global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO)
+                                                                      xtea.global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
+                                                                      xtea.global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO)
         b_rclstr, s_rmchrm, i_rpos, nrspt = self._form_unique_cluster(m_rdisc, n_half_disc_cutoff,
-                                                                      global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
-                                                                      global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO)
+                                                                      xtea.global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
+                                                                      xtea.global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO)
 
         b_disc_clip_pos_consist = self.is_disc_cluster_consist_with_clip_position(l_local_nrc_disc_pos, insertion_pos,
                                                                                   l_local_rc_disc_pos, insertion_pos)
@@ -300,9 +300,9 @@ class XOrphanTransduction(XTransduction):
                         # different bams must have same pattern! (same source, same-side-cluster)
                         if tmp_rcd[0]!=s_src_chrm:
                             continue#
-                        if abs(i_src_lpos - tmp_rcd[1]) > global_values.MAX_NORMAL_INSERT_SIZE:
+                        if abs(i_src_lpos - tmp_rcd[1]) > xtea.global_values.MAX_NORMAL_INSERT_SIZE:
                             continue
-                        if abs(i_src_rpos - tmp_rcd[2]) > global_values.MAX_NORMAL_INSERT_SIZE:
+                        if abs(i_src_rpos - tmp_rcd[2]) > xtea.global_values.MAX_NORMAL_INSERT_SIZE:
                             continue
 
                         new_rcd=(s_src_chrm, i_src_lpos, i_src_rpos, n_lclip+tmp_rcd[3], n_rclip+tmp_rcd[4],
@@ -344,7 +344,7 @@ class XOrphanTransduction(XTransduction):
                     src_chrm = tmp_rcd[0]
                     src_pos_start = tmp_rcd[1]#mid-position of left discordant pair
                     src_pos_end = tmp_rcd[2]#mid-position of right discordant pair
-                    # if abs(src_pos_end-src_pos_start)<global_values.MIN_SIBLING_FLANK_LEN:
+                    # if abs(src_pos_end-src_pos_start)<xtea.global_values.MIN_SIBLING_FLANK_LEN:
                     #
                     #     print "{0}:{1} is filtered out, as source segment {2}-{3} is too short!"\
                     #         .format(tmp_chrm, tmp_pos, src_pos_start, src_pos_end)
@@ -367,10 +367,10 @@ class XOrphanTransduction(XTransduction):
                                                            n_lclip+n_rclip, n_lpolyA+n_rpolyA, f_lcov, f_rcov, s_src)
 
         ####create new records
-        i_max_cov=global_values.MAX_COV_TIMES * global_values.AVE_COVERAGE
+        i_max_cov=xtea.global_values.MAX_COV_TIMES * xtea.global_values.AVE_COVERAGE
         m_gntp = self._collect_gntp_features(sf_new_sites, sf_bam_list, i_max_cov)
-        s_type=global_values.ORPHAN_TRANSDUCTION
-        self.add_new_rcd_with_cutoff(m_site_info, m_gntp, global_values.AVE_COVERAGE, sf_sibling_TD, s_type)
+        s_type=xtea.global_values.ORPHAN_TRANSDUCTION
+        self.add_new_rcd_with_cutoff(m_site_info, m_gntp, xtea.global_values.AVE_COVERAGE, sf_sibling_TD, s_type)
 ####
 
     #this version consider: 1) the clip reads (already checked in early steps); Will only check polyA here!
@@ -411,7 +411,7 @@ class XOrphanTransduction(XTransduction):
             if start_pos <= 0:
                 start_pos = 1
             end_pos = insertion_pos + extnd
-            i_max_ncov=global_values.MAX_COV_TIMES
+            i_max_ncov=xtea.global_values.MAX_COV_TIMES
 
             m_ldisc={}
             m_rdisc={}
@@ -421,7 +421,7 @@ class XOrphanTransduction(XTransduction):
             n_l_nrc=0
             n_r_rc=0
             n_r_nrc=0
-            min_pair_dist=global_values.MIN_ORPHAN_DISC_PAIR_INSERT_SIZE
+            min_pair_dist=xtea.global_values.MIN_ORPHAN_DISC_PAIR_INSERT_SIZE
 ####
             n_lclip=0 #total nubmer of left-clipped reads
             n_rclip=0 #total number of right-clipped reads
@@ -433,7 +433,7 @@ class XOrphanTransduction(XTransduction):
             n_total_lreads=0
             n_total_rreads=0
             n_bkgrnd_low_mapq=0#number of background low mapping quality reads
-            i_offset = int(global_values.READ_LENGTH / 4)
+            i_offset = int(xtea.global_values.READ_LENGTH / 4)
             l_lclip_pos=[]#save the left-clip position
             l_rclip_pos=[]#save the right-clip position
             l_local_rc_disc_pos=[]#save the local
@@ -448,17 +448,17 @@ class XOrphanTransduction(XTransduction):
 ####
                 map_pos = algnmt.reference_start
                 ##here need to skip the secondary and supplementary alignments?
-                if abs(map_pos-insertion_pos)<global_values.LOCAL_COV_WIN:
+                if abs(map_pos-insertion_pos)<xtea.global_values.LOCAL_COV_WIN:
                     if map_pos>=(insertion_pos-i_offset):
                         n_total_rreads+=1
                     else:
                         n_total_lreads+=1
 
-                if algnmt.mapping_quality < global_values.MAX_BKGRND_LOW_MAPQ:
-                    if abs(map_pos - insertion_pos) < global_values.LOCAL_COV_WIN:
+                if algnmt.mapping_quality < xtea.global_values.MAX_BKGRND_LOW_MAPQ:
+                    if abs(map_pos - insertion_pos) < xtea.global_values.LOCAL_COV_WIN:
                         n_bkgrnd_low_mapq+=1
 
-                if algnmt.mapping_quality < global_values.MINIMUM_DISC_MAPQ:
+                if algnmt.mapping_quality < xtea.global_values.MINIMUM_DISC_MAPQ:
                     continue
                 if algnmt.is_secondary or algnmt.is_supplementary:
                     continue
@@ -478,13 +478,13 @@ class XOrphanTransduction(XTransduction):
                 # anchor_map_pos=algnmt.reference_start##original mapping position ####
 
                 if l_cigar[0][0] == 4:  # left clipped, here ignore the hard clip
-                    if abs(map_pos-insertion_pos)<global_values.NEARBY_CLIP:
+                    if abs(map_pos-insertion_pos)<xtea.global_values.NEARBY_CLIP:
                         n_lclip+=1
                         clipped_seq = query_seq[:l_cigar[0][1]]
                         s_polyA_chk=clipped_seq
-                        if len(clipped_seq)>global_values.CK_POLYA_SEQ_MAX:
-                            s_polyA_chk=clipped_seq[-1*global_values.CK_POLYA_SEQ_MAX:]
-                        #b_polya = xpolyA.contain_poly_A_T(s_polyA_chk, global_values.N_MIN_A_T)
+                        if len(clipped_seq)>xtea.global_values.CK_POLYA_SEQ_MAX:
+                            s_polyA_chk=clipped_seq[-1*xtea.global_values.CK_POLYA_SEQ_MAX:]
+                        #b_polya = xpolyA.contain_poly_A_T(s_polyA_chk, xtea.global_values.N_MIN_A_T)
                         b_polyAT, b_polya=xpolyA.is_consecutive_polyA_T_with_ori(s_polyA_chk)
                         if b_polyAT==True:
                             if b_polya==True:
@@ -501,12 +501,12 @@ class XOrphanTransduction(XTransduction):
                             continue
                         else:
                             clip_pos += lenth
-                    if abs(clip_pos-insertion_pos)<global_values.NEARBY_CLIP:#by default 50bp
+                    if abs(clip_pos-insertion_pos)<xtea.global_values.NEARBY_CLIP:#by default 50bp
                         n_rclip+=1
                         clipped_seq = query_seq[-1*l_cigar[-1][1]:]
                         s_polyA_chk = clipped_seq
-                        if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                            s_polyA_chk = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                        if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                            s_polyA_chk = clipped_seq[:xtea.global_values.CK_POLYA_SEQ_MAX]
                         b_polyAT, b_polya = xpolyA.is_consecutive_polyA_T_with_ori(s_polyA_chk)
                         if b_polyAT == True:
                             if b_polya == True:
@@ -531,7 +531,7 @@ class XOrphanTransduction(XTransduction):
                                 m_ldisc[mate_chrm]=[]
                             m_ldisc[mate_chrm].append(mate_pos)
 
-                            if abs(map_pos-insertion_pos)<global_values.DFT_IS:#here is mean insert size
+                            if abs(map_pos-insertion_pos)<xtea.global_values.DFT_IS:#here is mean insert size
                                 if b_rc==True:
                                     n_l_rc+=1
                                     l_local_rc_disc_pos.append(map_pos)
@@ -542,7 +542,7 @@ class XOrphanTransduction(XTransduction):
                             if mate_chrm not in m_rdisc:
                                 m_rdisc[mate_chrm]=[]
                             m_rdisc[mate_chrm].append(mate_pos)
-                            if abs(map_pos - insertion_pos) < global_values.DFT_IS:#
+                            if abs(map_pos - insertion_pos) < xtea.global_values.DFT_IS:#
                                 if b_rc==True:
                                     n_r_rc+=1
                                     l_local_rc_disc_pos.append(map_pos)
@@ -553,11 +553,11 @@ class XOrphanTransduction(XTransduction):
 
             #make sure, one of the side form unique cluster (come from dominant chromosome)
             b_lclstr, s_lmchrm, i_lpos, nlspt = self._form_unique_cluster(m_ldisc, n_half_disc_cutoff,
-                                                                          global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
-                                                                          global_values.TRANSDCT_REGION_CLUSTER_MIN_RATIO)
+                                                                          xtea.global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
+                                                                          xtea.global_values.TRANSDCT_REGION_CLUSTER_MIN_RATIO)
             b_rclstr, s_rmchrm, i_rpos, nrspt = self._form_unique_cluster(m_rdisc, n_half_disc_cutoff,
-                                                                          global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
-                                                                          global_values.TRANSDCT_REGION_CLUSTER_MIN_RATIO)
+                                                                          xtea.global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
+                                                                          xtea.global_values.TRANSDCT_REGION_CLUSTER_MIN_RATIO)
 
             b_valid_polyA = False
             #have enough left-polyA or right-polyT clipped reads
@@ -565,18 +565,18 @@ class XOrphanTransduction(XTransduction):
                 # b_both_side_polyAT = False
                 # if n_lpolyA>n_polyA_cutoff and n_rpolyA>n_polyA_cutoff:
                 #     #left polyA is dominant
-                #     if float(n_lpolyA)/float(n_lpolyA+n_lpolyT) > global_values.DOMINANT_POLYA_T_MIN_RATIO:
+                #     if float(n_lpolyA)/float(n_lpolyA+n_lpolyT) > xtea.global_values.DOMINANT_POLYA_T_MIN_RATIO:
                 #         #right polyA is dominant
-                #         if float(n_rpolyA) / float(n_rpolyA+n_rpolyT) > global_values.DOMINANT_POLYA_T_MIN_RATIO:
+                #         if float(n_rpolyA) / float(n_rpolyA+n_rpolyT) > xtea.global_values.DOMINANT_POLYA_T_MIN_RATIO:
                 #             b_both_side_polyAT=True
                 # if n_lpolyT>n_polyA_cutoff and n_rpolyT>n_polyA_cutoff:
-                #     if float(n_lpolyT)/float(n_lpolyT+n_lpolyA) > global_values.DOMINANT_POLYA_T_MIN_RATIO:
-                #         if float(n_rpolyT)/float(n_rpolyT+n_rpolyA) > global_values.DOMINANT_POLYA_T_MIN_RATIO:
+                #     if float(n_lpolyT)/float(n_lpolyT+n_lpolyA) > xtea.global_values.DOMINANT_POLYA_T_MIN_RATIO:
+                #         if float(n_rpolyT)/float(n_rpolyT+n_rpolyA) > xtea.global_values.DOMINANT_POLYA_T_MIN_RATIO:
                 #             b_both_side_polyAT = True
 
                 #also require the polyA/T is dominant in one side
-                if (n_lclip>0 and (float(n_lpolyA)/float(n_lclip) > global_values.MIN_POLYA_CLIP_RATIO)) or \
-                        (n_rclip>0 and (float(n_rpolyT)/float(n_rclip) > global_values.MIN_POLYA_CLIP_RATIO)):
+                if (n_lclip>0 and (float(n_lpolyA)/float(n_lclip) > xtea.global_values.MIN_POLYA_CLIP_RATIO)) or \
+                        (n_rclip>0 and (float(n_rpolyT)/float(n_rclip) > xtea.global_values.MIN_POLYA_CLIP_RATIO)):
                     b_valid_polyA=True
 ####
             # find left-clip-position and right-clip-position
@@ -598,17 +598,17 @@ class XOrphanTransduction(XTransduction):
             # 1. same chrm; 2. distance is within the range; 3. left/right cluster oridentaiton
             b_l_dominant_orientation=False
             n_total_focal_ldisc=n_l_rc + n_l_nrc
-            if n_total_focal_ldisc>0 and ((float(n_l_nrc)/float(n_total_focal_ldisc)) > global_values.MIN_CLUSTER_RC_RATIO):
+            if n_total_focal_ldisc>0 and ((float(n_l_nrc)/float(n_total_focal_ldisc)) > xtea.global_values.MIN_CLUSTER_RC_RATIO):
                 b_l_dominant_orientation=True
             b_r_dominant_orientation=False
             n_total_focal_rdisc=n_r_rc + n_r_nrc
-            if n_total_focal_rdisc>0 and ((float(n_r_rc) / float(n_total_focal_rdisc)) > global_values.MIN_CLUSTER_RC_RATIO):
+            if n_total_focal_rdisc>0 and ((float(n_r_rc) / float(n_total_focal_rdisc)) > xtea.global_values.MIN_CLUSTER_RC_RATIO):
                 b_r_dominant_orientation=True
 
             b_consistent=False
             if b_lclstr == True and b_rclstr == True:#both side form clusters
                 #source is from a focal region, and focal region is within the threshold
-                if (s_lmchrm == s_rmchrm) and abs(i_lpos-i_rpos)<global_values.MAX_SIBLING_FLANK_LEN:
+                if (s_lmchrm == s_rmchrm) and abs(i_lpos-i_rpos)<xtea.global_values.MAX_SIBLING_FLANK_LEN:
                     if b_l_dominant_orientation==True and b_r_dominant_orientation==True:
                         b_consistent=True
             elif b_lclstr == True and b_rclstr == False:
@@ -616,28 +616,28 @@ class XOrphanTransduction(XTransduction):
                 if b_l_dominant_orientation == True and b_r_dominant_orientation == True:
                     b_rcluster, i_rpos=self._check_form_repeat_or_same_cluster(xannotation, s_lmchrm, i_lpos, m_rdisc,
                                                                                n_half_disc_cutoff,
-                                                                               global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
-                                                                               global_values.TRANSDCT_OTHER_SIDE_CLUSTER_MIN_RATIO)
+                                                                               xtea.global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
+                                                                               xtea.global_values.TRANSDCT_OTHER_SIDE_CLUSTER_MIN_RATIO)
                     if b_rcluster==True:
                         b_consistent = True
             elif b_lclstr == False and b_rclstr == True:
                 if b_l_dominant_orientation == True and b_r_dominant_orientation == True:
                     b_lcluster, i_lpos = self._check_form_repeat_or_same_cluster(xannotation, s_rmchrm, i_rpos, m_ldisc,
                                                                                  n_half_disc_cutoff,
-                                                                                 global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
-                                                                                 global_values.TRANSDCT_OTHER_SIDE_CLUSTER_MIN_RATIO)
+                                                                                 xtea.global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO,
+                                                                                 xtea.global_values.TRANSDCT_OTHER_SIDE_CLUSTER_MIN_RATIO)
                     if b_lcluster==True:
                         b_consistent = True
 ####
             #the left and right focal coverage should be lower than cutoff
             b_cov_normal, f_lcov, f_rcov=self._is_focal_cov_normal(n_total_lreads, n_total_rreads,
-                                                                   global_values.LOCAL_COV_WIN, i_max_ncov)
+                                                                   xtea.global_values.LOCAL_COV_WIN, i_max_ncov)
 
             #backgroup multi-mapped reads should take a very small portion
             b_pass_bkgrnd_chk=True
             if (n_total_lreads+n_total_rreads)<=0:
                 b_pass_bkgrnd_chk=False
-            elif float(n_bkgrnd_low_mapq)/float(n_total_lreads+n_total_rreads) > global_values.MAX_BKGRND_LOW_MAPQ_RATIO:
+            elif float(n_bkgrnd_low_mapq)/float(n_total_lreads+n_total_rreads) > xtea.global_values.MAX_BKGRND_LOW_MAPQ_RATIO:
                 b_pass_bkgrnd_chk=False
 
 ####for test only!!!!!!!!------------------
@@ -684,7 +684,7 @@ class XOrphanTransduction(XTransduction):
                 sf_tmp_file = sf_ori_td_sites + ".tmp"
                 with open(sf_ori_td_sites) as fin_list, open(sf_tmp_file, "w") as fout_tmp:
                     for line in fin_list:
-                        # if global_values.NOT_TRANSDUCTION in line:#only check transduction cases
+                        # if xtea.global_values.NOT_TRANSDUCTION in line:#only check transduction cases
                         #     continue
                         sline = line.rstrip()
                         fields = sline.split()
@@ -782,7 +782,7 @@ class XOrphanTransduction(XTransduction):
             if start_pos <= 0:
                 start_pos = 1
             end_pos = insertion_pos + extnd
-            i_max_ncov = global_values.MAX_COV_TIMES
+            i_max_ncov = xtea.global_values.MAX_COV_TIMES
 
             m_ldisc = {}
             m_rdisc = {}
@@ -792,7 +792,7 @@ class XOrphanTransduction(XTransduction):
             n_l_nrc = 0
             n_r_rc = 0
             n_r_nrc = 0
-            min_pair_dist = global_values.MIN_ORPHAN_DISC_PAIR_INSERT_SIZE
+            min_pair_dist = xtea.global_values.MIN_ORPHAN_DISC_PAIR_INSERT_SIZE
             ####
             n_lclip = 0  # total nubmer of left-clipped reads
             n_rclip = 0  # total number of right-clipped reads
@@ -804,7 +804,7 @@ class XOrphanTransduction(XTransduction):
             n_total_lreads = 0
             n_total_rreads = 0
             n_bkgrnd_low_mapq = 0  # number of background low mapping quality reads
-            i_offset = int(global_values.READ_LENGTH / 4)
+            i_offset = int(xtea.global_values.READ_LENGTH / 4)
             l_lclip_pos = []  # save the left-clip position
             l_rclip_pos = []  # save the right-clip position
             l_local_rc_disc_pos = []  # save the local
@@ -820,17 +820,17 @@ class XOrphanTransduction(XTransduction):
                     ####
                 map_pos = algnmt.reference_start
                 ##here need to skip the secondary and supplementary alignments?
-                if abs(map_pos - insertion_pos) < global_values.LOCAL_COV_WIN:
+                if abs(map_pos - insertion_pos) < xtea.global_values.LOCAL_COV_WIN:
                     if map_pos >= (insertion_pos - i_offset):
                         n_total_rreads += 1
                     else:
                         n_total_lreads += 1
 
-                if algnmt.mapping_quality < global_values.MAX_BKGRND_LOW_MAPQ:
-                    if abs(map_pos - insertion_pos) < global_values.LOCAL_COV_WIN:
+                if algnmt.mapping_quality < xtea.global_values.MAX_BKGRND_LOW_MAPQ:
+                    if abs(map_pos - insertion_pos) < xtea.global_values.LOCAL_COV_WIN:
                         n_bkgrnd_low_mapq += 1
 
-                if algnmt.mapping_quality < global_values.MINIMUM_DISC_MAPQ:
+                if algnmt.mapping_quality < xtea.global_values.MINIMUM_DISC_MAPQ:
                     continue
                 if algnmt.is_secondary or algnmt.is_supplementary:
                     continue
@@ -850,13 +850,13 @@ class XOrphanTransduction(XTransduction):
                 # anchor_map_pos=algnmt.reference_start##original mapping position ####
 
                 if l_cigar[0][0] == 4:  # left clipped, here ignore the hard clip
-                    if abs(map_pos - insertion_pos) < global_values.NEARBY_CLIP:
+                    if abs(map_pos - insertion_pos) < xtea.global_values.NEARBY_CLIP:
                         n_lclip += 1
                         clipped_seq = query_seq[:l_cigar[0][1]]
                         s_polyA_chk = clipped_seq
-                        if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                            s_polyA_chk = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
-                        # b_polya = xpolyA.contain_poly_A_T(s_polyA_chk, global_values.N_MIN_A_T)
+                        if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                            s_polyA_chk = clipped_seq[-1 * xtea.global_values.CK_POLYA_SEQ_MAX:]
+                        # b_polya = xpolyA.contain_poly_A_T(s_polyA_chk, xtea.global_values.N_MIN_A_T)
                         b_polyAT, b_polya = xpolyA.is_consecutive_polyA_T_with_ori(s_polyA_chk)
                         if b_polyAT == True:
                             if b_polya == True:
@@ -873,12 +873,12 @@ class XOrphanTransduction(XTransduction):
                             continue
                         else:
                             clip_pos += lenth
-                    if abs(clip_pos - insertion_pos) < global_values.NEARBY_CLIP:  # by default 50bp
+                    if abs(clip_pos - insertion_pos) < xtea.global_values.NEARBY_CLIP:  # by default 50bp
                         n_rclip += 1
                         clipped_seq = query_seq[-1 * l_cigar[-1][1]:]
                         s_polyA_chk = clipped_seq
-                        if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                            s_polyA_chk = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                        if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                            s_polyA_chk = clipped_seq[:xtea.global_values.CK_POLYA_SEQ_MAX]
                         b_polyAT, b_polya = xpolyA.is_consecutive_polyA_T_with_ori(s_polyA_chk)
                         if b_polyAT == True:
                             if b_polya == True:
@@ -903,7 +903,7 @@ class XOrphanTransduction(XTransduction):
                                 m_ldisc[mate_chrm] = []
                             m_ldisc[mate_chrm].append(mate_pos)
 
-                            if abs(map_pos - insertion_pos) < global_values.DFT_IS:  # here is mean insert size
+                            if abs(map_pos - insertion_pos) < xtea.global_values.DFT_IS:  # here is mean insert size
                                 if b_rc == True:
                                     n_l_rc += 1
                                     l_local_rc_disc_pos.append(map_pos)
@@ -914,7 +914,7 @@ class XOrphanTransduction(XTransduction):
                             if mate_chrm not in m_rdisc:
                                 m_rdisc[mate_chrm] = []
                             m_rdisc[mate_chrm].append(mate_pos)
-                            if abs(map_pos - insertion_pos) < global_values.DFT_IS:  #
+                            if abs(map_pos - insertion_pos) < xtea.global_values.DFT_IS:  #
                                 if b_rc == True:
                                     n_r_rc += 1
                                     l_local_rc_disc_pos.append(map_pos)
@@ -1008,7 +1008,7 @@ class XOrphanTransduction(XTransduction):
         n_total, n_background_low_mapq=self._cnt_low_mapq_reads(sf_bam, s_rmchrm, start_pos, end_pos)
         b_qualified=False
         #check the quality
-        if n_total>0 and (float(n_background_low_mapq)/float(n_total) < global_values.MAX_BKGRND_LOW_MAPQ_RATIO):
+        if n_total>0 and (float(n_background_low_mapq)/float(n_total) < xtea.global_values.MAX_BKGRND_LOW_MAPQ_RATIO):
             b_qualified=True
         if b_qualified==True:
             return rcd[0]
@@ -1031,7 +1031,7 @@ class XOrphanTransduction(XTransduction):
             if len(l_cigar) < 1:  # wrong alignment
                 continue
             n_total += 1
-            if algnmt.mapping_quality < global_values.MAX_BKGRND_LOW_MAPQ:
+            if algnmt.mapping_quality < xtea.global_values.MAX_BKGRND_LOW_MAPQ:
                 n_background_low_mapq += 1
         samfile.close()
         return n_total, n_background_low_mapq
@@ -1040,9 +1040,9 @@ class XOrphanTransduction(XTransduction):
         if i_window<=0:
             return False, -1, -1
         b_normal=True
-        n_ldepth=float(n_lread*global_values.READ_LENGTH)/float(i_window)
-        n_rdepth=float(n_rreads*global_values.READ_LENGTH)/float(i_window)
-        i_max_cov=i_times*global_values.AVE_COVERAGE
+        n_ldepth=float(n_lread*xtea.global_values.READ_LENGTH)/float(i_window)
+        n_rdepth=float(n_rreads*xtea.global_values.READ_LENGTH)/float(i_window)
+        i_max_cov=i_times*xtea.global_values.AVE_COVERAGE
         if n_ldepth > i_max_cov or n_rdepth>i_max_cov:
             b_normal=False
         return b_normal, n_ldepth, n_rdepth
@@ -1118,7 +1118,7 @@ class XOrphanTransduction(XTransduction):
         mid_pos = l_tmp[n_tmp // 2]
         n_in_range=0
         for pos in l_tmp:
-            if abs(int(pos)-int(mid_pos))<global_values.MAX_NORMAL_INSERT_SIZE:
+            if abs(int(pos)-int(mid_pos))<xtea.global_values.MAX_NORMAL_INSERT_SIZE:
                 n_in_range+=1
         if float(n_in_range)/float(n_tmp)>ratio:
             return True, mid_pos
@@ -1139,7 +1139,7 @@ class XOrphanTransduction(XTransduction):
                 n_total_disc+=1
                 if b_in_rep==True:
                     n_in_rep+=1
-                elif (src_chrm==mate_chrm) and (abs(mate_pos-src_cluster_pos)<global_values.MAX_SIBLING_FLANK_LEN):
+                elif (src_chrm==mate_chrm) and (abs(mate_pos-src_cluster_pos)<xtea.global_values.MAX_SIBLING_FLANK_LEN):
                     l_mate_cluster.append(mate_pos)
                     n_of_same_cluster+=1
 
@@ -1207,7 +1207,7 @@ class XOrphanTransduction(XTransduction):
         region_start=0
         region_end=0
 
-        if global_values.SIBLING_LABEL in s_src:
+        if xtea.global_values.SIBLING_LABEL in s_src:
             #for example:4_40446924_sibling or 4:40446924~sibling
             if ":" in s_src:
                 src_fields=s_src.split(":")#
@@ -1258,8 +1258,8 @@ class XOrphanTransduction(XTransduction):
 
         samfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference)
         m_chrm_id = self._get_chrm_id_name(samfile)
-        start_pos=pos-global_values.MAX_NORMAL_INSERT_SIZE
-        end_pos=pos+global_values.MAX_NORMAL_INSERT_SIZE
+        start_pos=pos-xtea.global_values.MAX_NORMAL_INSERT_SIZE
+        end_pos=pos+xtea.global_values.MAX_NORMAL_INSERT_SIZE
         xchrm = XChromosome()
 
         m_ldisc = {}
@@ -1270,7 +1270,7 @@ class XOrphanTransduction(XTransduction):
         n_l_nrc = 0
         n_r_rc = 0
         n_r_nrc = 0
-        min_pair_dist = global_values.MIN_ORPHAN_DISC_PAIR_INSERT_SIZE
+        min_pair_dist = xtea.global_values.MIN_ORPHAN_DISC_PAIR_INSERT_SIZE
         ####
         n_lclip = 0  # total nubmer of left-clipped reads
         n_rclip = 0  # total number of right-clipped reads
@@ -1282,7 +1282,7 @@ class XOrphanTransduction(XTransduction):
         n_total_lreads = 0
         n_total_rreads = 0
         n_bkgrnd_low_mapq = 0  # number of background low mapping quality reads
-        i_offset = int(global_values.READ_LENGTH / 4)
+        i_offset = int(xtea.global_values.READ_LENGTH / 4)
         l_lclip_pos = []  # save the left-clip position
         l_rclip_pos = []  # save the right-clip position
 
@@ -1296,17 +1296,17 @@ class XOrphanTransduction(XTransduction):
 
             map_pos = algnmt.reference_start
             ##here need to skip the secondary and supplementary alignments?
-            if abs(map_pos - insertion_pos) < global_values.LOCAL_COV_WIN:
+            if abs(map_pos - insertion_pos) < xtea.global_values.LOCAL_COV_WIN:
                 if map_pos >= (insertion_pos - i_offset):
                     n_total_rreads += 1
                 else:
                     n_total_lreads += 1
 
-            if algnmt.mapping_quality < global_values.MAX_BKGRND_LOW_MAPQ:
-                if abs(map_pos - insertion_pos) < global_values.LOCAL_COV_WIN:
+            if algnmt.mapping_quality < xtea.global_values.MAX_BKGRND_LOW_MAPQ:
+                if abs(map_pos - insertion_pos) < xtea.global_values.LOCAL_COV_WIN:
                     n_bkgrnd_low_mapq += 1
 
-            if algnmt.mapping_quality < global_values.MINIMUM_DISC_MAPQ:
+            if algnmt.mapping_quality < xtea.global_values.MINIMUM_DISC_MAPQ:
                 continue
             if algnmt.is_secondary or algnmt.is_supplementary:
                 continue
@@ -1326,13 +1326,13 @@ class XOrphanTransduction(XTransduction):
             # anchor_map_pos=algnmt.reference_start##original mapping position ####
 
             if l_cigar[0][0] == 4:  # left clipped, here ignore the hard clip
-                if abs(map_pos - insertion_pos) < global_values.NEARBY_CLIP:
+                if abs(map_pos - insertion_pos) < xtea.global_values.NEARBY_CLIP:
                     n_lclip += 1
                     clipped_seq = query_seq[:l_cigar[0][1]]
                     s_polyA_chk = clipped_seq
-                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                        s_polyA_chk = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
-                    # b_polya = xpolyA.contain_poly_A_T(s_polyA_chk, global_values.N_MIN_A_T)
+                    if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                        s_polyA_chk = clipped_seq[-1 * xtea.global_values.CK_POLYA_SEQ_MAX:]
+                    # b_polya = xpolyA.contain_poly_A_T(s_polyA_chk, xtea.global_values.N_MIN_A_T)
                     b_polyAT, b_polya = xpolyA.is_consecutive_polyA_T_with_ori(s_polyA_chk)
                     if b_polyAT == True:
                         if b_polya == True:
@@ -1349,12 +1349,12 @@ class XOrphanTransduction(XTransduction):
                         continue
                     else:
                         clip_pos += lenth
-                if abs(clip_pos - insertion_pos) < global_values.NEARBY_CLIP:
+                if abs(clip_pos - insertion_pos) < xtea.global_values.NEARBY_CLIP:
                     n_rclip += 1
                     clipped_seq = query_seq[-1 * l_cigar[0][1]:]
                     s_polyA_chk = clipped_seq
-                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                        s_polyA_chk = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                    if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                        s_polyA_chk = clipped_seq[:xtea.global_values.CK_POLYA_SEQ_MAX]
                     b_polyAT, b_polya = xpolyA.is_consecutive_polyA_T_with_ori(s_polyA_chk)
                     if b_polyAT == True:
                         if b_polya == True:
@@ -1379,7 +1379,7 @@ class XOrphanTransduction(XTransduction):
                             m_ldisc[mate_chrm] = []
                         m_ldisc[mate_chrm].append(mate_pos)
 
-                        if abs(map_pos - insertion_pos) < global_values.DFT_IS:  # here is mean insert size
+                        if abs(map_pos - insertion_pos) < xtea.global_values.DFT_IS:  # here is mean insert size
                             if b_rc == True:
                                 n_l_rc += 1
                             else:
@@ -1388,15 +1388,15 @@ class XOrphanTransduction(XTransduction):
                         if mate_chrm not in m_rdisc:
                             m_rdisc[mate_chrm] = []
                         m_rdisc[mate_chrm].append(mate_pos)
-                        if abs(map_pos - insertion_pos) < global_values.DFT_IS:  #
+                        if abs(map_pos - insertion_pos) < xtea.global_values.DFT_IS:  #
                             if b_rc == True:
                                 n_r_rc += 1
                             else:
                                 n_r_nrc += 1
         #Here mainly check: (either will deny the case)
         # 1) find enough disc reads point to the source region
-        region_start-=global_values.MAX_NORMAL_INSERT_SIZE
-        region_end+=global_values.MAX_NORMAL_INSERT_SIZE
+        region_start-=xtea.global_values.MAX_NORMAL_INSERT_SIZE
+        region_end+=xtea.global_values.MAX_NORMAL_INSERT_SIZE
         n_lcnt=self.cnt_in_range_disc_reads(m_ldisc, region_chrm, region_start, region_end)
         if n_lcnt>=n_disc_cutoff/2:
             return (chrm, pos, False)

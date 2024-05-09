@@ -62,8 +62,8 @@ class XPostFilter():
 ####
     def post_processing_SVA(self, l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff, f_cov,
                             x_blklist, b_tumor, sf_new_out):
-        i_dft_cluster_diff_cutoff=global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF
-        global_values.set_two_clip_cluster_diff_cutoff(self.sva_clip_cluster_diff_cutoff)
+        i_dft_cluster_diff_cutoff=xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF
+        xtea.global_values.set_two_clip_cluster_diff_cutoff(self.sva_clip_cluster_diff_cutoff)
         with open(sf_new_out, "w") as fout_new:
             for old_rcd in l_old_rcd:
                 rcd=xtea_parser.replace_ins_length(old_rcd, self.REP_SVA_POLYA_START+100)
@@ -87,14 +87,14 @@ class XPostFilter():
                         continue
                 elif s_rep_supt_type is self._one_half_side:##one and half side
                     #check whether fall in repetitive region of the same type
-                    if (b_in_rep is True) and (div_rate<global_values.REP_DIVERGENT_CUTOFF):
+                    if (b_in_rep is True) and (div_rate<xtea.global_values.REP_DIVERGENT_CUTOFF):
                         continue
                     if b_with_polyA==False:#require polyA
                         continue
                     if xtprt_filter.is_polyA_dominant_two_side_sva(rcd, self.REP_SVA_CNS_HEAD) is True:
                         continue
                 elif s_rep_supt_type is self._one_side:###one side
-                    if (b_in_rep is True) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                    if (b_in_rep is True) and (div_rate < xtea.global_values.REP_DIVERGENT_CUTOFF):
                         continue
                     if b_with_polyA == False:
                         continue
@@ -120,7 +120,7 @@ class XPostFilter():
                     s_in_rep = "Fall_in_SVA_copy_"+str(div_rate)
                 s_pass_info = rcd[-1].rstrip() + "\t" + s_in_rep + "\n"
                 fout_new.write(s_pass_info)
-        global_values.set_two_clip_cluster_diff_cutoff(i_dft_cluster_diff_cutoff)
+        xtea.global_values.set_two_clip_cluster_diff_cutoff(i_dft_cluster_diff_cutoff)
 ####
 
     def post_processing_Alu(self, l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff, f_cov,
@@ -152,7 +152,7 @@ class XPostFilter():
                 elif s_rep_supt_type is self._one_half_side:  ##one and half side
                     # check whether fall in repetitive region of the same type
                     #b_in_rep, i_pos = xannotation.is_within_repeat_region_interval_tree(ins_chrm, int(ins_pos))
-                    if (b_in_rep is True) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                    if (b_in_rep is True) and (div_rate < xtea.global_values.REP_DIVERGENT_CUTOFF):
                         continue
                     if xtprt_filter.is_polyA_dominant_one_side(rcd, self.nclip_half_cutoff) is True:
                         continue
@@ -160,7 +160,7 @@ class XPostFilter():
                         continue
                 elif s_rep_supt_type is self._one_side:  ###one side
                     #b_in_rep, i_pos = xannotation.is_within_repeat_region_interval_tree(ins_chrm, int(ins_pos))
-                    if (b_in_rep is True) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                    if (b_in_rep is True) and (div_rate < xtea.global_values.REP_DIVERGENT_CUTOFF):
                         continue
                     if xtprt_filter.is_polyA_dominant_one_side(rcd, self.nclip_half_cutoff) is True:
                         continue
@@ -226,7 +226,7 @@ class XPostFilter():
 
                 #return value: if b_in_rep is False, and div_rate>0, then this is fall in rep region, but div>cutoff
                 b_in_low_div_rep, div_rate, copy_start, copy_end = self.fall_in_low_div_same_type_rep(
-                    xannotation, ins_chrm, ins_pos, global_values.REP_LOW_DIVERGENT_CUTOFF)
+                    xannotation, ins_chrm, ins_pos, xtea.global_values.REP_LOW_DIVERGENT_CUTOFF)
 
                 ref_copy_start=copy_start+self.L1_boundary_extnd#change back to the original start position
                 ref_copy_end=copy_end-self.L1_boundary_extnd#change back to the original end position
@@ -301,7 +301,7 @@ class XPostFilter():
                             ins_chrm, ins_pos))
                         continue
                     #if b_in_low_div_rep == True:#fall in low diverged copy
-                    if (div_rate >= 0) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                    if (div_rate >= 0) and (div_rate < xtea.global_values.REP_DIVERGENT_CUTOFF):
                         #unless "two-side-tprt-both" and "two-side-consistent", then filter out
                         if xtprt_filter.is_two_side_tprt_both_and_both_consistent(rcd, 6000, 200)==False:
                             print("{0}:{1} is filtered out, because fall in low div L1 region".format(ins_chrm, ins_pos))
@@ -310,7 +310,7 @@ class XPostFilter():
                             continue
                 elif s_rep_supt_type is self._one_half_side:  ##one and half side
                     # check whether fall in repetitive region of the same type
-                    if (div_rate >=0) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                    if (div_rate >=0) and (div_rate < xtea.global_values.REP_DIVERGENT_CUTOFF):
                         print("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!".format(
                             ins_chrm, ins_pos))
                         fout_log.write("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!\n".format(
@@ -323,7 +323,7 @@ class XPostFilter():
                             ins_chrm, ins_pos))
                         continue
                 elif s_rep_supt_type is self._one_side:  ###one side
-                    if (div_rate >=0) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                    if (div_rate >=0) and (div_rate < xtea.global_values.REP_DIVERGENT_CUTOFF):
                         print("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!".format(
                             ins_chrm, ins_pos))
                         fout_log.write("{0}:{1} is filtered out, because fall in repeat region whose divergent rate is low!\n".format(
@@ -416,7 +416,7 @@ class XPostFilter():
 ####Hard code here !!!!!!!!!!!
         if (i_rep_type & 1) != 0:
             i_min_copy_len=self.L1_min_ref_copy_len #set a smaller value
-            sf_td_new_sites=sf_xtea_rslt+global_values.TD_NON_SIBLING_SUFFIX+ global_values.TD_NEW_SITES_SUFFIX
+            sf_td_new_sites=sf_xtea_rslt+xtea.global_values.TD_NON_SIBLING_SUFFIX+ xtea.global_values.TD_NEW_SITES_SUFFIX
             xannotation = self.construct_interval_tree(sf_rmsk, i_min_copy_len, self.b_rslt_with_chr,
                                                        self.L1_boundary_extnd)
             self.post_processing_L1(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation,
@@ -524,9 +524,9 @@ class XTEARsltParser():
         #print rcd_td_info
         sinfo5 = "{0}\t{1}\t{2}\t{3}\t".format(rcd_td_info[-1], rcd_td_info[6], int(rcd_td_info[0])+int(rcd_td_info[3]),
                                                rcd_td_info[7])
-        sinfo6="0\t0\t0\t0\t"+global_values.NOT_FIVE_PRIME_INV\
-               +"\t"+s_type+"\t"+global_values.ONE_END_CONSISTNT+"\t"\
-               +global_values.HIT_END_OF_CNS+"\t"
+        sinfo6="0\t0\t0\t0\t"+xtea.global_values.NOT_FIVE_PRIME_INV\
+               +"\t"+s_type+"\t"+xtea.global_values.ONE_END_CONSISTNT+"\t"\
+               +xtea.global_values.HIT_END_OF_CNS+"\t"
         # gntp_rcd in format: (n_af_clip, n_full_map, n_l_raw_clip, n_r_raw_clip, n_disc_pairs, n_concd_pairs,
         # n_disc_large_indel, s_clip_lens, n_polyA, n_disc_chrms)#
         s_tmp=""
@@ -547,7 +547,7 @@ class XTPRTFilter():
             self.swfolder += "/"
         self.n_jobs = n_jobs
 ########Hard code here!!!!!!!!!!!!!!!!!!!
-        self.f_side_polyA_cutoff=global_values.ONE_SIDE_POLYA_CUTOFF
+        self.f_side_polyA_cutoff=xtea.global_values.ONE_SIDE_POLYA_CUTOFF
         ####
 
 # ####n_clip is clip reads cutoff
@@ -567,7 +567,7 @@ class XTPRTFilter():
 #         if self._is_two_clip_form_different_cluster(rcd)==True:
 #             return False
 
-#         if (global_values.TWO_SIDE_TPRT_BOTH in s_type) and (self._is_two_disc_form_different_cluster(rcd)==True):
+#         if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type) and (self._is_two_disc_form_different_cluster(rcd)==True):
 #             return False
 
 #         b_lpolyA= ((float(n_lpolyA) / float(n_ef_lclip)) > f_cutoff)
@@ -587,13 +587,13 @@ class XTPRTFilter():
 
 #     #for trandsduction filtering
 #     def is_polyA_dominant_td(self, rcd):
-#         f_cutoff = global_values.MAX_POLYA_RATIO
+#         f_cutoff = xtea.global_values.MAX_POLYA_RATIO
 #         n_lpolyA = int(rcd[9])
 #         n_rpolyA = int(rcd[10])
 #         n_ef_lclip=int(rcd[5])
 #         n_ef_rclip=int(rcd[6])
 #         s_type = rcd[32]
-#         if (global_values.TWO_SIDE_TPRT_BOTH in s_type):
+#         if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type):
 #             return False
 
 #         b_lpolyA=True
@@ -618,7 +618,7 @@ class XTPRTFilter():
 #         lr_fields = s_rclip_cluster.split(":")
 #         i_rstart = int(float(lr_fields[0]))
 #         i_rend = int(float(lr_fields[1]))
-#         if s_consist==global_values.BOTH_END_CONSISTNT \
+#         if s_consist==xtea.global_values.BOTH_END_CONSISTNT \
 #                 and (abs(i_lstart-i_rend)>min_ins_len or abs(i_rstart-i_lend)>min_ins_len):
 #             return True
 #         return False
@@ -653,7 +653,7 @@ class XTPRTFilter():
 #         if(abs(i_lstart - i_rend) < min_ins_len and abs(i_rstart - i_lend) < min_ins_len):
 #             return False
 
-#         if (global_values.TWO_SIDE_TPRT_BOTH in s_type) and (s_consist==global_values.BOTH_END_CONSISTNT):
+#         if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type) and (s_consist==xtea.global_values.BOTH_END_CONSISTNT):
 #             return True
 #         return False
 
@@ -670,7 +670,7 @@ class XTPRTFilter():
 #         if n_ef_lclip <= 0 or n_ef_rclip <= 0:
 #             return False
 
-#         if (global_values.TWO_SIDE_TPRT_BOTH in s_type) and (self._disc_cluster_hit_cns_head(rcd, i_pos_head)==True):
+#         if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type) and (self._disc_cluster_hit_cns_head(rcd, i_pos_head)==True):
 #             return False
 
 #         b_lpolyA = ((float(n_lpolyA) / float(n_ef_lclip)) > f_cutoff)
@@ -726,8 +726,8 @@ class XTPRTFilter():
 #         lr_fields=s_rclip_cluster.split(":")
 #         i_rstart=int(float(lr_fields[0]))
 #         i_rend=int(float(lr_fields[1]))
-#         if abs(i_lend-i_rstart)<global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF \
-#                 or abs(i_rend-i_lstart)<global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF:
+#         if abs(i_lend-i_rstart)<xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF \
+#                 or abs(i_rend-i_lstart)<xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF:
 #             return False
 #         return True
 
@@ -742,8 +742,8 @@ class XTPRTFilter():
 #         lr_fields = s_rdisc_cluster.split(":")
 #         i_rstart = int(float(lr_fields[0]))
 #         i_rend = int(float(lr_fields[1]))
-#         if abs(i_lend - i_rstart) < global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF \
-#                 or abs(i_rend - i_lstart) < global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF:
+#         if abs(i_lend - i_rstart) < xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF \
+#                 or abs(i_rend - i_lstart) < xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF:
 #             return False
 #         return True
 
@@ -805,7 +805,7 @@ class XTPRTFilter():
 
 #     def is_two_side_tprt_and_with_polyA(self, rcd, i_cns_end):####
 #         s_type = rcd[32]
-#         if global_values.TWO_SIDE_TPRT in s_type:
+#         if xtea.global_values.TWO_SIDE_TPRT in s_type:
 #             s_lclip_cluster = rcd[19]
 #             s_rclip_cluster = rcd[20]
 #             if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
@@ -853,7 +853,7 @@ class XTPRTFilter():
 # ####
 #     def hit_end_of_cns(self, rcd):
 #         s_hit_end=rcd[34]
-#         if global_values.HIT_END_OF_CNS == s_hit_end:
+#         if xtea.global_values.HIT_END_OF_CNS == s_hit_end:
 #             return True
 #         else:
 #             return False
@@ -890,24 +890,24 @@ class XTPRTFilter():
 #     ####
 #     def get_rep_type(self):
 #         l_types = []
-#         l_types.append(global_values.ONE_SIDE_FLANKING)
-#         l_types.append(global_values.TWO_SIDE)
-#         l_types.append(global_values.TWO_SIDE_TPRT_BOTH)
-#         l_types.append(global_values.TWO_SIDE_TPRT)
-#         l_types.append(global_values.ONE_HALF_SIDE)
-#         l_types.append(global_values.ONE_HALF_SIDE_TRPT_BOTH)
-#         l_types.append(global_values.ONE_HALF_SIDE_TRPT)
-#         l_types.append(global_values.ONE_HALF_SIDE_POLYA_DOMINANT)
-#         l_types.append(global_values.ONE_SIDE)
-#         l_types.append(global_values.ONE_SIDE_COVERAGE_CONFLICT)
-#         l_types.append(global_values.ONE_SIDE_TRSDCT)
-#         l_types.append(global_values.ONE_SIDE_WEAK)
-#         l_types.append(global_values.ONE_SIDE_OTHER)
-#         l_types.append(global_values.ONE_SIDE_SV)
-#         l_types.append(global_values.ONE_SIDE_POLYA_DOMINANT)
-#         l_types.append(global_values.TWO_SIDE_POLYA_DOMINANT)
-#         l_types.append(global_values.HIGH_COV_ISD)
-#         l_types.append(global_values.OTHER_TYPE)
+#         l_types.append(xtea.global_values.ONE_SIDE_FLANKING)
+#         l_types.append(xtea.global_values.TWO_SIDE)
+#         l_types.append(xtea.global_values.TWO_SIDE_TPRT_BOTH)
+#         l_types.append(xtea.global_values.TWO_SIDE_TPRT)
+#         l_types.append(xtea.global_values.ONE_HALF_SIDE)
+#         l_types.append(xtea.global_values.ONE_HALF_SIDE_TRPT_BOTH)
+#         l_types.append(xtea.global_values.ONE_HALF_SIDE_TRPT)
+#         l_types.append(xtea.global_values.ONE_HALF_SIDE_POLYA_DOMINANT)
+#         l_types.append(xtea.global_values.ONE_SIDE)
+#         l_types.append(xtea.global_values.ONE_SIDE_COVERAGE_CONFLICT)
+#         l_types.append(xtea.global_values.ONE_SIDE_TRSDCT)
+#         l_types.append(xtea.global_values.ONE_SIDE_WEAK)
+#         l_types.append(xtea.global_values.ONE_SIDE_OTHER)
+#         l_types.append(xtea.global_values.ONE_SIDE_SV)
+#         l_types.append(xtea.global_values.ONE_SIDE_POLYA_DOMINANT)
+#         l_types.append(xtea.global_values.TWO_SIDE_POLYA_DOMINANT)
+#         l_types.append(xtea.global_values.HIGH_COV_ISD)
+#         l_types.append(xtea.global_values.OTHER_TYPE)
 #         return l_types
 
 # ####
@@ -918,7 +918,7 @@ class XTPRTFilter():
 #             if b_tumor==True:
 #                 m_cutoff[s_type] = (0.001, 0.001, 0.001, 0.001)
 #                 continue
-#             if ("two_side" in s_type) or ("both-side" in s_type) or (global_values.ONE_SIDE_TRSDCT is s_type):
+#             if ("two_side" in s_type) or ("both-side" in s_type) or (xtea.global_values.ONE_SIDE_TRSDCT is s_type):
 #                 m_cutoff[s_type] = (0.075, 0.075, 0.075, 0.075)
 #             elif "one_side" in s_type:  #
 #                 m_cutoff[s_type] = (0.075, 0.075, 0.075, 0.075)

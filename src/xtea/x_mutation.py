@@ -26,7 +26,7 @@ class XMutation():
 
         self.cmd_runner = CMD_RUNNER()
         #create the mutation folder
-        sf_mutation_folder=self.working_folder+global_values.MUTATION_FOLDER
+        sf_mutation_folder=self.working_folder+xtea.global_values.MUTATION_FOLDER
         if os.path.exists(sf_mutation_folder)==False:
             cmd="mkdir {0}".format(sf_mutation_folder)
             #Popen(cmd, shell=True, stdout=PIPE).communicate()
@@ -62,12 +62,12 @@ class XMutation():
         pool.join()
         #merge all the vcf.gz files, and then index it
         #also remove those sites only happen in one sites
-        s_mutation_flder = self.working_folder + global_values.MUTATION_FOLDER + "/"
-        cmd="{0} merge ".format(global_values.BCFTOOLS_PATH)
+        s_mutation_flder = self.working_folder + xtea.global_values.MUTATION_FOLDER + "/"
+        cmd="{0} merge ".format(xtea.global_values.BCFTOOLS_PATH)
         for rcd in l_records:
             site_chrm = rcd[0]
             pos = rcd[1]
-            sf_vcf = s_mutation_flder + "{0}_{1}_{2}.vcf.gz".format(site_chrm, pos, global_values.ALL_HAP_SLCT)
+            sf_vcf = s_mutation_flder + "{0}_{1}_{2}.vcf.gz".format(site_chrm, pos, xtea.global_values.ALL_HAP_SLCT)
             cmd+=(sf_vcf+" ")
         cmd+="-o {0}".format(sf_merged_vcf)
         #Popen(cmd, shell=True, stdout=PIPE).communicate()
@@ -78,29 +78,29 @@ class XMutation():
         pos=record[1]
         n_cores=record[2] #by default, is 1
         sf_cns=record[3]
-        s_reads_folder=self.working_folder + global_values.READS_FOLDER + "/"
-        bwa_align = BWAlign(global_values.BWA_PATH, global_values.BWA_REALIGN_CUTOFF, n_cores)
-        sfa_hap1_slct = s_reads_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.HAP1_SLCT)
-        sfa_hap2_slct = s_reads_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.HAP2_SLCT)
-        sfa_hap_unknown_slct = s_reads_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.HAP_UNKNOWN_SLCT)
-        sfa_hap_all_slct = s_reads_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.ALL_HAP_SLCT)
+        s_reads_folder=self.working_folder + xtea.global_values.READS_FOLDER + "/"
+        bwa_align = BWAlign(xtea.global_values.BWA_PATH, xtea.global_values.BWA_REALIGN_CUTOFF, n_cores)
+        sfa_hap1_slct = s_reads_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.HAP1_SLCT)
+        sfa_hap2_slct = s_reads_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.HAP2_SLCT)
+        sfa_hap_unknown_slct = s_reads_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.HAP_UNKNOWN_SLCT)
+        sfa_hap_all_slct = s_reads_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.ALL_HAP_SLCT)
 
-        s_mutation_flder = self.working_folder + global_values.MUTATION_FOLDER + "/"
-        ssam_hap1_tmp = s_mutation_flder + "{0}_{1}_{2}.tmp.bam".format(site_chrm, pos, global_values.HAP1_SLCT)
-        ssam_hap2_tmp = s_mutation_flder + "{0}_{1}_{2}.tmp.bam".format(site_chrm, pos, global_values.HAP2_SLCT)
-        ssam_hap_unknown_tmp = s_mutation_flder + "{0}_{1}_{2}.tmp.bam".format(site_chrm, pos, global_values.HAP_UNKNOWN_SLCT)
-        ssam_hap_all_tmp = s_mutation_flder + "{0}_{1}_{2}.tmp.bam".format(site_chrm, pos, global_values.ALL_HAP_SLCT)
+        s_mutation_flder = self.working_folder + xtea.global_values.MUTATION_FOLDER + "/"
+        ssam_hap1_tmp = s_mutation_flder + "{0}_{1}_{2}.tmp.bam".format(site_chrm, pos, xtea.global_values.HAP1_SLCT)
+        ssam_hap2_tmp = s_mutation_flder + "{0}_{1}_{2}.tmp.bam".format(site_chrm, pos, xtea.global_values.HAP2_SLCT)
+        ssam_hap_unknown_tmp = s_mutation_flder + "{0}_{1}_{2}.tmp.bam".format(site_chrm, pos, xtea.global_values.HAP_UNKNOWN_SLCT)
+        ssam_hap_all_tmp = s_mutation_flder + "{0}_{1}_{2}.tmp.bam".format(site_chrm, pos, xtea.global_values.ALL_HAP_SLCT)
 
         # align reads to the consensus
-        bwa_align.realign_reads_to_bam(global_values.SAMTOOLS_PATH, sf_cns, sfa_hap1_slct, ssam_hap1_tmp)
-        bwa_align.realign_reads_to_bam(global_values.SAMTOOLS_PATH, sf_cns, sfa_hap2_slct, ssam_hap2_tmp)
-        bwa_align.realign_reads_to_bam(global_values.SAMTOOLS_PATH, sf_cns, sfa_hap_unknown_slct, ssam_hap_unknown_tmp)
-        bwa_align.realign_reads_to_bam(global_values.SAMTOOLS_PATH, sf_cns, sfa_hap_all_slct, ssam_hap_all_tmp)
+        bwa_align.realign_reads_to_bam(xtea.global_values.SAMTOOLS_PATH, sf_cns, sfa_hap1_slct, ssam_hap1_tmp)
+        bwa_align.realign_reads_to_bam(xtea.global_values.SAMTOOLS_PATH, sf_cns, sfa_hap2_slct, ssam_hap2_tmp)
+        bwa_align.realign_reads_to_bam(xtea.global_values.SAMTOOLS_PATH, sf_cns, sfa_hap_unknown_slct, ssam_hap_unknown_tmp)
+        bwa_align.realign_reads_to_bam(xtea.global_values.SAMTOOLS_PATH, sf_cns, sfa_hap_all_slct, ssam_hap_all_tmp)
 
-        ssam_hap1_slct = s_mutation_flder + "{0}_{1}_{2}.sorted.bam".format(site_chrm, pos, global_values.HAP1_SLCT)
-        ssam_hap2_slct = s_mutation_flder + "{0}_{1}_{2}.sorted.bam".format(site_chrm, pos, global_values.HAP2_SLCT)
-        ssam_hap_unknown_slct = s_mutation_flder + "{0}_{1}_{2}.sorted.bam".format(site_chrm, pos, global_values.HAP_UNKNOWN_SLCT)
-        ssam_hap_all_slct = s_mutation_flder + "{0}_{1}_{2}.sorted.bam".format(site_chrm, pos, global_values.ALL_HAP_SLCT)
+        ssam_hap1_slct = s_mutation_flder + "{0}_{1}_{2}.sorted.bam".format(site_chrm, pos, xtea.global_values.HAP1_SLCT)
+        ssam_hap2_slct = s_mutation_flder + "{0}_{1}_{2}.sorted.bam".format(site_chrm, pos, xtea.global_values.HAP2_SLCT)
+        ssam_hap_unknown_slct = s_mutation_flder + "{0}_{1}_{2}.sorted.bam".format(site_chrm, pos, xtea.global_values.HAP_UNKNOWN_SLCT)
+        ssam_hap_all_slct = s_mutation_flder + "{0}_{1}_{2}.sorted.bam".format(site_chrm, pos, xtea.global_values.ALL_HAP_SLCT)
         self.select_qualified_alignments(ssam_hap1_tmp, sf_cns, ssam_hap1_slct)
         self.select_qualified_alignments(ssam_hap2_tmp, sf_cns, ssam_hap2_slct)
         self.select_qualified_alignments(ssam_hap_unknown_tmp, sf_cns, ssam_hap_unknown_slct)
@@ -111,9 +111,9 @@ class XMutation():
         pos = record[1]
         sf_cns = record[3]
 
-        s_mutation_flder = self.working_folder + global_values.MUTATION_FOLDER + "/"
-        ssam_hap_all_slct = s_mutation_flder + "{0}_{1}_{2}.sorted.bam".format(site_chrm, pos, global_values.ALL_HAP_SLCT)
-        sf_vcf=s_mutation_flder+"{0}_{1}_{2}.vcf.gz".format(site_chrm, pos, global_values.ALL_HAP_SLCT)
+        s_mutation_flder = self.working_folder + xtea.global_values.MUTATION_FOLDER + "/"
+        ssam_hap_all_slct = s_mutation_flder + "{0}_{1}_{2}.sorted.bam".format(site_chrm, pos, xtea.global_values.ALL_HAP_SLCT)
+        sf_vcf=s_mutation_flder+"{0}_{1}_{2}.vcf.gz".format(site_chrm, pos, xtea.global_values.ALL_HAP_SLCT)
         self.call_snp_from_reads_alignment(ssam_hap_all_slct, sf_cns, sf_vcf)
 
 
@@ -124,14 +124,14 @@ class XMutation():
     #output in vcf.gz format
     def call_snp_from_reads_alignment(self, sf_algnmt, sf_ref, sf_vcf):
         sf_vcf_tmp=sf_vcf+".tmp"
-        cmd="{0} mpileup -IOu -f {1} {2} | {3} call -vmO z -o {4}".format(global_values.BCFTOOLS_PATH, sf_ref, sf_algnmt,
-                                                                     global_values.BCFTOOLS_PATH, sf_vcf_tmp)
+        cmd="{0} mpileup -IOu -f {1} {2} | {3} call -vmO z -o {4}".format(xtea.global_values.BCFTOOLS_PATH, sf_ref, sf_algnmt,
+                                                                     xtea.global_values.BCFTOOLS_PATH, sf_vcf_tmp)
         #Popen(cmd, shell=True, stdout=PIPE).communicate()
         self.cmd_runner.run_cmd_small_output(cmd)
         ####index the vcf gz file
         self._index_vcf_gz(sf_vcf_tmp)
         ####filter the results  Hard code here !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        cmd="{0} filter -O z -e 'DP<8 || %QUAL<50' -o {1} {2}".format(global_values.BCFTOOLS_PATH, sf_vcf, sf_vcf_tmp)
+        cmd="{0} filter -O z -e 'DP<8 || %QUAL<50' -o {1} {2}".format(xtea.global_values.BCFTOOLS_PATH, sf_vcf, sf_vcf_tmp)
         #Popen(cmd, shell=True, stdout=PIPE).communicate()
         self.cmd_runner.run_cmd_small_output(cmd)
         ####
@@ -139,7 +139,7 @@ class XMutation():
 
     ####Index xxx.vcf.gz file
     def _index_vcf_gz(self, sf_input):
-        cmd = "{0} -f -p vcf {1}".format(global_values.TABIX_PATH, sf_input)
+        cmd = "{0} -f -p vcf {1}".format(xtea.global_values.TABIX_PATH, sf_input)
         #Popen(cmd, shell=True, stdout=PIPE).communicate()
         self.cmd_runner.run_cmd_small_output(cmd)
 

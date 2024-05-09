@@ -35,7 +35,7 @@ class BWAlign():
         with pysam.FastxFile(sf_reads) as fh, open(sf_reads1,"w") as fout_non, open(sf_reads2, "w") as fout_polya:
             for entry in fh:
                 len_seq=len(entry.sequence)
-                if len_seq<global_values.BWA_REALIGN_CUTOFF:
+                if len_seq<xtea.global_values.BWA_REALIGN_CUTOFF:
                     fout_polya.write(str(entry)+"\n")
                 else:
                     fout_non.write(str(entry)+"\n")
@@ -62,8 +62,8 @@ class BWAlign():
     # re-align the collected clipped and discordant reads
     def realign_clipped_polyA(self, sf_ref, sf_reads, sf_out_sam):
         cmd = "{0} mem -t {1} -T {2} -k {3} -o {4} -c {5} {6} {7}".format(self.BWA_PATH, self.n_jobs,
-                                                                   global_values.MINIMUM_POLYA_CLIP,
-                                                                   global_values.MINIMUM_POLYA_CLIP, sf_out_sam,
+                                                                   xtea.global_values.MINIMUM_POLYA_CLIP,
+                                                                   xtea.global_values.MINIMUM_POLYA_CLIP, sf_out_sam,
                                                                           self.BWA_SEED_MEDIUM_FREQ, sf_ref, sf_reads)
         #Popen(cmd, shell=True, stdout=PIPE).communicate()
         #self.cmd_runner.run_cmd_to_file(cmd, sf_out_sam)
@@ -81,7 +81,7 @@ class BWAlign():
                                                    self.BWA_REALIGN_CUTOFF,
                                                    self.BWA_SEED_FREQ,
                                                    sf_head, sf_ref, sf_reads,
-                                                   global_values.SAMTOOLS_PATH, sf_out_sam)
+                                                   xtea.global_values.SAMTOOLS_PATH, sf_out_sam)
         # cmd = "{0} mem -t {1} -T {2} -k {3} -c {4} -D 0.9 -h 2 -H {5} -o {6} {7} {8}".format(self.BWA_PATH, n_cores,
         #                                                            self.BWA_REALIGN_CUTOFF,
         #                                                            self.BWA_REALIGN_CUTOFF, self.BWA_SEED_FREQ,
@@ -148,7 +148,7 @@ class BWAlign():
                     out_tmp_bam.write(alnmt)
                 else:
                     len_seq=len(alnmt.query_sequence)
-                    if len_seq>=global_values.MINIMUM_POLYA_CLIP and len_seq<global_values.BWA_REALIGN_CUTOFF:
+                    if len_seq>=xtea.global_values.MINIMUM_POLYA_CLIP and len_seq<xtea.global_values.BWA_REALIGN_CUTOFF:
                         fout_polyA.write(">" + alnmt.query_name + "\n")
                         fout_polyA.write(alnmt.query_sequence + "\n")
                     else:

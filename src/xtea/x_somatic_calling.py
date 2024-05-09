@@ -10,6 +10,7 @@ from xtea.x_clip_disc_filter import *
 from xtea.x_genotype_feature import *
 from xtea.x_transduction import *
 from xtea.x_orphan_transduction import *
+import xtea.global_values
 
 ####
 class CaseControlMode():
@@ -51,9 +52,9 @@ class CaseControlMode():
     def extract_sites_raw_gntp_feature_depth(self, sf_candidate_list, sf_bam_list):#
         # get the depth information
         rd = ReadDepth(self.s_wfolder, self.n_jobs, self.sf_ref)
-        search_win = global_values.COV_SEARCH_WINDOW  # this region is to collect the reads, by default 1000
-        focal_win = global_values.LOCAL_COV_WIN  # this region is used to search for coverage island, by default 900
-        focal_win2 = global_values.COV_ISD_CHK_WIN  # this region is to calculate the local coverage, by default 200
+        search_win = xtea.global_values.COV_SEARCH_WINDOW  # this region is to collect the reads, by default 1000
+        focal_win = xtea.global_values.LOCAL_COV_WIN  # this region is used to search for coverage island, by default 900
+        focal_win2 = xtea.global_values.COV_ISD_CHK_WIN  # this region is to calculate the local coverage, by default 200
         m_sites=self.load_sites(sf_candidate_list)
         m_read_depth = rd.calc_coverage_of_two_regions(m_sites, sf_bam_list, search_win,
                                                        focal_win, focal_win2)
@@ -62,12 +63,12 @@ class CaseControlMode():
 
         # get the genotype information
         x_gntper = XGenotyper(self.sf_ref, self.s_wfolder, self.n_jobs)
-        is_extnd = global_values.DFT_IS
+        is_extnd = xtea.global_values.DFT_IS
         sf_gntp_feature = sf_candidate_list + ".gntp.features"
         x_gntper.call_genotype(sf_bam_list, sf_candidate_list, is_extnd, sf_gntp_feature)
         # load in features, also filter out sites with very large clipped reads at the breakpoints
-        i_total_cov = global_values.AVE_COVERAGE
-        i_max_cov = global_values.MAX_COV_TIMES * i_total_cov
+        i_total_cov = xtea.global_values.AVE_COVERAGE
+        i_max_cov = xtea.global_values.MAX_COV_TIMES * i_total_cov
         m_gntp_info = x_gntper.load_in_features_from_file_with_cov_cutoff(sf_gntp_feature, i_max_cov)
         return m_read_depth, m_gntp_info
 
@@ -203,11 +204,11 @@ class CaseControlMode():
                 b_trsdct=True
                 b_orphan=False
                 b_sibling=False
-                if global_values.NOT_TRANSDUCTION in line:
+                if xtea.global_values.NOT_TRANSDUCTION in line:
                     b_trsdct=False
-                if global_values.ORPHAN_LABEL in line:
+                if xtea.global_values.ORPHAN_LABEL in line:
                     b_orphan=True
-                if global_values.SIBLING_LABEL in line:
+                if xtea.global_values.SIBLING_LABEL in line:
                     b_sibling=True
                 fields=line.split()
                 ins_chrm=fields[0]

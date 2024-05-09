@@ -35,7 +35,7 @@ class XChromosome():
             return True
 ####
         # if this is not to call mitochondrial insertion, then filter out chrm related reads
-        if global_values.GLOBAL_MITCHONDRION_SWITCH=="OFF":
+        if xtea.global_values.GLOBAL_MITCHONDRION_SWITCH=="OFF":
             if chrm=="MT" or chrm=="chrMT" or chrm=="chrM":#doesn't consider the mitchrondrial DNA
                 #print "[TEST]: global value is off"
                 return True
@@ -109,13 +109,13 @@ class XReference():
             s_left_region = f_fa.fetch(ref_chrm, istart, pos)
             s_right_region = f_fa.fetch(ref_chrm, pos + 1, iend)
 
-            sf_flank_fa = working_folder + "{0}{1}{2}_flanks.fa".format(chrm, global_values.SEPERATOR, pos)
+            sf_flank_fa = working_folder + "{0}{1}{2}_flanks.fa".format(chrm, xtea.global_values.SEPERATOR, pos)
             with open(sf_flank_fa, "w") as fout_flank:
                 if b_left==True:
-                    fout_flank.write(">{0}\n".format(global_values.LEFT_FLANK))
+                    fout_flank.write(">{0}\n".format(xtea.global_values.LEFT_FLANK))
                     fout_flank.write(s_left_region + "\n")
                 if b_right==True:
-                    fout_flank.write(">{0}\n".format(global_values.RIGHT_FLANK))
+                    fout_flank.write(">{0}\n".format(xtea.global_values.RIGHT_FLANK))
                     fout_flank.write(s_right_region + "\n")
         f_fa.close()
 
@@ -150,13 +150,13 @@ class XReference():
             s_left_region = f_fa.fetch(ref_chrm, i_rg_start - i_extend, i_rg_start)
             s_right_region = f_fa.fetch(ref_chrm, i_rg_end, i_rg_end + i_extend)#
 
-            sf_flank_fa = working_folder + "{0}{1}{2}_flanks.fa".format(chrm, global_values.SEPERATOR, i_rg_start)
+            sf_flank_fa = working_folder + "{0}{1}{2}_flanks.fa".format(chrm, xtea.global_values.SEPERATOR, i_rg_start)
             with open(sf_flank_fa, "w") as fout_flank:
                 if b_left == True:
-                    fout_flank.write(">{0}\n".format(global_values.LEFT_FLANK))
+                    fout_flank.write(">{0}\n".format(xtea.global_values.LEFT_FLANK))
                     fout_flank.write(s_left_region + "\n")
                 if b_right == True:
-                    fout_flank.write(">{0}\n".format(global_values.RIGHT_FLANK))
+                    fout_flank.write(">{0}\n".format(xtea.global_values.RIGHT_FLANK))
                     fout_flank.write(s_right_region + "\n")
         f_fa.close()
 
@@ -168,7 +168,7 @@ class XReference():
 
         if s_working_folder[-1] != "/":
             s_working_folder += "/"
-        flank_folder = s_working_folder + global_values.FLANK_FOLDER
+        flank_folder = s_working_folder + xtea.global_values.FLANK_FOLDER
         if os.path.exists(flank_folder) == False:
             cmd = "mkdir {0}".format(flank_folder)
             #Popen(cmd, shell=True, stdout=PIPE).communicate()
@@ -202,23 +202,23 @@ class XReference():
                 istart = ins_pos - i_extend
                 iend = ins_pos + i_extend
 
-                sub_family=global_values.S_POLYMORPHIC
+                sub_family=xtea.global_values.S_POLYMORPHIC
                 ref_chrm = self.process_chrm_name(ins_chrm, b_with_chr)
                 if ref_chrm not in m_ref_chrms:#special cases like chrM, will be skipped
                     continue
                 s_left_region = f_fa.fetch(ref_chrm, istart, ins_pos)
-                s_left_head=">{0}{1}{2}{3}{4}{5}{6}{7}{8}L".format(ins_chrm, global_values.S_DELIM, ins_pos,
-                                                                   global_values.S_DELIM, ins_pos, global_values.S_DELIM,
-                                                                   sub_family, global_values.S_DELIM, bi_rc)
+                s_left_head=">{0}{1}{2}{3}{4}{5}{6}{7}{8}L".format(ins_chrm, xtea.global_values.S_DELIM, ins_pos,
+                                                                   xtea.global_values.S_DELIM, ins_pos, xtea.global_values.S_DELIM,
+                                                                   sub_family, xtea.global_values.S_DELIM, bi_rc)
                 fout_flanks.write(s_left_head+"\n")
                 fout_flanks.write(s_left_region + "\n")
                 s_right_region = f_fa.fetch(ref_chrm, ins_pos, iend)
-                s_right_head = ">{0}{1}{2}{3}{4}{5}{6}{7}{8}R".format(ins_chrm, global_values.S_DELIM, ins_pos,
-                                                                      global_values.S_DELIM, ins_pos, global_values.S_DELIM,
-                                                                      sub_family, global_values.S_DELIM, bi_rc)
+                s_right_head = ">{0}{1}{2}{3}{4}{5}{6}{7}{8}R".format(ins_chrm, xtea.global_values.S_DELIM, ins_pos,
+                                                                      xtea.global_values.S_DELIM, ins_pos, xtea.global_values.S_DELIM,
+                                                                      sub_family, xtea.global_values.S_DELIM, bi_rc)
                 fout_flanks.write(s_right_head + "\n")
                 fout_flanks.write(s_right_region + "\n")
-                s_id="{0}{1}{2}".format(ins_chrm, global_values.SEPERATOR, ins_pos)
+                s_id="{0}{1}{2}".format(ins_chrm, xtea.global_values.SEPERATOR, ins_pos)
                 m_polym_fl_l1_flank[s_id]=(s_left_head, s_left_region, s_right_head, s_right_region)
         f_fa.close()
         return m_polym_fl_l1_flank
@@ -253,7 +253,7 @@ class XReference():
             ref_chrm = self.process_chrm_name(chrm, b_with_chr)
             s_target_region = f_fa.fetch(ref_chrm, istart, iend)
 
-            sf_flank_fa = working_folder + "{0}{1}{2}_flanks.fa".format(chrm, global_values.SEPERATOR, pos)
+            sf_flank_fa = working_folder + "{0}{1}{2}_flanks.fa".format(chrm, xtea.global_values.SEPERATOR, pos)
             with open(sf_flank_fa, "w") as fout_flank:
                 fout_flank.write(">target_ref_seq\n")
                 fout_flank.write(s_target_region + "\n")

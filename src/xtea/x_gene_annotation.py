@@ -114,9 +114,9 @@ class GFF3():
                     self.m_gene_annotation[chrm][extd_start_pos].append((end_pos, b_rc, gene_id, gene_type, gene_name)) #
                     ####Also save to the region dictionary
                     self.m_region_info[gene_id]={}#here we create two types of region: upstream_1k, downstream_1k
-                    s_up_id=global_values.UP_STREAM_REGION+":"+gene_id
+                    s_up_id=xtea.global_values.UP_STREAM_REGION+":"+gene_id
                     self.m_region_info[gene_id][s_up_id]=(start_pos, ori_start_pos)
-                    s_down_id=global_values.DOWN_STREAM_REGION+":"+gene_id
+                    s_down_id=xtea.global_values.DOWN_STREAM_REGION+":"+gene_id
                     self.m_region_info[gene_id][s_down_id] = (ori_end_pos, end_pos)
                 else:
                     if gene_id not in self.m_region_info:
@@ -254,7 +254,7 @@ class GFF3():
                     s_rcd=rcd[2]
                     s_hit_genes+=s_rcd
                 if s_hit_genes=="":
-                    s_hit_genes=global_values.NON_GENE
+                    s_hit_genes=xtea.global_values.NON_GENE
 
                 s_info=line.rstrip()
                 s_info+=("\t"+s_hit_genes+"\n")

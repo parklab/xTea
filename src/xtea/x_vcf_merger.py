@@ -310,7 +310,7 @@ class PopVCFMerger(VCFMerger):
             if s_pop_code not in m_td_src:
                 m_td_src[s_pop_code]={}
 
-            if global_values.NOT_TRANSDUCTION not in s_td_src:#make sure it is a transduction
+            if xtea.global_values.NOT_TRANSDUCTION not in s_td_src:#make sure it is a transduction
                 if s_td_src not in m_td_src[s_pop_code]:
                     m_td_src[s_pop_code][s_td_src]=1
                 else:
@@ -745,7 +745,7 @@ class SampleVCFMerger(VCFMerger):
 ####
     def cmp_quality_of_two_ins(self, s_rcd1, s_rcd2):
         b_keep_first=True
-        s_tprt_both=global_values.TWO_SIDE_TPRT_BOTH
+        s_tprt_both=xtea.global_values.TWO_SIDE_TPRT_BOTH
         if (s_tprt_both not in s_rcd1) and (s_tprt_both in s_rcd2):
             return False
         return b_keep_first

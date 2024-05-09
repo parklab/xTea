@@ -5,7 +5,7 @@
 ##collect the featues of each insertion
 
 from xtea.x_alignments import *
-from xtea.global_values import *
+import xtea.global_values
 from xtea.x_polyA import *
 import pysam
 
@@ -82,7 +82,7 @@ class XGenotyper():
                     chrm=rcd[0][0]
                     ins_pos=rcd[0][1]
                     s_pos_info = "{0}_{1}".format(chrm, ins_pos)
-                    sf_gntp_features = self.working_folder + s_pos_info + global_values.GNTP_FEATURE_SUFFIX
+                    sf_gntp_features = self.working_folder + s_pos_info + xtea.global_values.GNTP_FEATURE_SUFFIX
                     if os.path.isfile(sf_gntp_features) == False:
                         continue
                     with open(sf_gntp_features) as fin_site:
@@ -173,7 +173,7 @@ class XGenotyper():
         m_mate_chrms={}
 ####
         s_pos_info = "{0}_{1}".format(chrm, ins_pos)
-        sf_gntp_features = working_folder + s_pos_info + global_values.GNTP_FEATURE_SUFFIX  #save the genotype features
+        sf_gntp_features = working_folder + s_pos_info + xtea.global_values.GNTP_FEATURE_SUFFIX  #save the genotype features
         f_gntp_fetures = open(sf_gntp_features, "w")
 
         l_check_concord=[]
@@ -224,9 +224,9 @@ class XGenotyper():
             if b_fully_mapped==True:
                 if ins_pos>=i_map_start and ins_pos<=i_map_end:
                     n_full_map+=1
-                    if abs(i_map_start-ins_pos)<global_values.BWA_HALF_READ_MIN_SCORE:
+                    if abs(i_map_start-ins_pos)<xtea.global_values.BWA_HALF_READ_MIN_SCORE:
                         n_r_full_map += 1
-                    elif abs(i_map_end-ins_pos)<global_values.BWA_HALF_READ_MIN_SCORE:
+                    elif abs(i_map_end-ins_pos)<xtea.global_values.BWA_HALF_READ_MIN_SCORE:
                         n_l_full_map += 1
 
             s_clip_seq_ck = ""
@@ -237,22 +237,22 @@ class XGenotyper():
                 # if map_pos in m_pos:
                 clipped_seq = query_seq[:l_cigar[0][1]]
                 len_clip_seq=len(clipped_seq)
-                if abs(map_pos-ins_pos)<global_values.TSD_CUTOFF:
+                if abs(map_pos-ins_pos)<xtea.global_values.TSD_CUTOFF:
                     n_l_raw_clip+=1
                     m_clip_qname[query_name] = 1
-                if abs(map_pos - ins_pos) < global_values.CK_POLYA_CLIP_WIN:
+                if abs(map_pos - ins_pos) < xtea.global_values.CK_POLYA_CLIP_WIN:
                     if b_clip_part_rc == False:  # not reverse complementary
-                        if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                            s_clip_seq_ck = clipped_seq[-1*global_values.CK_POLYA_SEQ_MAX:]
+                        if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                            s_clip_seq_ck = clipped_seq[-1*xtea.global_values.CK_POLYA_SEQ_MAX:]
                         else:
                             s_clip_seq_ck = clipped_seq
                     else:
-                        if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                            s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                        if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                            s_clip_seq_ck = clipped_seq[:xtea.global_values.CK_POLYA_SEQ_MAX]
                         else:
                             s_clip_seq_ck = clipped_seq
 
-                if abs(map_pos-ins_pos)<global_values.CLIP_EXACT_CLIP_SLACK:
+                if abs(map_pos-ins_pos)<xtea.global_values.CLIP_EXACT_CLIP_SLACK:
                     n_l_af_clip+=1
                     l_lclip_lens.append(str(len_clip_seq))
 
@@ -271,22 +271,22 @@ class XGenotyper():
                 clipped_seq = query_seq[start_pos:]
                 len_clip_seq = len(clipped_seq)
 
-                if abs(map_pos - ins_pos) < global_values.TSD_CUTOFF:
+                if abs(map_pos - ins_pos) < xtea.global_values.TSD_CUTOFF:
                     n_r_raw_clip += 1
                     m_clip_qname[query_name] = 1
-                if abs(map_pos - ins_pos) <  global_values.CK_POLYA_CLIP_WIN:
+                if abs(map_pos - ins_pos) <  xtea.global_values.CK_POLYA_CLIP_WIN:
                     if b_clip_part_rc == False:  # not reverse complementary
-                        if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                            s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                        if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                            s_clip_seq_ck = clipped_seq[:xtea.global_values.CK_POLYA_SEQ_MAX]
                         else:
                             s_clip_seq_ck = clipped_seq
                     else:
-                        if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                            s_clip_seq_ck = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
+                        if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                            s_clip_seq_ck = clipped_seq[-1 * xtea.global_values.CK_POLYA_SEQ_MAX:]
                         else:
                             s_clip_seq_ck = clipped_seq
 
-                if abs(map_pos - ins_pos) < global_values.CLIP_EXACT_CLIP_SLACK:
+                if abs(map_pos - ins_pos) < xtea.global_values.CLIP_EXACT_CLIP_SLACK:
                     n_r_af_clip += 1
                     l_rclip_lens.append(str(len_clip_seq))
 
@@ -302,14 +302,14 @@ class XGenotyper():
 ####
             m_mate_chrms[mate_chrm]=1
             ## here only collect the read names for discordant reads, later will re-align the discordant reads
-            if self.is_discordant(chrm_in_bam, map_pos, mate_chrm, mate_pos, global_values.DISC_THRESHOLD) == True:
+            if self.is_discordant(chrm_in_bam, map_pos, mate_chrm, mate_pos, xtea.global_values.DISC_THRESHOLD) == True:
                 # check where the mate is mapped, if within a repeat copy, then get the position on consensus
                 # f_disc_names.write(query_name + "\n")
                 # check whether have indels within the read
                 if self._has_large_indel_in_read(l_cigar)==True:
                     n_disc_large_indel+=1
 
-                if abs(map_pos-ins_pos)<=global_values.DFT_IS:
+                if abs(map_pos-ins_pos)<=xtea.global_values.DFT_IS:
                     n_disc_pairs+=1
 
             else:
@@ -319,7 +319,7 @@ class XGenotyper():
         for rcd_tmp in l_check_concord:
             if rcd_tmp[0] in m_clip_qname:
                 continue
-            if self.is_concrdant(rcd_tmp[1],rcd_tmp[2],rcd_tmp[3],rcd_tmp[4], ins_pos, global_values.DFT_IS) == True:
+            if self.is_concrdant(rcd_tmp[1],rcd_tmp[2],rcd_tmp[3],rcd_tmp[4], ins_pos, xtea.global_values.DFT_IS) == True:
                 #print rcd_tmp[0], rcd_tmp[1],rcd_tmp[2],rcd_tmp[3],rcd_tmp[4]
                 n_concd_pairs += 1
 
@@ -355,7 +355,7 @@ class XGenotyper():
 ####
     def _has_large_indel_in_read(self, l_cigar):
         for (type, lenth) in l_cigar[:-1]:
-            if (type==1 or type==2) and (lenth>=global_values.LARGE_INDEL_IN_READ):
+            if (type==1 or type==2) and (lenth>=xtea.global_values.LARGE_INDEL_IN_READ):
                 return True
         return False
 
@@ -393,10 +393,10 @@ class XGenotyper():
     def is_concrdant(self, chrm, map_pos, mate_chrm, mate_pos, ins_pos, i_is):
         if chrm == mate_chrm:
             i_start=map_pos
-            i_end=mate_pos+global_values.READ_LENGTH
+            i_end=mate_pos+xtea.global_values.READ_LENGTH
             if map_pos>mate_pos:
                 i_start=mate_pos
-                i_end=map_pos+global_values.READ_LENGTH
+                i_end=map_pos+xtea.global_values.READ_LENGTH
 
             if i_start<=ins_pos and i_end>=ins_pos:
                 if (ins_pos-i_start)<=i_is and (i_end-ins_pos)<=i_is:

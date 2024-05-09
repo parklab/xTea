@@ -60,7 +60,7 @@ class XTransduction():
                 if (ins_chrm in m_te_candidates):#check whether already saved
                     b_close=False
                     for tmp_pos in m_te_candidates[ins_chrm]:#here pos may be different, as "cns" step refine position
-                        if xintmdt.are_sites_close(ins_pos, tmp_pos, global_values.TWO_SITES_CLOSE_DIST)==True:
+                        if xintmdt.are_sites_close(ins_pos, tmp_pos, xtea.global_values.TWO_SITES_CLOSE_DIST)==True:
                             b_close=True
                             break
                     if b_close==True:
@@ -80,7 +80,7 @@ class XTransduction():
                 # print "test1", b_in_rep, i_pos, ins_chrm, ins_pos, div_rate, sub_family, family, pos_start, pos_end
                 b_match_rep = self.is_matched_rep_type(i_rep_type, sub_family)
                 # if fall in same type of repetitive region, then skip
-                if (b_in_rep is True) and (b_match_rep is True) and (div_rate < global_values.TD_REP_DIVERGENT_CUTOFF):
+                if (b_in_rep is True) and (b_match_rep is True) and (div_rate < xtea.global_values.TD_REP_DIVERGENT_CUTOFF):
                     print("[re-select step]:Filtered out: {0}:{1} fall in repetitive region.".format(ins_chrm, ins_pos))
                     continue
                 # if xintmdt.is_in_existing_list(ins_chrm, ins_pos, m_te_candidates, i_win_size)==True:
@@ -96,7 +96,7 @@ class XTransduction():
         # 1. prepare the flanking regions
         ##call out the full length L1 candidates (here use very flexible threshold to integrate all possible ones)
         ileftmost_cns = 500  # at lest hit the first 500bp
-        if global_values.IS_CALL_SVA == True:
+        if xtea.global_values.IS_CALL_SVA == True:
             ileftmost_cns = 5000  # then here, we will consider all the candidate SVAs
         l_fl_polymorpic = self.pick_full_length_insertion(sf_te_candidates, ileftmost_cns)
         ##generate the new flank regions with polymerphic full length insertion flanks
@@ -105,9 +105,9 @@ class XTransduction():
         self.construct_novel_flanks(l_fl_polymorpic, sf_flank, i_flank_length, sf_flank_with_poly)
 
         # align the picked disc and clip parts to the FL-L1 flank regions
-        bwa_align = BWAlign(global_values.BWA_PATH, global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
+        bwa_align = BWAlign(xtea.global_values.BWA_PATH, xtea.global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
         if os.path.isfile(sf_flank_with_poly + ".sa") == False:
-            cmd = "{0} index {1}".format(global_values.BWA_PATH, sf_flank_with_poly)
+            cmd = "{0} index {1}".format(xtea.global_values.BWA_PATH, sf_flank_with_poly)
             self.cmd_runner.run_cmd_small_output(cmd)
 
         # 2. re-collect the reads for the sites
@@ -176,7 +176,7 @@ class XTransduction():
         # 1. prepare the flanking regions
         ##call out the full length L1 candidates (here use very flexible threshold to integrate all possible ones)
         ileftmost_cns = 500  # at lest hit the first 500bp
-        if global_values.IS_CALL_SVA == True:  #
+        if xtea.global_values.IS_CALL_SVA == True:  #
             ileftmost_cns = 5000  # then here, we will consider all the candidate SVAs
         l_fl_polymorpic = self.pick_full_length_insertion(sf_te_candidates, ileftmost_cns)
         ##generate the new flank regions with polymerphic full length insertion flanks
@@ -185,8 +185,8 @@ class XTransduction():
         self.construct_novel_flanks(l_fl_polymorpic, sf_flank, i_flank_length, sf_flank_with_poly)
 ####
         # align the picked disc and clip parts to the FL-L1 flank regions
-        bwa_align = BWAlign(global_values.BWA_PATH, global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
-        cmd = "{0} index {1}".format(global_values.BWA_PATH, sf_flank_with_poly)
+        bwa_align = BWAlign(xtea.global_values.BWA_PATH, xtea.global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
+        cmd = "{0} index {1}".format(xtea.global_values.BWA_PATH, sf_flank_with_poly)
         self.cmd_runner.run_cmd_small_output(cmd)####
 
         # 2. re-collect the reads for the sites
@@ -256,7 +256,7 @@ class XTransduction():
         #sf_clip_fa2 = self.working_folder + "raw_candidate_sites_all_clip_focal_sites.fa"
         #self.re_selct_clip_reads(sf_clip_fq, m_disc_transd, sf_clip_fa2)
         m_rep_pos_disc, m_disc_sample, m_disc_polyA = \
-            x_filter.parse_disc_algnmt_consensus(sf_disc_algnmt_cns, global_values.MIN_DISC_MAPPED_RATIO)
+            x_filter.parse_disc_algnmt_consensus(sf_disc_algnmt_cns, xtea.global_values.MIN_DISC_MAPPED_RATIO)
 
         ##get the representative clip position
         # m_disc_consist_list = dict(m_clip_checked_list)
@@ -314,7 +314,7 @@ class XTransduction():
         # n_disc_large_indel, s_clip_lens, n_polyA, n_disc_chrms)
 
         m_gntp = self._collect_gntp_features(sf_new_ins, sf_bam_list, i_max_cov)
-        sf_new_rcds = sf_out + global_values.TD_NEW_SITES_SUFFIX
+        sf_new_rcds = sf_out + xtea.global_values.TD_NEW_SITES_SUFFIX
         self.add_new_rcd_with_cutoff(m_site_info, m_gntp, ave_cov, sf_new_rcds)
         with open(sf_out, "a") as fout_all:
             with open(sf_new_rcds) as fin_new:
@@ -376,12 +376,12 @@ class XTransduction():
             n_disc=rcd_td_info[0]+rcd_td_info[3]
             xtea_psr.update_td_info(xtea_rcd, s_td_info, n_clip, n_disc, n_polyA)
         else:#sibling transduction
-            s_td_info="{0}:{1}~{2}".format(rcd_td_info[2], rcd_td_info[3], global_values.SIBLING_LABEL)
+            s_td_info="{0}:{1}~{2}".format(rcd_td_info[2], rcd_td_info[3], xtea.global_values.SIBLING_LABEL)
             xtea_psr.update_td_source_only(xtea_rcd, s_td_info)
 ####
 ####
     ####add new record
-    def add_new_rcd_with_cutoff(self, m_site_info, m_gntp, ave_cov, sf_out, s_type=global_values.ONE_SIDE_TRSDCT):
+    def add_new_rcd_with_cutoff(self, m_site_info, m_gntp, ave_cov, sf_out, s_type=xtea.global_values.ONE_SIDE_TRSDCT):
         xtea_psr = XTEARsltParser()
         with open(sf_out, "w") as fout_new:
             for ins_chrm in m_gntp:
@@ -402,7 +402,7 @@ class XTransduction():
 ####collect genotype features
     def _collect_gntp_features(self, sf_sites, sf_bam_list, i_max_cov):
         x_gntper = XGenotyper(self.sf_reference, self.working_folder, self.n_jobs)
-        is_extnd = global_values.DFT_IS
+        is_extnd = xtea.global_values.DFT_IS
 
         sf_gntp_feature = sf_sites + ".gntp.features"
         x_gntper.call_genotype(sf_bam_list, sf_sites, is_extnd, sf_gntp_feature)
@@ -420,9 +420,9 @@ class XTransduction():
     def filter_transduction(self, m_ori_ins, xannotation, i_rep_type, sf_bam_list, i_max_cov, m_clip_polyA, n_half_clip):#
         m_new_ins={}
         # calc the left and right local depth for the sites
-        search_win = global_values.COV_SEARCH_WINDOW  # this region is to collect the reads, by default 1000
-        focal_win = global_values.LOCAL_COV_WIN  # this region is used to search for coverage island, by default 900
-        focal_win2 = global_values.COV_ISD_CHK_WIN  # this region is to calculate the local coverage, by default 200
+        search_win = xtea.global_values.COV_SEARCH_WINDOW  # this region is to collect the reads, by default 1000
+        focal_win = xtea.global_values.LOCAL_COV_WIN  # this region is used to search for coverage island, by default 900
+        focal_win2 = xtea.global_values.COV_ISD_CHK_WIN  # this region is to calculate the local coverage, by default 200
         # m_read_depth in format: {ins_chrm: {ins_pos: [lfcov, rfcov]}}
         rd = ReadDepth(self.working_folder, self.n_jobs, self.sf_reference)
         m_read_depth = rd.calc_coverage_of_two_regions(m_ori_ins, sf_bam_list, search_win, focal_win, focal_win2)
@@ -480,7 +480,7 @@ class XTransduction():
                 # print "test1", b_in_rep, i_pos, ins_chrm, ins_pos, div_rate, sub_family, family, pos_start, pos_end
                 b_match_rep = self.is_matched_rep_type(i_rep_type, sub_family)
                 # if fall in same type of repetitive region, then skip
-                if (b_in_rep is True) and (b_match_rep is True) and (div_rate < global_values.TD_REP_DIVERGENT_CUTOFF):
+                if (b_in_rep is True) and (b_match_rep is True) and (div_rate < xtea.global_values.TD_REP_DIVERGENT_CUTOFF):
                     return True
         return False
 
@@ -677,31 +677,31 @@ class XTransduction():
         m_polyA = {}
         for algnmt in samfile.fetch():
             read_info = algnmt.query_name
-            read_info_fields = read_info.split(global_values.SEPERATOR)
+            read_info_fields = read_info.split(xtea.global_values.SEPERATOR)
 
             ori_chrm = read_info_fields[0]
             ref_mpos = int(read_info_fields[1])  ##clip position on the reference
             ori_clip_flag = read_info_fields[2]
             ori_insertion_pos = int(read_info_fields[4])
 
-            if abs(ref_mpos - ori_insertion_pos) > global_values.NEARBY_CLIP:  # only focus on the clipped reads nearby
+            if abs(ref_mpos - ori_insertion_pos) > xtea.global_values.NEARBY_CLIP:  # only focus on the clipped reads nearby
                 continue
             if algnmt.is_unmapped == True:  ####skip the unmapped reads
                 continue
-            # if algnmt.mapping_quality <= global_values.TRANSDCT_UNIQ_MAPQ:#this is only for transduction only
+            # if algnmt.mapping_quality <= xtea.global_values.TRANSDCT_UNIQ_MAPQ:#this is only for transduction only
             #     continue
             hit_flank_id = algnmt.reference_name  # e.g. chrY~3443451~3449565~L1HS~0L
 
             ####Skip those aligned to transduction decoy sequence
-            # if hit_flank_id == global_values.TD_DECOY_LINE or hit_flank_id == global_values.TD_DECOY_SVA or \
-            #                 hit_flank_id == global_values.TD_DECOY_ALU:
+            # if hit_flank_id == xtea.global_values.TD_DECOY_LINE or hit_flank_id == xtea.global_values.TD_DECOY_SVA or \
+            #                 hit_flank_id == xtea.global_values.TD_DECOY_ALU:
             #     continue
 
             b_left = True  # left clip
-            if ori_clip_flag == global_values.FLAG_RIGHT_CLIP:
+            if ori_clip_flag == xtea.global_values.FLAG_RIGHT_CLIP:
                 b_left = False  # right clip
 
-            bmapped_cutoff = global_values.TD_CLIP_QLFD_RATIO
+            bmapped_cutoff = xtea.global_values.TD_CLIP_QLFD_RATIO
             l_cigar = algnmt.cigar
             b_clip_qualified_algned, n_map_bases = self.is_clipped_part_qualified_algnmt(l_cigar, bmapped_cutoff)
             if b_clip_qualified_algned == False:  # skip the unqualified re-aligned parts
@@ -711,14 +711,14 @@ class XTransduction():
             source_end=-1
             sourc_rc="0"
             chrm_fl_L1 =""
-            flank_id_fields = hit_flank_id.split(global_values.SEPERATOR) #because here we are considering "decoy" seqs
+            flank_id_fields = hit_flank_id.split(xtea.global_values.SEPERATOR) #because here we are considering "decoy" seqs
             if len(flank_id_fields)>1:
                 chrm_fl_L1 = flank_id_fields[0]
                 source_start = int(flank_id_fields[1])
                 source_end = int(flank_id_fields[2])
                 sourc_rc = flank_id_fields[-1][0]
-                if (ori_chrm==chrm_fl_L1) and (abs(ref_mpos-source_start)<global_values.MIN_POLYMORPHIC_SOURCE_DIST
-                                               or abs(ref_mpos-source_end)<global_values.MIN_POLYMORPHIC_SOURCE_DIST):
+                if (ori_chrm==chrm_fl_L1) and (abs(ref_mpos-source_start)<xtea.global_values.MIN_POLYMORPHIC_SOURCE_DIST
+                                               or abs(ref_mpos-source_end)<xtea.global_values.MIN_POLYMORPHIC_SOURCE_DIST):
                     continue
 ####
             clipped_seq = algnmt.query_sequence
@@ -726,24 +726,24 @@ class XTransduction():
             s_clip_seq_ck = ""
             if b_clip_part_rc == False:  # not reverse complementary
                 if b_left == False:  # right clip
-                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                        s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                    if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[:xtea.global_values.CK_POLYA_SEQ_MAX]
                     else:
                         s_clip_seq_ck = clipped_seq
                 else:  # left clip
-                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                        s_clip_seq_ck = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
+                    if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[-1 * xtea.global_values.CK_POLYA_SEQ_MAX:]
                     else:
                         s_clip_seq_ck = clipped_seq
             else:  # clip part is reverse complementary
                 if b_left == True:  # left clip
-                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                        s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                    if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[:xtea.global_values.CK_POLYA_SEQ_MAX]
                     else:
                         s_clip_seq_ck = clipped_seq
                 else:  # right clip
-                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                        s_clip_seq_ck = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
+                    if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[-1 * xtea.global_values.CK_POLYA_SEQ_MAX:]
                     else:
                         s_clip_seq_ck = clipped_seq
                 #convert to reverse complementary seq, to make sure it's both polyA or both polyT, but not one polyA and polyT
@@ -905,7 +905,7 @@ class XTransduction():
             samfile = pysam.AlignmentFile(sf_disc_sam, "r", reference_filename=self.sf_reference)
             for algnmt in samfile.fetch():
                 read_info = algnmt.query_name
-                read_info_fields = read_info.split(global_values.SEPERATOR)
+                read_info_fields = read_info.split(xtea.global_values.SEPERATOR)
                 anchor_map_pos = int(read_info_fields[-4])
                 ins_chrm = read_info_fields[-3]
                 ins_pos = int(read_info_fields[-2])
@@ -930,7 +930,7 @@ class XTransduction():
         m_SVA={}
         for algnmt in samfile.fetch():
             read_info = algnmt.query_name
-            read_info_fields = read_info.split(global_values.SEPERATOR)
+            read_info_fields = read_info.split(xtea.global_values.SEPERATOR)
             anchor_map_pos = int(read_info_fields[-4])
             ins_chrm = read_info_fields[-3]
             ins_pos = int(read_info_fields[-2])
@@ -942,27 +942,27 @@ class XTransduction():
             hit_flank_id = algnmt.reference_name  # e.g. chrY~3443451~3449565~L1HSL
             ####Hard code here !!!!
             l_cigar = algnmt.cigar
-            f_mapped_cutoff = global_values.F_MIN_TRSDCT_DISC_MAP_RATION
+            f_mapped_cutoff = xtea.global_values.F_MIN_TRSDCT_DISC_MAP_RATION
             b_clip_qualified_algned, n_map_bases = self.is_clipped_part_qualified_algnmt(l_cigar, f_mapped_cutoff)
             if b_clip_qualified_algned == False:  # skip the unqualified re-aligned parts
                 continue
             ####Skip those aligned to transduction decoy sequence
-            if (global_values.TD_DECOY_LINE in hit_flank_id) or \
-                    (global_values.TD_DECOY_SVA in hit_flank_id) or (global_values.TD_DECOY_ALU in hit_flank_id)\
-                    or (global_values.TD_DECOY_HERV in hit_flank_id):
-                if global_values.TD_DECOY_ALU in hit_flank_id:
+            if (xtea.global_values.TD_DECOY_LINE in hit_flank_id) or \
+                    (xtea.global_values.TD_DECOY_SVA in hit_flank_id) or (xtea.global_values.TD_DECOY_ALU in hit_flank_id)\
+                    or (xtea.global_values.TD_DECOY_HERV in hit_flank_id):
+                if xtea.global_values.TD_DECOY_ALU in hit_flank_id:
                     if ins_chrm not in m_Alu:
                         m_Alu[ins_chrm]={}
                     if ins_pos not in m_Alu[ins_chrm]:
                         m_Alu[ins_chrm][ins_pos]=0
                     m_Alu[ins_chrm][ins_pos] += 1
-                if global_values.TD_DECOY_SVA in hit_flank_id:
+                if xtea.global_values.TD_DECOY_SVA in hit_flank_id:
                     if ins_chrm not in m_SVA:
                         m_SVA[ins_chrm]={}
                     if ins_pos not in m_SVA[ins_chrm]:
                         m_SVA[ins_chrm][ins_pos]=0
                     m_SVA[ins_chrm][ins_pos] += 1
-                if global_values.TD_DECOY_LINE in hit_flank_id:
+                if xtea.global_values.TD_DECOY_LINE in hit_flank_id:
                     if ins_chrm not in m_L1:
                         m_L1[ins_chrm]={}
                     if ins_pos not in m_L1[ins_chrm]:
@@ -993,7 +993,7 @@ class XTransduction():
                     m_SVA[ins_chrm][ins_pos] += 1
 
             map_pos = algnmt.reference_start
-            flank_id_fields = hit_flank_id.split(global_values.SEPERATOR) #e.g. 20~32719617~32721485~SVA_D~0R
+            flank_id_fields = hit_flank_id.split(xtea.global_values.SEPERATOR) #e.g. 20~32719617~32721485~SVA_D~0R
             if len(flank_id_fields)<3:
                 print("[Error]: Wrong flanking/decoy id: {0}".format(hit_flank_id))
                 continue
@@ -1013,13 +1013,13 @@ class XTransduction():
                 dist_from_rep=flank_lth-map_pos
 
             ####this is to rule out those polymerphic Fl-L1 cases, which aligned to themselves' flank regions
-            if (ins_chrm==chrm_fl_L1) and (abs(ins_pos-source_start)<global_values.MIN_POLYMORPHIC_SOURCE_DIST
-                                           or abs(ins_pos-source_end)<global_values.MIN_POLYMORPHIC_SOURCE_DIST):
+            if (ins_chrm==chrm_fl_L1) and (abs(ins_pos-source_start)<xtea.global_values.MIN_POLYMORPHIC_SOURCE_DIST
+                                           or abs(ins_pos-source_end)<xtea.global_values.MIN_POLYMORPHIC_SOURCE_DIST):
                 print("[DISC-TD-STEP:] Filter out {0}:{1}, aligned to itself flanking regions".format(ins_chrm, ins_pos))
                 continue
             s_source = "{0}:{1}-{2}~{3}".format(chrm_fl_L1, source_start, source_end, sourc_rc)
 
-            if algnmt.mapping_quality <= global_values.TRANSDCT_UNIQ_MAPQ:#this is only for transduction only
+            if algnmt.mapping_quality <= xtea.global_values.TRANSDCT_UNIQ_MAPQ:#this is only for transduction only
                 if ins_chrm not in m_raw_td_src: #save the non unique disc counts
                     m_raw_td_src[ins_chrm] = {}
                 if ins_pos not in m_raw_td_src[ins_chrm]:
@@ -1062,17 +1062,17 @@ class XTransduction():
                 if len(rcd_fields) <= 1:
                     continue
                 s_cigar = rcd_fields[2]
-                if global_values.TD_DECOY_SVA in rcd_fields[0]:
+                if xtea.global_values.TD_DECOY_SVA in rcd_fields[0]:
                     n_map, n_all = self.parse_s_cigar(s_cigar)
                     if float(n_map)/float(n_all)>=f_mapped_cutoff:
                         b_hit=True
                         n_SVA+=1
-                elif global_values.TD_DECOY_LINE in rcd_fields[0]:
+                elif xtea.global_values.TD_DECOY_LINE in rcd_fields[0]:
                     n_map, n_all = self.parse_s_cigar(s_cigar)
                     if float(n_map)/float(n_all)>=f_mapped_cutoff:
                         b_hit=True
                         n_L1+=1
-                elif global_values.TD_DECOY_ALU in rcd_fields[0]:
+                elif xtea.global_values.TD_DECOY_ALU in rcd_fields[0]:
                     n_map, n_all = self.parse_s_cigar(s_cigar)
                     if float(n_map)/float(n_all)>=f_mapped_cutoff:
                         b_hit=True
@@ -1155,7 +1155,7 @@ class XTransduction():
                 if ((ins_chrm in m_raw_td_src) and (ins_pos in m_raw_td_src[ins_chrm])
                     and (max_source in m_raw_td_src[ins_chrm][ins_pos])):
                     n_non_unique = m_raw_td_src[ins_chrm][ins_pos][max_source]
-                if (max_cnt >= n_disc_cutoff) and (f_tmp_ratio >= global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO) \
+                if (max_cnt >= n_disc_cutoff) and (f_tmp_ratio >= xtea.global_values.TRANSDCT_MULTI_SOURCE_MIN_RATIO) \
                         and (float(max_cnt)/float(max_cnt+n_non_unique) > f_min_ratio):
                         b_trsdct = True
                 else:  # have seveal sources, then view as normal (in some cases like SVA, the annotation is not perfect, will cause this)
@@ -1223,8 +1223,8 @@ class XTransduction():
                 i_right_clip_len = l_cigar[-1][1]
 
             if b_left_clip == True and b_right_clip == True:
-                if (i_left_clip_len > global_values.MAX_CLIP_CLIP_LEN) and (i_right_clip_len >
-                                                                                global_values.MAX_CLIP_CLIP_LEN):
+                if (i_left_clip_len > xtea.global_values.MAX_CLIP_CLIP_LEN) and (i_right_clip_len >
+                                                                                xtea.global_values.MAX_CLIP_CLIP_LEN):
                     return False, 0
 
         ####for the alignment (of the clipped read), if the mapped part is smaller than the clipped part,

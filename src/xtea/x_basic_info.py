@@ -10,6 +10,7 @@
 import os
 import pysam
 import random
+import xtea.global_values
 from xtea.x_alignments import *
 from multiprocessing import Pool
 from xtea.x_reference import *
@@ -35,7 +36,7 @@ class X_BasicInfo():
         mean_is=0
         std_var=0
         n_sample=1
-        sf_basic_info = self.working_folder + global_values.BASIC_INFO_FILE
+        sf_basic_info = self.working_folder + xtea.global_values.BASIC_INFO_FILE
         m_info={}
         b_gnrt=True
         if os.path.isfile(sf_basic_info) == True and b_force==False:#first already exist, and is not forced to re-calc
@@ -58,12 +59,12 @@ class X_BasicInfo():
 
     def collect_dump_basic_info_samples(self, sf_bam_list, sf_ref, search_win):
         m_sample_info=self.collect_basic_info_samples(sf_bam_list, sf_ref, search_win)
-        sf_out=self.working_folder+global_values.BASIC_INFO_FILE
+        sf_out=self.working_folder+xtea.global_values.BASIC_INFO_FILE
         self.dump_basic_info_to_file(m_sample_info, sf_out)
         return m_sample_info
 
     def load_basic_info_samples(self):
-        sf_basic_info = self.working_folder + global_values.BASIC_INFO_FILE
+        sf_basic_info = self.working_folder + xtea.global_values.BASIC_INFO_FILE
         if os.path.isfile(sf_basic_info)==False:
             return None
         m_basic_info=self.load_basic_info_from_file(sf_basic_info)
@@ -83,7 +84,7 @@ class X_BasicInfo():
 ####
     ####calc the coverage for given bam
     def calc_cov_from_bam(self, sf_bam, sf_ref, search_win):
-        n_sites = global_values.N_RANDOM_SITES
+        n_sites = xtea.global_values.N_RANDOM_SITES
         l_sites = self._random_slct_site(sf_bam, sf_ref, n_sites)
         l_tmp_info = self.collect_basic_info_of_sites2(l_sites, sf_bam, search_win, search_win)
         f_ave_cov = 0
@@ -92,7 +93,7 @@ class X_BasicInfo():
             flcov = record[2]
             frcov = record[3]
             f_cov = (flcov + frcov) / 2
-            if f_cov >= global_values.MIN_COV_RANDOM_SITE:  # for WES, skip those intron regions
+            if f_cov >= xtea.global_values.MIN_COV_RANDOM_SITE:  # for WES, skip those intron regions
                 l_cov.append(f_cov)
         l_cov.sort()
         n_slct_sites = len(l_cov)
@@ -108,7 +109,7 @@ class X_BasicInfo():
         l_rlth = []  # read length for each bam
         l_is = []  # insert size and std derivation for each bam
         #first randomly select some points for check the coverage
-        n_sites=global_values.N_RANDOM_SITES
+        n_sites=xtea.global_values.N_RANDOM_SITES
         with open(sf_bam_list) as fin_bams:
             for line in fin_bams:
                 fields=line.split()
@@ -145,7 +146,7 @@ class X_BasicInfo():
                     m_site_cov[ins_chrm][ins_pos][1] += frcov
 
                     f_cov=(flcov+frcov)/2
-                    if f_cov >= global_values.MIN_COV_RANDOM_SITE:# for WES, skip those intron regions
+                    if f_cov >= xtea.global_values.MIN_COV_RANDOM_SITE:# for WES, skip those intron regions
                         l_cov.append(f_cov)
 
                     if dom_rlth not in m_rlth:
@@ -235,7 +236,7 @@ class X_BasicInfo():
             return 0
         else:#aligned on the same chrom
             dist=abs(pos-mate_pos)
-            if dist>global_values.MAX_NORMAL_INSERT_SIZE:
+            if dist>xtea.global_values.MAX_NORMAL_INSERT_SIZE:
                 return 0
             return dist
 

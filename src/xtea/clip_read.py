@@ -67,12 +67,12 @@ class ClipReadInfo():
         xannotation.load_rmsk_annotation()
         xannotation.index_rmsk_annotation()
 
-        sf_clip_fq = working_folder + chrm + global_values.CLIP_FQ_SUFFIX  # this is to save the clipped part for re-alignment
+        sf_clip_fq = working_folder + chrm + xtea.global_values.CLIP_FQ_SUFFIX  # this is to save the clipped part for re-alignment
         f_clip_fq = open(sf_clip_fq, "w")
 
         samfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference)
         m_clip_pos = {}
-        sf_all_disc = sf_bam + global_values.ALL_DISC_SUFFIX
+        sf_all_disc = sf_bam + xtea.global_values.ALL_DISC_SUFFIX
         out_disc_bam = pysam.Samfile(sf_all_disc, 'wb', template=samfile)
         xalgnmt = XAlignment()
         m_chrm_id=self._get_chrm_id_name(samfile)
@@ -126,18 +126,18 @@ class ClipReadInfo():
                 if l_cigar[0][0] == 4:  # soft-clip
                     clipped_seq = query_seq[:l_cigar[0][1]]
                     clipped_qulity = self._cvt_to_Ascii_quality(query_quality[:l_cigar[0][1]])
-                    clipped_rname = query_name + global_values.SEPERATOR + mate_chrm + \
-                                    global_values.SEPERATOR + str(mate_pos) + global_values.SEPERATOR
-                    s_tmp = "{0}{1}{2}{3}{4}{5}2".format(chrm, global_values.SEPERATOR, map_pos, global_values.SEPERATOR,
-                                                         global_values.FLAG_LEFT_CLIP,
-                                                         global_values.SEPERATOR)
+                    clipped_rname = query_name + xtea.global_values.SEPERATOR + mate_chrm + \
+                                    xtea.global_values.SEPERATOR + str(mate_pos) + xtea.global_values.SEPERATOR
+                    s_tmp = "{0}{1}{2}{3}{4}{5}2".format(chrm, xtea.global_values.SEPERATOR, map_pos, xtea.global_values.SEPERATOR,
+                                                         xtea.global_values.FLAG_LEFT_CLIP,
+                                                         xtea.global_values.SEPERATOR)
                     clipped_rname += s_tmp
                     if b_first:
-                        clipped_rname = query_name + global_values.SEPERATOR + mate_chrm + global_values.SEPERATOR + \
-                                        str(mate_pos) + global_values.SEPERATOR
-                        s_tmp = "{0}{1}{2}{3}{4}{5}1".format(chrm, global_values.SEPERATOR, map_pos, global_values.SEPERATOR,
-                                                             global_values.FLAG_LEFT_CLIP,
-                                                             global_values.SEPERATOR)
+                        clipped_rname = query_name + xtea.global_values.SEPERATOR + mate_chrm + xtea.global_values.SEPERATOR + \
+                                        str(mate_pos) + xtea.global_values.SEPERATOR
+                        s_tmp = "{0}{1}{2}{3}{4}{5}1".format(chrm, xtea.global_values.SEPERATOR, map_pos, xtea.global_values.SEPERATOR,
+                                                             xtea.global_values.FLAG_LEFT_CLIP,
+                                                             xtea.global_values.SEPERATOR)
                         clipped_rname += s_tmp
 
                     f_clip_fq.write("@" + clipped_rname + "\n")
@@ -168,19 +168,19 @@ class ClipReadInfo():
                 if algnmt.is_supplementary or algnmt.is_secondary:  ###secondary and supplementary are not considered
                     continue
                 if l_cigar[-1][0] == 4:  # soft-clip
-                    clipped_rname = query_name + global_values.SEPERATOR + mate_chrm + global_values.SEPERATOR + \
-                                    str(mate_pos) + global_values.SEPERATOR
-                    s_tmp = "{0}{1}{2}{3}{4}{5}2".format(chrm, global_values.SEPERATOR, map_pos, global_values.SEPERATOR,
-                                                         global_values.FLAG_RIGHT_CLIP, global_values.SEPERATOR)
+                    clipped_rname = query_name + xtea.global_values.SEPERATOR + mate_chrm + xtea.global_values.SEPERATOR + \
+                                    str(mate_pos) + xtea.global_values.SEPERATOR
+                    s_tmp = "{0}{1}{2}{3}{4}{5}2".format(chrm, xtea.global_values.SEPERATOR, map_pos, xtea.global_values.SEPERATOR,
+                                                         xtea.global_values.FLAG_RIGHT_CLIP, xtea.global_values.SEPERATOR)
                     clipped_rname += s_tmp
                     start_pos = -1 * l_cigar[-1][1]
                     clipped_seq = query_seq[start_pos:]
                     clipped_qulity = self._cvt_to_Ascii_quality(query_quality[start_pos:])
                     if b_first:
-                        clipped_rname = query_name + global_values.SEPERATOR + mate_chrm + global_values.SEPERATOR + \
-                                        str(mate_pos) + global_values.SEPERATOR
-                        s_tmp = "{0}{1}{2}{3}{4}{5}1".format(chrm, global_values.SEPERATOR, map_pos, global_values.SEPERATOR,
-                                                             global_values.FLAG_RIGHT_CLIP, global_values.SEPERATOR)
+                        clipped_rname = query_name + xtea.global_values.SEPERATOR + mate_chrm + xtea.global_values.SEPERATOR + \
+                                        str(mate_pos) + xtea.global_values.SEPERATOR
+                        s_tmp = "{0}{1}{2}{3}{4}{5}1".format(chrm, xtea.global_values.SEPERATOR, map_pos, xtea.global_values.SEPERATOR,
+                                                             xtea.global_values.FLAG_RIGHT_CLIP, xtea.global_values.SEPERATOR)
                         clipped_rname += s_tmp
 
                     f_clip_fq.write("@" + clipped_rname + "\n")
@@ -188,7 +188,7 @@ class ClipReadInfo():
                     f_clip_fq.write(clipped_qulity + "\n")
         f_clip_fq.close()
 
-        sf_clip_pos = working_folder + chrm + global_values.CLIP_POS_SUFFIX
+        sf_clip_pos = working_folder + chrm + xtea.global_values.CLIP_POS_SUFFIX
         with open(sf_clip_pos, "w") as fout_clip_pos:
             for pos in m_clip_pos:
                 fout_clip_pos.write(
@@ -206,7 +206,7 @@ class ClipReadInfo():
         n_half=n_char/2
         n_cnt=0
         for i_score in l_score:
-            if i_score < global_values.CLIP_PHRED_SCORE_CUTOFF:
+            if i_score < xtea.global_values.CLIP_PHRED_SCORE_CUTOFF:
                 n_cnt+=1
             if n_cnt>n_half:
                 return False
@@ -228,8 +228,8 @@ class ClipReadInfo():
         #xannotation.load_rmsk_annotation()
         i_min_copy_len=0
         i_boundary_extnd=0
-        if global_values.IS_CALL_SVA==True:
-            i_boundary_extnd=global_values.SVA_ANNOTATION_EXTND
+        if xtea.global_values.IS_CALL_SVA==True:
+            i_boundary_extnd=xtea.global_values.SVA_ANNOTATION_EXTND
         xannotation.load_rmsk_annotation_with_extnd_with_lenth_cutoff(i_boundary_extnd, i_min_copy_len)
         xannotation.index_rmsk_annotation_interval_tree()
 
@@ -252,7 +252,7 @@ class ClipReadInfo():
                 continue
             if len(l_cigar) == 1 and l_cigar[0][0] == 0:  ##fully mapped
                 continue
-            if algnmt.mapping_quality < global_values.MINIMUM_CLIP_MAPQ:#by default this is set to 10
+            if algnmt.mapping_quality < xtea.global_values.MINIMUM_CLIP_MAPQ:#by default this is set to 10
                 continue
 ####
             if algnmt.next_reference_id not in m_chrm_id_name:
@@ -310,7 +310,7 @@ class ClipReadInfo():
                     if b_mate_in_rep:
                         m_clip_pos[map_pos][2] += 1
 
-        sf_clip_pos = working_folder + chrm + global_values.CLIP_POS_SUFFIX
+        sf_clip_pos = working_folder + chrm + xtea.global_values.CLIP_POS_SUFFIX
         with open(sf_clip_pos, "w") as fout_clip_pos:
             for pos in m_clip_pos:
                 i_all_clip = m_clip_pos[pos][0] + m_clip_pos[pos][1]
@@ -344,8 +344,8 @@ class ClipReadInfo():
 
         #soft_link clip pos
         for rcd in l_chrm_records:
-            sf_clip_pos = self.working_folder + rcd[0] + global_values.CLIP_POS_SUFFIX
-            sf_pub_pos=sf_pub_folder + rcd[0] + global_values.CLIP_POS_SUFFIX
+            sf_clip_pos = self.working_folder + rcd[0] + xtea.global_values.CLIP_POS_SUFFIX
+            sf_pub_pos=sf_pub_folder + rcd[0] + xtea.global_values.CLIP_POS_SUFFIX
             if os.path.islink(sf_pub_pos)==True or os.path.isfile(sf_pub_pos)==True:
                 os.remove(sf_pub_pos)
             cmd="ln -s {0} {1}".format(sf_clip_pos, sf_pub_folder)
@@ -359,7 +359,7 @@ class ClipReadInfo():
         working_folder = record[2]
 
         # first load in the positions by chromosome
-        sf_clip_pos = working_folder + chrm + global_values.CLIP_POS_SUFFIX
+        sf_clip_pos = working_folder + chrm + xtea.global_values.CLIP_POS_SUFFIX
         m_pos = {}
         if os.path.exists(sf_clip_pos) == False:
             return
@@ -369,7 +369,7 @@ class ClipReadInfo():
                 pos = int(fields[0])
                 m_pos[pos] = 1
         # second, load the reads, and write the related clipped part into file
-        sf_clip_fq = working_folder + chrm + global_values.CLIP_FQ_SUFFIX  # this is to save the clipped part for re-alignment
+        sf_clip_fq = working_folder + chrm + xtea.global_values.CLIP_FQ_SUFFIX  # this is to save the clipped part for re-alignment
         f_clip_fq = open(sf_clip_fq, "w")
         xpolyA=PolyA()
         samfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference) #
@@ -410,12 +410,12 @@ class ClipReadInfo():
                 if map_pos in m_pos:
                     clipped_seq = query_seq[:l_cigar[0][1]]
                     len_clip_seq=len(clipped_seq)
-                    if len_clip_seq>=global_values.MINIMUM_POLYA_CLIP and len_clip_seq<=global_values.BWA_REALIGN_CUTOFF:
+                    if len_clip_seq>=xtea.global_values.MINIMUM_POLYA_CLIP and len_clip_seq<=xtea.global_values.BWA_REALIGN_CUTOFF:
                         #check whether this the polyA side
                         #Here have more strict require ment
                         if xpolyA.contain_enough_A_T(clipped_seq, len_clip_seq)==False:
                             continue
-                    elif len_clip_seq < global_values.BWA_REALIGN_CUTOFF:
+                    elif len_clip_seq < xtea.global_values.BWA_REALIGN_CUTOFF:
                         continue
 
                     #require the medium quality score should higher than threshold
@@ -423,16 +423,16 @@ class ClipReadInfo():
                     if self._is_qualified_clip(l_quality_score)==False:
                         continue
                     clipped_qulity = self._cvt_to_Ascii_quality(query_quality[:l_cigar[0][1]])
-                    clipped_rname = query_name + global_values.SEPERATOR + mate_chrm + global_values.SEPERATOR + \
-                                    str(mate_pos) + global_values.SEPERATOR
-                    s_tmp = "{0}{1}{2}{3}{4}{5}2".format(chrm, global_values.SEPERATOR, map_pos, global_values.SEPERATOR,
-                                                         global_values.FLAG_LEFT_CLIP, global_values.SEPERATOR)
+                    clipped_rname = query_name + xtea.global_values.SEPERATOR + mate_chrm + xtea.global_values.SEPERATOR + \
+                                    str(mate_pos) + xtea.global_values.SEPERATOR
+                    s_tmp = "{0}{1}{2}{3}{4}{5}2".format(chrm, xtea.global_values.SEPERATOR, map_pos, xtea.global_values.SEPERATOR,
+                                                         xtea.global_values.FLAG_LEFT_CLIP, xtea.global_values.SEPERATOR)
                     clipped_rname += s_tmp
                     if b_first:
-                        clipped_rname = query_name + global_values.SEPERATOR + mate_chrm + global_values.SEPERATOR + \
-                                        str(mate_pos) + global_values.SEPERATOR
-                        s_tmp = "{0}{1}{2}{3}{4}{5}1".format(chrm, global_values.SEPERATOR, map_pos, global_values.SEPERATOR,
-                                                             global_values.FLAG_LEFT_CLIP, global_values.SEPERATOR)
+                        clipped_rname = query_name + xtea.global_values.SEPERATOR + mate_chrm + xtea.global_values.SEPERATOR + \
+                                        str(mate_pos) + xtea.global_values.SEPERATOR
+                        s_tmp = "{0}{1}{2}{3}{4}{5}1".format(chrm, xtea.global_values.SEPERATOR, map_pos, xtea.global_values.SEPERATOR,
+                                                             xtea.global_values.FLAG_LEFT_CLIP, xtea.global_values.SEPERATOR)
                         clipped_rname += s_tmp
 
                     f_clip_fq.write("@" + clipped_rname + "\n")
@@ -450,18 +450,18 @@ class ClipReadInfo():
                 if algnmt.is_supplementary or algnmt.is_secondary:  ###secondary and supplementary are not considered
                     continue
                 if map_pos in m_pos:  # soft-clip
-                    clipped_rname = query_name + global_values.SEPERATOR + mate_chrm + global_values.SEPERATOR + \
-                                    str(mate_pos) + global_values.SEPERATOR
-                    s_tmp = "{0}{1}{2}{3}{4}{5}2".format(chrm, global_values.SEPERATOR, map_pos, global_values.SEPERATOR,
-                                                         global_values.FLAG_RIGHT_CLIP, global_values.SEPERATOR)
+                    clipped_rname = query_name + xtea.global_values.SEPERATOR + mate_chrm + xtea.global_values.SEPERATOR + \
+                                    str(mate_pos) + xtea.global_values.SEPERATOR
+                    s_tmp = "{0}{1}{2}{3}{4}{5}2".format(chrm, xtea.global_values.SEPERATOR, map_pos, xtea.global_values.SEPERATOR,
+                                                         xtea.global_values.FLAG_RIGHT_CLIP, xtea.global_values.SEPERATOR)
                     clipped_rname += s_tmp
                     start_pos = -1 * l_cigar[-1][1]
                     clipped_seq = query_seq[start_pos:]
                     len_clip_seq = len(clipped_seq)
-                    if len_clip_seq >= global_values.MINIMUM_POLYA_CLIP and len_clip_seq <= global_values.BWA_REALIGN_CUTOFF:
+                    if len_clip_seq >= xtea.global_values.MINIMUM_POLYA_CLIP and len_clip_seq <= xtea.global_values.BWA_REALIGN_CUTOFF:
                         if xpolyA.contain_enough_A_T(clipped_seq, len_clip_seq)==False:
                             continue
-                    elif len_clip_seq < global_values.BWA_REALIGN_CUTOFF:
+                    elif len_clip_seq < xtea.global_values.BWA_REALIGN_CUTOFF:
                         continue
 
                     l_quality_score = query_quality[start_pos:]
@@ -470,10 +470,10 @@ class ClipReadInfo():
 
                     clipped_qulity = self._cvt_to_Ascii_quality(query_quality[start_pos:])
                     if b_first:
-                        clipped_rname = query_name + global_values.SEPERATOR + mate_chrm + global_values.SEPERATOR + \
-                                        str(mate_pos) + global_values.SEPERATOR
-                        s_tmp = "{0}{1}{2}{3}{4}{5}1".format(chrm, global_values.SEPERATOR, map_pos, global_values.SEPERATOR,
-                                                             global_values.FLAG_RIGHT_CLIP, global_values.SEPERATOR)
+                        clipped_rname = query_name + xtea.global_values.SEPERATOR + mate_chrm + xtea.global_values.SEPERATOR + \
+                                        str(mate_pos) + xtea.global_values.SEPERATOR
+                        s_tmp = "{0}{1}{2}{3}{4}{5}1".format(chrm, xtea.global_values.SEPERATOR, map_pos, xtea.global_values.SEPERATOR,
+                                                             xtea.global_values.FLAG_RIGHT_CLIP, xtea.global_values.SEPERATOR)
                         clipped_rname += s_tmp
 
                     f_clip_fq.write("@" + clipped_rname + "\n")
@@ -505,7 +505,7 @@ class ClipReadInfo():
         ##merge the clipped reads
         with open(sf_all_clip_fq, "w") as fout_all:
             for chrm in references:
-                sf_clip_fq = self.working_folder + chrm + global_values.CLIP_FQ_SUFFIX
+                sf_clip_fq = self.working_folder + chrm + xtea.global_values.CLIP_FQ_SUFFIX
                 if os.path.isfile(sf_clip_fq) == False:
                     continue
                 with open(sf_clip_fq) as fin_clip:
@@ -515,7 +515,7 @@ class ClipReadInfo():
 ####
 
     def decrease_clip_freq(self, chrm, mpos, sflag, m_clip_freq):
-        if sflag == global_values.FLAG_LEFT_CLIP:
+        if sflag == xtea.global_values.FLAG_LEFT_CLIP:
             m_clip_freq[chrm][mpos][0] -= 1
         else:
             m_clip_freq[chrm][mpos][1] -= 1
@@ -529,12 +529,12 @@ class ClipReadInfo():
         working_folder = record[2]
 
         ####clip positions for specific chrm
-        sf_clip_pos = working_folder + ref_chrm + global_values.CLIP_POS_SUFFIX
+        sf_clip_pos = working_folder + ref_chrm + xtea.global_values.CLIP_POS_SUFFIX
         if os.path.isfile(sf_clip_pos) == False:
             print(("Error: Position file for chrom {0} doesn't exist!!!!".format(ref_chrm)))
             return
         ###clip positions for specific chrm with extra #left_clip #right_clip (mapped parts)
-        sf_out_clip_pos = working_folder + ref_chrm + global_values.CLIP_RE_ALIGN_POS_SUFFIX
+        sf_out_clip_pos = working_folder + ref_chrm + xtea.global_values.CLIP_RE_ALIGN_POS_SUFFIX
         sf_re_align_ori_clip_pos_list = sf_out_clip_pos + ".only_realign_clip.tmp"
         with open(sf_re_align_ori_clip_pos_list, "w") as fout_ori_clip_pos:
             samfile = pysam.AlignmentFile(sf_sam, "r")
@@ -549,8 +549,8 @@ class ClipReadInfo():
                     continue
 
                 qname = algnmt.query_name
-                qname_fields = qname.split(global_values.SEPERATOR)
-                # chrm, map_pos, global_values.FLAG_LEFT_CLIP, first_read
+                qname_fields = qname.split(xtea.global_values.SEPERATOR)
+                # chrm, map_pos, xtea.global_values.FLAG_LEFT_CLIP, first_read
                 ori_chrm = qname_fields[-4]  #############check reverse-complementary consistent here ??????????????
                 ori_mpos = int(qname_fields[-3])
 
@@ -575,7 +575,7 @@ class ClipReadInfo():
                         i_right_clip_len = l_cigar[-1][1]
 
                     if b_left_clip == True and b_right_clip == True:
-                        if (i_left_clip_len > global_values.MAX_CLIP_CLIP_LEN) and (i_right_clip_len > global_values.MAX_CLIP_CLIP_LEN):
+                        if (i_left_clip_len > xtea.global_values.MAX_CLIP_CLIP_LEN) and (i_right_clip_len > xtea.global_values.MAX_CLIP_CLIP_LEN):
                             continue
 
                 ####for the alignment (of the clipped read), if the mapped part is smaller than the clipped part,
@@ -619,9 +619,9 @@ class ClipReadInfo():
 
                 if b_first == True:
                     b_first = False
-                if fields[1] == global_values.FLAG_LEFT_CLIP:
+                if fields[1] == xtea.global_values.FLAG_LEFT_CLIP:
                     cnt_left_tmp += 1
-                elif fields[1] == global_values.FLAG_RIGHT_CLIP:
+                elif fields[1] == xtea.global_values.FLAG_RIGHT_CLIP:
                     cnt_right_tmp += 1
                 s_last = sinfo
             # write in the last one
@@ -634,12 +634,12 @@ class ClipReadInfo():
         working_folder = record[2]
 
         ####clip positions for specific chrm
-        # sf_clip_pos = working_folder + ref_chrm + global_values.CLIP_POS_SUFFIX
+        # sf_clip_pos = working_folder + ref_chrm + xtea.global_values.CLIP_POS_SUFFIX
         # if os.path.isfile(sf_clip_pos) == False:
         #     print "Error: Position file for chrom {0} doesn't exist!!!!".format(ref_chrm)
         #     return
         ###clip positions for specific chrm with extra #left_clip #right_clip (mapped parts)
-        sf_out_clip_pos = working_folder + ref_chrm + global_values.CLIP_RE_ALIGN_POS_SUFFIX
+        sf_out_clip_pos = working_folder + ref_chrm + xtea.global_values.CLIP_RE_ALIGN_POS_SUFFIX
 
         m_sites_chrm = {}
         samfile = pysam.AlignmentFile(sf_sam, "r")
@@ -653,8 +653,8 @@ class ClipReadInfo():
                 continue
 
             qname = algnmt.query_name
-            qname_fields = qname.split(global_values.SEPERATOR)
-            # chrm, map_pos, global_values.FLAG_LEFT_CLIP, first_read
+            qname_fields = qname.split(xtea.global_values.SEPERATOR)
+            # chrm, map_pos, xtea.global_values.FLAG_LEFT_CLIP, first_read
             ori_chrm = qname_fields[-4]  #############check reverse-complementary consistent here ??????????????
             ori_mpos = int(qname_fields[-3])
 
@@ -679,7 +679,7 @@ class ClipReadInfo():
                     i_right_clip_len = l_cigar[-1][1]
 
                 if b_left_clip == True and b_right_clip == True:
-                    if (i_left_clip_len > global_values.MAX_CLIP_CLIP_LEN) and (i_right_clip_len > global_values.MAX_CLIP_CLIP_LEN):
+                    if (i_left_clip_len > xtea.global_values.MAX_CLIP_CLIP_LEN) and (i_right_clip_len > xtea.global_values.MAX_CLIP_CLIP_LEN):
                         continue
 
             ####for the alignment (of the clipped read), if the mapped part is smaller than the clipped part,
@@ -697,7 +697,7 @@ class ClipReadInfo():
                 continue
 
             b_left = True
-            if qname_fields[-2] == global_values.FLAG_RIGHT_CLIP:
+            if qname_fields[-2] == xtea.global_values.FLAG_RIGHT_CLIP:
                 b_left = False
 
             if (ori_mpos in m_sites_chrm) == False:
@@ -747,12 +747,12 @@ class ClipReadInfo():
         working_folder = record[2]
 
         ####clip positions for specific chrm
-        # sf_clip_pos = working_folder + ref_chrm + global_values.CLIP_POS_SUFFIX
+        # sf_clip_pos = working_folder + ref_chrm + xtea.global_values.CLIP_POS_SUFFIX
         # if os.path.isfile(sf_clip_pos) == False:
         #     print "Error: Position file for chrom {0} doesn't exist!!!!".format(ref_chrm)
         #     return
         ###clip positions for specific chrm with extra #left_clip #right_clip (mapped parts)
-        sf_out_clip_pos = working_folder + ref_chrm + global_values.CLIP_RE_ALIGN_POS_SUFFIX
+        sf_out_clip_pos = working_folder + ref_chrm + xtea.global_values.CLIP_RE_ALIGN_POS_SUFFIX
 
         m_sites_chrm = {}
         xpolyA = PolyA()
@@ -768,8 +768,8 @@ class ClipReadInfo():
                 continue
 
             qname = algnmt.query_name
-            qname_fields = qname.split(global_values.SEPERATOR)
-            # chrm, map_pos, global_values.FLAG_LEFT_CLIP, first_read
+            qname_fields = qname.split(xtea.global_values.SEPERATOR)
+            # chrm, map_pos, xtea.global_values.FLAG_LEFT_CLIP, first_read
             ori_chrm = qname_fields[-4]  #############check reverse-complementary consistent here ??????????????
             ori_mpos = int(qname_fields[-3])
 
@@ -794,7 +794,7 @@ class ClipReadInfo():
                     i_right_clip_len = l_cigar[-1][1]
 
                 if b_left_clip == True and b_right_clip == True:
-                    if (i_left_clip_len > global_values.MAX_CLIP_CLIP_LEN) and (i_right_clip_len > global_values.MAX_CLIP_CLIP_LEN):
+                    if (i_left_clip_len > xtea.global_values.MAX_CLIP_CLIP_LEN) and (i_right_clip_len > xtea.global_values.MAX_CLIP_CLIP_LEN):
                         continue
 
             ####for the alignment (of the clipped read), if the mapped part is smaller than the clipped part,
@@ -812,7 +812,7 @@ class ClipReadInfo():
                 continue
 
             b_left = True
-            if qname_fields[-2] == global_values.FLAG_RIGHT_CLIP:
+            if qname_fields[-2] == xtea.global_values.FLAG_RIGHT_CLIP:
                 b_left = False
 
             ################################################
@@ -821,24 +821,24 @@ class ClipReadInfo():
             s_clip_seq_ck = ""
             if b_clip_rc==False:
                 if b_left == False:  # right clip
-                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                        s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                    if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[:xtea.global_values.CK_POLYA_SEQ_MAX]
                     else:
                         s_clip_seq_ck = clipped_seq
                 else:  # left clip
-                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                        s_clip_seq_ck = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
+                    if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[-1 * xtea.global_values.CK_POLYA_SEQ_MAX:]
                     else:
                         s_clip_seq_ck = clipped_seq
             else:
                 if b_left == True:  # left clip
-                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                        s_clip_seq_ck = clipped_seq[:global_values.CK_POLYA_SEQ_MAX]
+                    if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[:xtea.global_values.CK_POLYA_SEQ_MAX]
                     else:
                         s_clip_seq_ck = clipped_seq
                 else:  # right clip
-                    if len(clipped_seq) > global_values.CK_POLYA_SEQ_MAX:
-                        s_clip_seq_ck = clipped_seq[-1 * global_values.CK_POLYA_SEQ_MAX:]
+                    if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
+                        s_clip_seq_ck = clipped_seq[-1 * xtea.global_values.CK_POLYA_SEQ_MAX:]
                     else:
                         s_clip_seq_ck = clipped_seq
             b_polya = xpolyA.is_consecutive_polyA_T(s_clip_seq_ck)
@@ -904,14 +904,14 @@ class ClipReadInfo():
             for chrm in references:
                 ##first, load in the whole file into dict
                 m_realign_pos = {}
-                sf_chrm_re_align_clip_pos = self.working_folder + chrm + global_values.CLIP_RE_ALIGN_POS_SUFFIX
+                sf_chrm_re_align_clip_pos = self.working_folder + chrm + xtea.global_values.CLIP_RE_ALIGN_POS_SUFFIX
                 if os.path.isfile(sf_chrm_re_align_clip_pos) == True:
                     with open(sf_chrm_re_align_clip_pos) as fin_realign_clip_chrm:
                         for line in fin_realign_clip_chrm:
                             fields = line.split()
                             m_realign_pos[int(fields[0])] = "\t".join(fields[1:])
 
-                sf_clip_pos = sf_pclip + chrm + global_values.CLIP_POS_SUFFIX
+                sf_clip_pos = sf_pclip + chrm + xtea.global_values.CLIP_POS_SUFFIX
                 if os.path.isfile(sf_clip_pos) == False:
                     continue
                 with open(sf_clip_pos) as fin_clip_pos:
@@ -938,14 +938,14 @@ class ClipReadInfo():
             for chrm in references:
                 ##first, load in the whole file into dict
                 m_realign_pos = {}
-                sf_chrm_re_align_clip_pos = self.working_folder + chrm + global_values.CLIP_RE_ALIGN_POS_SUFFIX
+                sf_chrm_re_align_clip_pos = self.working_folder + chrm + xtea.global_values.CLIP_RE_ALIGN_POS_SUFFIX
                 if os.path.isfile(sf_chrm_re_align_clip_pos) == True:
                     with open(sf_chrm_re_align_clip_pos) as fin_realign_clip_chrm:
                         for line in fin_realign_clip_chrm:
                             fields = line.split()
                             m_realign_pos[int(fields[0])] = "\t".join(fields[1:])
 
-                sf_clip_pos = sf_pclip + chrm + global_values.CLIP_POS_SUFFIX
+                sf_clip_pos = sf_pclip + chrm + xtea.global_values.CLIP_POS_SUFFIX
                 if os.path.isfile(sf_clip_pos) == False:
                     continue
                 with open(sf_clip_pos) as fin_clip_pos:
@@ -979,14 +979,14 @@ class ClipReadInfo():
             for chrm in references:
                 ##first, load in the whole file into dict
                 m_realign_pos = {}
-                sf_chrm_re_align_clip_pos = self.working_folder + chrm + global_values.CLIP_RE_ALIGN_POS_SUFFIX
+                sf_chrm_re_align_clip_pos = self.working_folder + chrm + xtea.global_values.CLIP_RE_ALIGN_POS_SUFFIX
                 if os.path.isfile(sf_chrm_re_align_clip_pos) == True:
                     with open(sf_chrm_re_align_clip_pos) as fin_realign_clip_chrm:
                         for line in fin_realign_clip_chrm:
                             fields = line.split()
                             m_realign_pos[int(fields[0])] = "\t".join(fields[1:])
 
-                sf_clip_pos = sf_pclip + chrm + global_values.CLIP_POS_SUFFIX
+                sf_clip_pos = sf_pclip + chrm + xtea.global_values.CLIP_POS_SUFFIX
                 if os.path.isfile(sf_clip_pos) == False:
                     continue
                 with open(sf_clip_pos) as fin_clip_pos:
@@ -1040,7 +1040,7 @@ class LContigClipReadInfo():
                     m_sites[site_pos]=1
 
         bamfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference)
-        sf_out = working_folder + chrm + global_values.LCLIP_FA_SUFFIX
+        sf_out = working_folder + chrm + xtea.global_values.LCLIP_FA_SUFFIX
         with open(sf_out, "w") as fout_clip:
             for algnmt in bamfile.fetch(chrm):
                 if algnmt.is_unmapped == True:  # unmapped
@@ -1073,7 +1073,7 @@ class LContigClipReadInfo():
 
                     l_clip_lenth=l_cigar[0][1]
                     clip_seq=query_seq[:l_clip_lenth]
-                    shead=chrm+global_values.SEPERATOR+str(hit_site)+global_values.SEPERATOR+query_name+"L"
+                    shead=chrm+xtea.global_values.SEPERATOR+str(hit_site)+xtea.global_values.SEPERATOR+query_name+"L"
                     fout_clip.write(">"+shead+"\n")
                     fout_clip.write(clip_seq+"\n")
                 if l_cigar[-1][0] == 4:  # right clipped
@@ -1095,7 +1095,7 @@ class LContigClipReadInfo():
 
                     r_clip_lenth = l_cigar[-1][1]
                     clip_seq = query_seq[-1 * r_clip_lenth:]
-                    shead = chrm + global_values.SEPERATOR + str(hit_site) + global_values.SEPERATOR + query_name + "R"
+                    shead = chrm + xtea.global_values.SEPERATOR + str(hit_site) + xtea.global_values.SEPERATOR + query_name + "R"
                     fout_clip.write(">" + shead + "\n")
                     fout_clip.write(clip_seq + "\n")
         bamfile.close()
@@ -1126,7 +1126,7 @@ class LContigClipReadInfo():
         ##merge the clipped reads
         with open(sf_all_clip_fa, "w") as fout_all:
             for chrm in references:
-                sf_clip_fa = self.working_folder + chrm + global_values.LCLIP_FA_SUFFIX
+                sf_clip_fa = self.working_folder + chrm + xtea.global_values.LCLIP_FA_SUFFIX
                 if os.path.isfile(sf_clip_fa) == False:
                     continue
                 with open(sf_clip_fa) as fin_clip:

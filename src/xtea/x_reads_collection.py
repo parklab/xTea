@@ -32,7 +32,7 @@ class XReadsCollection():
     ###### "iflank_extd": extend each copy when we decide whether a read falls in the TE region or not
     def collect_phased_reads_all_TEIs(self, sf_bam, sf_barcode_bam, sf_sites, i_extend, i_cov_cutoff,
                                       sf_annotation, iflank_extd, n_jobs):
-        reads_folder = self.working_folder + global_values.READS_FOLDER + "/"
+        reads_folder = self.working_folder + xtea.global_values.READS_FOLDER + "/"
         self._create_folder(reads_folder)
         self.collect_phased_reads(sf_bam, sf_barcode_bam, sf_sites, i_extend, i_cov_cutoff,
                                   sf_annotation, iflank_extd, n_jobs, reads_folder)
@@ -103,17 +103,17 @@ class XReadsCollection():
 
             # then creat the new files
             sf_out_file = working_folder + "{0}_{1}.fa".format(site_chrm, pos)
-            sf_out_file_hap1 = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.HAP1)
-            sf_out_file_hap2 = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.HAP2)
-            sf_out_file_hap_unknown = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.HAP_UNKNOWN)
-            sf_out_file_discord = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.HAP_DISCORD)
+            sf_out_file_hap1 = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.HAP1)
+            sf_out_file_hap2 = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.HAP2)
+            sf_out_file_hap_unknown = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.HAP_UNKNOWN)
+            sf_out_file_discord = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.HAP_DISCORD)
             ####for calling internal mutations
 
-            sf_out_hap1_slct = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.HAP1_SLCT)
-            sf_out_hap2_slct = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.HAP2_SLCT)
-            sf_out_hap_unknown_slct = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.HAP_UNKNOWN_SLCT)
-            sf_out_hap_all_slct = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.ALL_HAP_SLCT)
-            sf_out_hap_disc_slct= working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, global_values.DISC_HAP_SLCT)
+            sf_out_hap1_slct = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.HAP1_SLCT)
+            sf_out_hap2_slct = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.HAP2_SLCT)
+            sf_out_hap_unknown_slct = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.HAP_UNKNOWN_SLCT)
+            sf_out_hap_all_slct = working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.ALL_HAP_SLCT)
+            sf_out_hap_disc_slct= working_folder + "{0}_{1}_{2}.fa".format(site_chrm, pos, xtea.global_values.DISC_HAP_SLCT)
             # first clean the old files, this is required, because need to append to files in the following steps
             self.silentremove(sf_out_file)
             self.silentremove(sf_out_file_hap1)
@@ -145,7 +145,7 @@ class XReadsCollection():
                 ####
                 # print chrm #############################################################################################
                 iflank=i_extend
-                l_picked_algnmts = self.filter_out_unique_non_related_algnmts(l_alignmts, global_values.UNIQUE_MAP_CUTOFF,
+                l_picked_algnmts = self.filter_out_unique_non_related_algnmts(l_alignmts, xtea.global_values.UNIQUE_MAP_CUTOFF,
                                                                               chrm, pos, xannotation, iflank)
                 xbam.append_alignments_to_file(l_picked_algnmts, f_out_all_slct)
                 if set_hap1 is not None and sbarcode in set_hap1:

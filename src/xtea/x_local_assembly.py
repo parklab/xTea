@@ -42,10 +42,10 @@ class XLocalAssembly():
     # 2. run local assembly for all candidate sites locally
     ####for hap1, hap2, and unknown, we have 3 different assembly
     def assemble_all_phased_TEIs_locally(self, sf_sites, n_jobs):
-        reads_folder = self.working_folder + global_values.READS_FOLDER + "/"
+        reads_folder = self.working_folder + xtea.global_values.READS_FOLDER + "/"
         if os.path.exists(reads_folder) == False:
             return
-        asm_folder = self.working_folder + global_values.ASM_FOLDER + "/"
+        asm_folder = self.working_folder + xtea.global_values.ASM_FOLDER + "/"
         self._create_folder(asm_folder)
         #self.assemble_collected_phased_reads(reads_folder, sf_sites, n_jobs, asm_folder)
         #in v2 version, only collect reads potentially come from the insertion
@@ -61,10 +61,10 @@ class XLocalAssembly():
     # (2). run local assembly for all candidate sites on a cluster
     ####for hap1, hap2, and unknown, we have 3 different assembly
     def assemble_all_phased_TEIs_slurm_cluster(self, sf_sites):
-        reads_folder = self.working_folder + global_values.READS_FOLDER + "/"
+        reads_folder = self.working_folder + xtea.global_values.READS_FOLDER + "/"
         if os.path.exists(reads_folder) == False:
             return
-        asm_folder = self.working_folder + global_values.ASM_FOLDER + "/"
+        asm_folder = self.working_folder + xtea.global_values.ASM_FOLDER + "/"
         self._create_folder(asm_folder)
         sf_script = self.working_folder + "run_cluster_asm_phased.sh"
         self.dispatch_assembly_tasks_on_cluster_phased(sf_sites, sf_script)
@@ -105,7 +105,7 @@ class XLocalAssembly():
         working_folder = record[1]
         if os.path.exists(sf_reads) == False or os.path.exists(working_folder) == False:
             return
-        cmd = "{0} -r {1} -o {2}".format(global_values.IDBA_UD, sf_reads, working_folder)
+        cmd = "{0} -r {1} -o {2}".format(xtea.global_values.IDBA_UD, sf_reads, working_folder)
         #Popen(cmd, shell=True, stdout=PIPE).communicate()
         self.run_cmd(cmd)
         ####Here, need to check the contig.fa, whether it is ended properly, in some cases, the assembler failed,
@@ -141,33 +141,33 @@ class XLocalAssembly():
                 sf_asm_folder = s_working_folder + "{0}_{1}/".format(chrm, pos)
                 self._create_folder(sf_asm_folder)
 
-                sf_reads_all = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, global_values.ALL_HAP_SLCT)
+                sf_reads_all = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, xtea.global_values.ALL_HAP_SLCT)
                 if os.path.exists(sf_reads_all) == True:
-                    sf_asm_folder_all = sf_asm_folder + "{0}/".format(global_values.ALL_HAP)
+                    sf_asm_folder_all = sf_asm_folder + "{0}/".format(xtea.global_values.ALL_HAP)
                     self._create_folder(sf_asm_folder_all)
                     l_chrm_records.append((sf_reads_all, sf_asm_folder_all))
 
-                sf_reads_hap1 = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, global_values.HAP1_SLCT)
+                sf_reads_hap1 = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, xtea.global_values.HAP1_SLCT)
                 if os.path.exists(sf_reads_hap1) == True:
-                    sf_asm_folder_hap1 = sf_asm_folder + "{0}/".format(global_values.HAP1)
+                    sf_asm_folder_hap1 = sf_asm_folder + "{0}/".format(xtea.global_values.HAP1)
                     self._create_folder(sf_asm_folder_hap1)
                     l_chrm_records.append((sf_reads_hap1, sf_asm_folder_hap1))
 
-                sf_reads_hap2 = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, global_values.HAP2_SLCT)
+                sf_reads_hap2 = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, xtea.global_values.HAP2_SLCT)
                 if os.path.exists(sf_reads_hap2) == True:
-                    sf_asm_folder_hap2 = sf_asm_folder + "{0}/".format(global_values.HAP2)
+                    sf_asm_folder_hap2 = sf_asm_folder + "{0}/".format(xtea.global_values.HAP2)
                     self._create_folder(sf_asm_folder_hap2)
                     l_chrm_records.append((sf_reads_hap2, sf_asm_folder_hap2))
 
-                sf_reads_hap_unkown = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, global_values.HAP_UNKNOWN_SLCT)
+                sf_reads_hap_unkown = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, xtea.global_values.HAP_UNKNOWN_SLCT)
                 if os.path.exists(sf_reads_hap_unkown) == True:
-                    sf_asm_folder_hap_unknown = sf_asm_folder + "{0}/".format(global_values.HAP_UNKNOWN)
+                    sf_asm_folder_hap_unknown = sf_asm_folder + "{0}/".format(xtea.global_values.HAP_UNKNOWN)
                     self._create_folder(sf_asm_folder_hap_unknown)
                     l_chrm_records.append((sf_reads_hap_unkown, sf_asm_folder_hap_unknown))
 
-                sf_reads_hap_discord = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, global_values.DISC_HAP_SLCT)
+                sf_reads_hap_discord = sf_reads_folder + "{0}_{1}_{2}.fa".format(chrm, pos, xtea.global_values.DISC_HAP_SLCT)
                 if os.path.exists(sf_reads_hap_discord) == True:
-                    sf_asm_folder_hap_disc = sf_asm_folder + "{0}/".format(global_values.HAP_DISCORD)
+                    sf_asm_folder_hap_disc = sf_asm_folder + "{0}/".format(xtea.global_values.HAP_DISCORD)
                     self._create_folder(sf_asm_folder_hap_disc)
                     l_chrm_records.append((sf_reads_hap_discord, sf_asm_folder_hap_disc))
 

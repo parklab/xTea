@@ -268,14 +268,14 @@ if __name__ == '__main__':
     (options, args) = parse_option()
 
     if options.mit:#if this to call mitochondrial insertion, then will not filter out chrM in "x_intermediate_sites.py"
-        global_values.turn_on_mit()
+        xtea.global_values.turn_on_mit()
 
     if options.dna:
-        global_values.turn_off_rna_mediated()
+        xtea.global_values.turn_off_rna_mediated()
     if options.cbs:
-        global_values.turn_on_check_by_sample()
+        xtea.global_values.turn_on_check_by_sample()
     if options.sva:
-        global_values.turn_on_sva()
+        xtea.global_values.turn_on_sva()
 
     b_automatic=True
     if options.user_specific:
@@ -304,9 +304,9 @@ if __name__ == '__main__':
         #i_iniclip=options.iniclip#
 
         if b_force == True:
-            global_values.set_force_clean()
+            xtea.global_values.set_force_clean()
         site_clip_cutoff=options.siteclip #this is the cutoff for the exact position, use larger value for 10X
-        global_values.set_initial_min_clip_cutoff(site_clip_cutoff)
+        xtea.global_values.set_initial_min_clip_cutoff(site_clip_cutoff)
         # merge the list from different bams of the same individual
         # Here when do the filtering, nearby regions are already considered!
         cutoff_left_clip = options.lclip
@@ -383,7 +383,7 @@ if __name__ == '__main__':
             print("Discordant cutoff: {0} is used!!!".format(n_disc_cutoff))
 
             sf_tmp = s_working_folder + "disc_tmp.list"
-            sf_raw_disc=sf_out + global_values.RAW_DISC_TMP_SUFFIX #save the left and right raw disc for each site
+            sf_raw_disc=sf_out + xtea.global_values.RAW_DISC_TMP_SUFFIX #save the left and right raw disc for each site
             tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
             tem_locator.filter_candidate_sites_by_discordant_pairs_multi_alignmts(m_sites_clip_peak, iextend, i_is,
                                                                                   f_dev, n_disc_cutoff, sf_annotation,
@@ -405,7 +405,7 @@ if __name__ == '__main__':
         iextnd = 400  ###for each site, re-collect reads in range [-iextnd, iextnd], this around ins +- 3*derivation
         bin_size = 50000000  # block size for parallelization
         sf_cns = options.reference  ####repeat copies/cns here
-        bmapped_cutoff = global_values.MIN_CLIP_MAPPED_RATIO
+        bmapped_cutoff = xtea.global_values.MIN_CLIP_MAPPED_RATIO
         sf_annotation = options.annotation
         i_concord_dist = 550  # this should be the 3*std_derivation, used to cluster disc reads on the consensus
         f_concord_ratio = 0.45
@@ -429,9 +429,9 @@ if __name__ == '__main__':
                 iextnd = max_is
             if i_concord_dist < max_is: #correct the bias
                 i_concord_dist = max_is
-            global_values.set_read_length(rlth)
-            global_values.set_insert_size(max_is)
-            global_values.set_average_cov(ave_cov)
+            xtea.global_values.set_read_length(rlth)
+            xtea.global_values.set_insert_size(max_is)
+            xtea.global_values.set_average_cov(ave_cov)
             print("Read length is: {0}\n".format(rlth))
             print("Maximum insert size is: {0}\n".format(max_is))
             print("Average coverage is: {0}\n".format(ave_cov))
@@ -492,9 +492,9 @@ if __name__ == '__main__':
                 f_concord_ratio = 0.25
                 if i_concord_dist < max_is:  # correct the bias
                     i_concord_dist = max_is
-                global_values.set_read_length(rlth)
-                global_values.set_insert_size(max_is)
-                global_values.set_average_cov(ave_cov)
+                xtea.global_values.set_read_length(rlth)
+                xtea.global_values.set_insert_size(max_is)
+                xtea.global_values.set_average_cov(ave_cov)
 ####
                 n_clip_cutoff = options.cliprep  # this is the sum of left and right clipped reads
                 n_disc_cutoff = options.ndisc  # each sample should have at least this number of discordant reads
@@ -512,8 +512,8 @@ if __name__ == '__main__':
                                              i_rep_type, b_tumor, sf_tmp_slct)
                 #now for the selected sites, re-evaluate each one
                 x_cd_filter = XClipDiscFilter(sf_bam_list, s_working_folder, n_jobs, sf_reference)
-                i_max_cov=ave_cov*(global_values.MAX_COV_TIMES+1)
-                sf_output_tmp=sf_output + global_values.TD_NON_SIBLING_SUFFIX
+                i_max_cov=ave_cov*(xtea.global_values.MAX_COV_TIMES+1)
+                sf_output_tmp=sf_output + xtea.global_values.TD_NON_SIBLING_SUFFIX
                 xtransduction.call_candidate_transduction_v3(sf_tmp_slct, sf_candidate_list, x_cd_filter,
                                                              sf_flank, sf_cns, i_flank_lenth, iextnd, bin_size, n_clip_cutoff,
                                                              n_disc_cutoff, i_concord_dist, f_concord_ratio, xannotation,
@@ -539,14 +539,14 @@ if __name__ == '__main__':
                 #                                                i_rep_type, b_tumor, sf_tmp_slct2, b_with_original)
 ####
                 #update high confident ones (in "cns" filter step, two results are generated)
-                sf_ori_hc=sf_candidate_list+global_values.HIGH_CONFIDENT_SUFFIX
-                sf_new_hc=sf_output+global_values.HIGH_CONFIDENT_SUFFIX
+                sf_ori_hc=sf_candidate_list+xtea.global_values.HIGH_CONFIDENT_SUFFIX
+                sf_new_hc=sf_output+xtea.global_values.HIGH_CONFIDENT_SUFFIX
                 xorphan.update_high_confident_callset(sf_ori_hc, sf_updated_cns, sf_new_hc)
 ####
             else:#rename the two files generated in previous step
                 copyfile(sf_candidate_list, sf_output)
-                sf_ori_hc = sf_candidate_list + global_values.HIGH_CONFIDENT_SUFFIX
-                sf_new_hc=sf_output+global_values.HIGH_CONFIDENT_SUFFIX
+                sf_ori_hc = sf_candidate_list + xtea.global_values.HIGH_CONFIDENT_SUFFIX
+                sf_new_hc=sf_output+xtea.global_values.HIGH_CONFIDENT_SUFFIX
                 copyfile(sf_ori_hc, sf_new_hc)
 
 ####
@@ -590,9 +590,9 @@ if __name__ == '__main__':
             f_concord_ratio = 0.25
             if i_concord_dist < max_is:  # correct the bias
                 i_concord_dist = max_is
-            global_values.set_read_length(rlth)
-            global_values.set_insert_size(mean_is) #here set mean inset size
-            global_values.set_average_cov(ave_cov)
+            xtea.global_values.set_read_length(rlth)
+            xtea.global_values.set_insert_size(mean_is) #here set mean inset size
+            xtea.global_values.set_average_cov(ave_cov)
 
             n_clip_cutoff = options.cliprep  # this is the sum of left and right clipped reads
             n_disc_cutoff = options.ndisc  # each sample should have at least this number of discordant reads
@@ -608,7 +608,7 @@ if __name__ == '__main__':
             # sf_sibling_TD2 = sf_output + ".novel_sibling_transduction"
             b_with_original = False
             sf_tmp_slct2 = sf_raw_disc + ".slct2"
-            sf_output_tmp = sf_pre_step_out + global_values.TD_NON_SIBLING_SUFFIX
+            sf_output_tmp = sf_pre_step_out + xtea.global_values.TD_NON_SIBLING_SUFFIX
             # select the sites to exclude the already called out sites, and filter out sites fall in black_list
             xorphan.re_slct_with_clip_raw_disc_sites(sf_raw_disc, sf_output_tmp, n_disc_cutoff, xannotation,
                                                     i_rep_type, b_tumor, sf_tmp_slct2, b_with_original)
@@ -625,10 +625,10 @@ if __name__ == '__main__':
 
             ####append the newly called events to existing list
             xorphan.append_to_existing_list(sf_sibling_TD, sf_pre_step_out, m_failed_ori_td)
-            xorphan.append_to_existing_list(sf_sibling_TD, sf_pre_step_out+global_values.HIGH_CONFIDENT_SUFFIX,
+            xorphan.append_to_existing_list(sf_sibling_TD, sf_pre_step_out+xtea.global_values.HIGH_CONFIDENT_SUFFIX,
                                             m_failed_ori_td)
         else:
-            #sf_output_tmp = sf_pre_step_out + global_values.TD_NON_SIBLING_SUFFIX
+            #sf_output_tmp = sf_pre_step_out + xtea.global_values.TD_NON_SIBLING_SUFFIX
             if os.path.isfile(sf_pre_step_out)==True:#do td filtering only
                 b_force = False
                 rcd, basic_rcd = automatic_gnrt_parameters(sf_bam_list, sf_reference, s_working_folder, n_jobs, b_force,
@@ -645,9 +645,9 @@ if __name__ == '__main__':
                 f_concord_ratio = 0.25
                 if i_concord_dist < max_is:  # correct the bias
                     i_concord_dist = max_is
-                global_values.set_read_length(rlth)
-                global_values.set_insert_size(mean_is)  # here set mean inset size
-                global_values.set_average_cov(ave_cov)
+                xtea.global_values.set_read_length(rlth)
+                xtea.global_values.set_insert_size(mean_is)  # here set mean inset size
+                xtea.global_values.set_average_cov(ave_cov)
                 n_clip_cutoff = options.cliprep  # this is the sum of left and right clipped reads
                 n_disc_cutoff = options.ndisc  # each sample should have at least this number of discordant reads
                 if b_automatic == True:
@@ -691,7 +691,7 @@ if __name__ == '__main__':
             #ccm.set_parameters(iextnd, bin_size, bmapped_cutoff, i_concord_dist, f_concord_ratio)
             rlth = basic_rcd[1]  # read length
             mean_is = basic_rcd[2]  # mean insert size
-            global_values.set_insert_size(int(mean_is))
+            xtea.global_values.set_insert_size(int(mean_is))
             std_var = basic_rcd[3]  # standard derivation
             max_is = int(mean_is + 3 * std_var) + int(rlth)
             extnd = max_is
@@ -724,9 +724,9 @@ if __name__ == '__main__':
         sf_ref = options.ref  ###reference genome "-ref"
         b_force = options.force  # force to run from the very beginning
         if b_force == True:
-            global_values.set_force_clean()
+            xtea.global_values.set_force_clean()
         site_clip_cutoff = options.siteclip  # this is the cutoff for the exact position, use larger value for 10X
-        global_values.set_initial_min_clip_cutoff(site_clip_cutoff)
+        xtea.global_values.set_initial_min_clip_cutoff(site_clip_cutoff)
 
         # merge the list from different bams of the same individual
         # Here when do the filtering, nearby regions are already considered!
@@ -942,7 +942,7 @@ if __name__ == '__main__':
         sf_input=options.input
         sf_output=options.output
         gff=GFF3(sf_gene_annotation)
-        iextnd=global_values.UP_DOWN_GENE
+        iextnd=xtea.global_values.UP_DOWN_GENE
         i_user_extnd = options.extend
         if i_user_extnd>iextnd:
             iextnd=i_user_extnd

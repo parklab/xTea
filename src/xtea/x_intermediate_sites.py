@@ -18,7 +18,7 @@ class XIntemediateSites():
             nearby_left_freq = 0
             nearby_right_freq = 0
             nearby_mate_in_rep = 0
-            for i in range(-1 * global_values.NEARBY_REGION, global_values.NEARBY_REGION):
+            for i in range(-1 * xtea.global_values.NEARBY_REGION, xtea.global_values.NEARBY_REGION):
                 i_tmp_pos = pos + i
                 if i_tmp_pos in m_clip_pos_freq:
                     nearby_left_freq += m_clip_pos_freq[i_tmp_pos][0]
@@ -51,8 +51,8 @@ class XIntemediateSites():
             nearby_left_freq = 0
             nearby_right_freq = 0
             nearby_mate_in_rep = 0
-            i_start=-1 * global_values.NEARBY_REGION
-            i_end=global_values.NEARBY_REGION
+            i_start=-1 * xtea.global_values.NEARBY_REGION
+            i_end=xtea.global_values.NEARBY_REGION
             for i in range(i_start, i_end):
                 i_tmp_pos = pos + i
                 if i_tmp_pos in m_clip_pos_freq:
@@ -104,7 +104,7 @@ class XIntemediateSites():
             return True
 
         # if this is not to call mitochondrial insertion, then filter out chrm related reads
-        if global_values.GLOBAL_MITCHONDRION_SWITCH=="OFF":
+        if xtea.global_values.GLOBAL_MITCHONDRION_SWITCH=="OFF":
             if chrm=="MT" or chrm=="chrMT" or chrm=="chrM":#doesn't consider the mitchrondrial DNA
                 #print "[TEST]: global value is off"
                 return True

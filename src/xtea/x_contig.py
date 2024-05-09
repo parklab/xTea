@@ -54,7 +54,7 @@ class XTEContig():
         cmd = "{0} -k15 -w5 --sr --frag=yes -A2 -B8 -O12,32 -E2,1 -r150 -p.5 -N20 -f10000,50000 -n2 " \
               "-m20 -s40 -g200 -2K50m --heap-sort=yes --secondary=no --cs -a -t {1} {2} {3} " \
               "> {4}" \
-            .format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
+            .format(xtea.global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
         #print cmd
         self.run_cmd(cmd)
 
@@ -63,7 +63,7 @@ class XTEContig():
         cmd = "{0} -k15 -w5 --sr --frag=yes -A2 -B8 -O12,32 -E2,1 -r150 -p.5 -N20 -f10000,50000 -n2 " \
               "-m20 -s40 -g200 -2K50m --heap-sort=yes --secondary=no --cs -a -t {1} {2} {3} " \
               "| samtools view -hSb - | samtools sort -o {4} -" \
-            .format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
+            .format(xtea.global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
         self.run_cmd(cmd)
         cmd = "samtools index {0}".format(sf_algnmt)
         self.run_cmd(cmd)
@@ -74,7 +74,7 @@ class XTEContig():
         cmd = "{0} -k15 -w5 --sr --frag=yes -A2 -B8 -O12,32 -E2,1 -r150 -p.5 -N20 -f10000,50000 -n2 " \
               "-m20 -s40 -g200 -2K50m --heap-sort=yes --secondary=yes --cs -a -t {1} {2} {3} " \
               "| samtools view -hSb - | samtools sort -o {4} -" \
-            .format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
+            .format(xtea.global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
         self.run_cmd(cmd)
         cmd = "samtools index {0}".format(sf_algnmt)
         self.run_cmd(cmd)
@@ -82,7 +82,7 @@ class XTEContig():
 
     def align_short_contig_minimap2_in_bam(self, sf_ref, sf_contig, n_jobs, sf_algnmt):
         cmd = "{0} -x sr --cs -a -t {1} {2} {3} | samtools view -hSb - | " \
-              "samtools sort -o {4} -".format(global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
+              "samtools sort -o {4} -".format(xtea.global_values.MINIMAP2, n_jobs, sf_ref, sf_contig, sf_algnmt)
         self.run_cmd(cmd)
         cmd = "samtools index {0}".format(sf_algnmt)
         self.run_cmd(cmd)
@@ -92,9 +92,9 @@ class XTEContig():
             return
         sf_bwt = sf_ref + ".bwt"
         if os.path.isfile(sf_bwt) == False:
-            cmd = "{0} index {1}".format(global_values.BWA_PATH, sf_ref)
+            cmd = "{0} index {1}".format(xtea.global_values.BWA_PATH, sf_ref)
             self.run_cmd(cmd)
-        cmd = "{0} mem -t {1} {2} {3} > {4}".format(global_values.BWA_PATH, n_jobs, sf_ref, sf_contig, sf_algnmt)
+        cmd = "{0} mem -t {1} {2} {3} > {4}".format(xtea.global_values.BWA_PATH, n_jobs, sf_ref, sf_contig, sf_algnmt)
         self.run_cmd(cmd)
 ####
     def run_align_flank_to_contig_by_chrm(self, record):
@@ -110,13 +110,13 @@ class XTEContig():
                     continue
                 tmp_pos = fields[1]
 
-                sf_asm = working_folder + "{0}/{1}_{2}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos)
-                sf_flank = working_folder + '{0}/{1}_{2}_flanks.fa'.format(global_values.FLANK_FOLDER, chrm, tmp_pos)
+                sf_asm = working_folder + "{0}/{1}_{2}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos)
+                sf_flank = working_folder + '{0}/{1}_{2}_flanks.fa'.format(xtea.global_values.FLANK_FOLDER, chrm, tmp_pos)
                 if os.path.exists(sf_asm) == False or os.path.exists(sf_flank) == False:
                     continue
                 if os.stat(sf_asm).st_size == 0:
                     continue
-                sf_algnmt_folder = working_folder + global_values.MAP_FOLDER
+                sf_algnmt_folder = working_folder + xtea.global_values.MAP_FOLDER
                 if os.path.exists(sf_algnmt_folder) == False:
                     cmd = "mkdir {0}".format(sf_algnmt_folder)
                     self.run_cmd(cmd)
@@ -137,44 +137,44 @@ class XTEContig():
                     continue
                 tmp_pos = fields[1]
 
-                sf_flank = working_folder + '{0}/{1}~{2}_flanks.fa'.format(global_values.FLANK_FOLDER, chrm, tmp_pos)
+                sf_flank = working_folder + '{0}/{1}~{2}_flanks.fa'.format(xtea.global_values.FLANK_FOLDER, chrm, tmp_pos)
                 #print sf_flank
                 if os.path.exists(sf_flank) == False:
                     continue
-                sf_algnmt_folder = working_folder + global_values.MAP_FOLDER
+                sf_algnmt_folder = working_folder + xtea.global_values.MAP_FOLDER
                 if os.path.exists(sf_algnmt_folder) == False:
                     cmd = "mkdir {0}".format(sf_algnmt_folder)
                     self.run_cmd(cmd)
                 ###all the reads
 
-                sf_asm_all = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos, global_values.ALL_HAP)
+                sf_asm_all = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos, xtea.global_values.ALL_HAP)
                 print(sf_asm_all)
                 if os.path.exists(sf_asm_all) != False and os.stat(sf_asm_all).st_size != 0:  ####
-                    sf_algnmt_all = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, global_values.ALL_HAP)
+                    sf_algnmt_all = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, xtea.global_values.ALL_HAP)
                     # print sf_asm_all
                     # print sf_flank
                     self.align_short_contigs_minimap2_v2_sam(sf_asm_all, sf_flank, 1, sf_algnmt_all)
                 ###haplotype 1
-                sf_asm_hap1 = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos, global_values.HAP1)
+                sf_asm_hap1 = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos, xtea.global_values.HAP1)
                 if os.path.exists(sf_asm_hap1) != False and os.stat(sf_asm_hap1).st_size != 0:  ####
-                    sf_algnmt1 = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, global_values.HAP1)
+                    sf_algnmt1 = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, xtea.global_values.HAP1)
                     self.align_short_contigs_minimap2_v2_sam(sf_asm_hap1, sf_flank, 1, sf_algnmt1)
                 ###haplotype 2
-                sf_asm_hap2 = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos, global_values.HAP2)
+                sf_asm_hap2 = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos, xtea.global_values.HAP2)
                 if os.path.exists(sf_asm_hap2) != False and os.stat(sf_asm_hap2).st_size != 0:  ####
-                    sf_algnmt2 = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, global_values.HAP2)
+                    sf_algnmt2 = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, xtea.global_values.HAP2)
                     self.align_short_contigs_minimap2_v2_sam(sf_asm_hap2, sf_flank, 1, sf_algnmt2)
                 ###unknown haplotype
-                sf_asm_hap_unknown = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos,
-                                                                                         global_values.HAP_UNKNOWN)
+                sf_asm_hap_unknown = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos,
+                                                                                         xtea.global_values.HAP_UNKNOWN)
                 if os.path.exists(sf_asm_hap_unknown) != False and os.stat(sf_asm_hap_unknown).st_size != 0:  ####
-                    sf_algnmt_unknown = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, global_values.HAP_UNKNOWN)
+                    sf_algnmt_unknown = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, xtea.global_values.HAP_UNKNOWN)
                     self.align_short_contigs_minimap2_v2_sam(sf_asm_hap_unknown, sf_flank, 1, sf_algnmt_unknown)
                 ###discord reads
-                sf_asm_hap_discord = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos,
-                                                                                         global_values.HAP_DISCORD)
+                sf_asm_hap_discord = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos,
+                                                                                         xtea.global_values.HAP_DISCORD)
                 if os.path.exists(sf_asm_hap_discord) != False and os.stat(sf_asm_hap_discord).st_size != 0:  ####
-                    sf_algnmt_disc = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, global_values.HAP_DISCORD)
+                    sf_algnmt_disc = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, xtea.global_values.HAP_DISCORD)
                     self.align_short_contigs_minimap2_v2_sam(sf_asm_hap_discord, sf_flank, 1, sf_algnmt_disc)
 
     ###align flank to phased contig
@@ -232,7 +232,7 @@ class XTEContig():
                 r_ref = "a"
                 l_ref = "b"
 
-                sf_algnmt_folder = self.working_folder + global_values.MAP_FOLDER
+                sf_algnmt_folder = self.working_folder + xtea.global_values.MAP_FOLDER
                 sf_algnmt = "{0}/{1}_{2}.sam".format(sf_algnmt_folder, chrm, pos)
                 if os.path.isfile(sf_algnmt) == False:
                     continue
@@ -255,13 +255,13 @@ class XTEContig():
                         f_map_ratio, cnt_map = self.cal_map_ratio(l_cigar, flank_length)
                         if f_map_ratio < f_map_cutoff:
                             continue
-                        if algnmt.query_name == global_values.LEFT_FLANK:
+                        if algnmt.query_name == xtea.global_values.LEFT_FLANK:
                             b_left_mapped = True
                             if algnmt.is_reverse == True:
                                 b_left_rc = True
                             i_left_pos = int(mpos)
                             l_ref = algnmt.reference_name
-                        elif algnmt.query_name == global_values.RIGHT_FLANK:
+                        elif algnmt.query_name == xtea.global_values.RIGHT_FLANK:
                             b_right_mapped = True
                             if algnmt.is_reverse == True:
                                 b_right_rc = True
@@ -358,15 +358,15 @@ class XTEContig():
                 b_r_clip = False  # right clip
                 l_cigar = algnmt.cigar
                 # the clip part should be long (>99bp)
-                if l_cigar[0][0] == 4 and l_cigar[0][1] >= global_values.TEI_ON_CNS_CLIP_LENTH:
+                if l_cigar[0][0] == 4 and l_cigar[0][1] >= xtea.global_values.TEI_ON_CNS_CLIP_LENTH:
                     b_l_clip = True
-                if l_cigar[-1][0] == 4 and l_cigar[-1][1] >= global_values.TEI_ON_CNS_CLIP_LENTH:
+                if l_cigar[-1][0] == 4 and l_cigar[-1][1] >= xtea.global_values.TEI_ON_CNS_CLIP_LENTH:
                     b_r_clip = True
                 mpos = int(algnmt.reference_start)
                 f_map_ratio, cnt_map = self.cal_map_ratio(l_cigar, flank_length)  # mapped ratio over all sequences
                 if f_map_ratio < f_map_cutoff:
                     continue
-                if algnmt.query_name == global_values.LEFT_FLANK:
+                if algnmt.query_name == xtea.global_values.LEFT_FLANK:
                     if algnmt.is_reverse == True:
                         b_left_rc = True
                     # not reverse complementary, but right clipped, this is not allowed!
@@ -379,7 +379,7 @@ class XTEContig():
                     i_left_pos = int(mpos)
                     l_ref = algnmt.reference_name
                     i_left_mapped = cnt_map
-                elif algnmt.query_name == global_values.RIGHT_FLANK:
+                elif algnmt.query_name == xtea.global_values.RIGHT_FLANK:
                     if algnmt.is_reverse == True:
                         b_right_rc = True
                     if b_right_rc == False and b_l_clip == True:
@@ -449,15 +449,15 @@ class XTEContig():
                 b_l_clip = False  # left clip
                 b_r_clip = False  # right clip
                 if l_cigar[0][0] == 4 and l_cigar[0][
-                    1] >= global_values.TEI_ON_CNS_CLIP_LENTH:  # the clip part should be long (>74bp)
+                    1] >= xtea.global_values.TEI_ON_CNS_CLIP_LENTH:  # the clip part should be long (>74bp)
                     b_l_clip = True
-                if l_cigar[-1][0] == 4 and l_cigar[-1][1] >= global_values.TEI_ON_CNS_CLIP_LENTH:  #
+                if l_cigar[-1][0] == 4 and l_cigar[-1][1] >= xtea.global_values.TEI_ON_CNS_CLIP_LENTH:  #
                     b_r_clip = True
                 mpos = int(algnmt.reference_start)
                 f_map_ratio, cnt_map = self.cal_map_ratio(l_cigar, flank_length)  # mapped ratio over all sequences
                 if f_map_ratio < f_map_cutoff:
                     continue
-                if algnmt.query_name == global_values.LEFT_FLANK:
+                if algnmt.query_name == xtea.global_values.LEFT_FLANK:
                     if algnmt.is_reverse == True:
                         b_left_rc = True
                     # not reverse complementary, but right clipped, this is not allowed!
@@ -471,7 +471,7 @@ class XTEContig():
                     i_left_pos = int(mpos)
                     l_ref = algnmt.reference_name
                     i_left_mapped = cnt_map
-                elif algnmt.query_name == global_values.RIGHT_FLANK:
+                elif algnmt.query_name == xtea.global_values.RIGHT_FLANK:
                     if algnmt.is_reverse == True:
                         b_right_rc = True
                     if b_right_rc == False and b_l_clip == True:
@@ -546,7 +546,7 @@ class XTEContig():
 
         mini_TEI_lenth = 35  #################################################################################hard code!!!
 
-        sf_TEI_seq_folder = working_folder + global_values.TEI_SEQ_FOLDER
+        sf_TEI_seq_folder = working_folder + xtea.global_values.TEI_SEQ_FOLDER
         if os.path.exists(sf_TEI_seq_folder) == False:
             return
         sf_TEI_seq_chrm = sf_TEI_seq_folder + "/" + "{0}_tei_seqs.fa".format(select_chrm)
@@ -558,19 +558,19 @@ class XTEContig():
                     continue
                 tmp_pos = int(fields[1])
 
-                sf_algnmt_folder = working_folder + global_values.MAP_FOLDER
+                sf_algnmt_folder = working_folder + xtea.global_values.MAP_FOLDER
                 # 1. First, check the combined contigs (assembled from all the reads)
-                sf_algnmt_all = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, global_values.ALL_HAP)
+                sf_algnmt_all = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, xtea.global_values.ALL_HAP)
                 if os.path.isfile(sf_algnmt_all) == False:
                     continue
-                sf_asm_all = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos, global_values.ALL_HAP)
+                sf_asm_all = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos, xtea.global_values.ALL_HAP)
                 if os.path.exists(sf_asm_all) == False or os.stat(sf_asm_all).st_size == 0:
                     continue
                 b_qualifed, seq1, seq2 = self.is_qualified_TE_insertion_strict_version_v2(sf_asm_all, sf_algnmt_all,
                                                                                           flank_length, f_map_cutoff,
                                                                                           i_slack)
-                ###Note, here use global_values.SEPERATOR to seperate chrm and pos, in case chrm contains "_"
-                s_site = "{0}{1}{2}".format(select_chrm, global_values.SEPERATOR, tmp_pos)
+                ###Note, here use xtea.global_values.SEPERATOR to seperate chrm and pos, in case chrm contains "_"
+                s_site = "{0}{1}{2}".format(select_chrm, xtea.global_values.SEPERATOR, tmp_pos)
                 if b_qualifed == True and seq1 != "" and len(seq1) >= mini_TEI_lenth:
                     fout_tei_seqs.write(">" + s_site + "_" + homozygous + "\n")
                     fout_tei_seqs.write(seq1 + "\n")
@@ -594,9 +594,9 @@ class XTEContig():
                             fout_tei_seqs.write(seq2 + "\n")
 
                 # 2. check hap1 contig alignments
-                sf_algnmt_hap1 = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, global_values.HAP1)
-                sf_asm_hap1 = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos,
-                                                                                  global_values.HAP1)
+                sf_algnmt_hap1 = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, xtea.global_values.HAP1)
+                sf_asm_hap1 = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos,
+                                                                                  xtea.global_values.HAP1)
                 if os.path.isfile(sf_algnmt_hap1) != False and os.path.isfile(sf_asm_hap1) != False:
                     b_qualifed, seq1, seq2, bsame = self.is_qualified_TE_insertion_loosen_version_v2(sf_asm_hap1,
                                                                                                      sf_algnmt_hap1,
@@ -617,9 +617,9 @@ class XTEContig():
                                 fout_tei_seqs.write(seq2 + "\n")
 
                 # 3. check hap2 contigs alignments
-                sf_algnmt_hap2 = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, global_values.HAP2)
-                sf_asm_hap2 = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos,
-                                                                                  global_values.HAP2)
+                sf_algnmt_hap2 = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, xtea.global_values.HAP2)
+                sf_asm_hap2 = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos,
+                                                                                  xtea.global_values.HAP2)
                 if os.path.isfile(sf_algnmt_hap2) != False and os.path.isfile(sf_asm_hap2) != False:
                     b_qualifed, seq1, seq2, bsame = self.is_qualified_TE_insertion_loosen_version_v2(sf_asm_hap2,
                                                                                                      sf_algnmt_hap2,
@@ -640,9 +640,9 @@ class XTEContig():
                                 fout_tei_seqs.write(seq2 + "\n")
 
                 # 4. check unknown contigs alignments
-                sf_algnmt_hap_unknown = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, global_values.HAP_UNKNOWN)
-                sf_asm_hap_unknown = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos,
-                                                                                         global_values.HAP_UNKNOWN)
+                sf_algnmt_hap_unknown = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, xtea.global_values.HAP_UNKNOWN)
+                sf_asm_hap_unknown = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos,
+                                                                                         xtea.global_values.HAP_UNKNOWN)
                 if os.path.isfile(sf_algnmt_hap_unknown) != False and os.path.isfile(sf_asm_hap_unknown) != False:
                     b_qualifed, seq1, seq2, bsame = self.is_qualified_TE_insertion_loosen_version_v2(sf_asm_hap_unknown,
                                                                                                      sf_algnmt_hap_unknown,
@@ -663,9 +663,9 @@ class XTEContig():
                                 fout_tei_seqs.write(seq2 + "\n")
 
                 # 5. check discord contigs alignments
-                sf_algnmt_hap_disc = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, global_values.HAP_DISCORD)
-                sf_asm_hap_disc = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos,
-                                                                                      global_values.HAP_DISCORD)
+                sf_algnmt_hap_disc = "{0}/{1}_{2}_{3}.sam".format(sf_algnmt_folder, chrm, tmp_pos, xtea.global_values.HAP_DISCORD)
+                sf_asm_hap_disc = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos,
+                                                                                      xtea.global_values.HAP_DISCORD)
                 if os.path.isfile(sf_algnmt_hap_disc) != False and os.path.isfile(sf_asm_hap_disc) != False:
                     b_qualifed, seq1, seq2, bsame = self.is_qualified_TE_insertion_loosen_version_v2(sf_asm_hap_disc,
                                                                                                      sf_algnmt_hap_disc,
@@ -704,7 +704,7 @@ class XTEContig():
                     m_final[s_pos] = (m_candidate[contig_id], asm_source, fields[-1])
 
             for s_pos in m_final:
-                s_pos_fields = s_pos.split(global_values.SEPERATOR)
+                s_pos_fields = s_pos.split(xtea.global_values.SEPERATOR)
                 fout_chrm_true_positive.write(
                     s_pos_fields[0] + "\t" + s_pos_fields[1] + "\t" + str(m_final[s_pos][0]) + "\t" + m_final[s_pos][1]
                     + "\t" + m_final[s_pos][2] + "\n")
@@ -787,14 +787,14 @@ class XTEContig():
                 chrm = fields[0]
                 m_chrms[chrm] = 1
 
-        sf_TEI_seq_folder = self.working_folder + global_values.TEI_SEQ_FOLDER  ####create the folder
+        sf_TEI_seq_folder = self.working_folder + xtea.global_values.TEI_SEQ_FOLDER  ####create the folder
         if os.path.exists(sf_TEI_seq_folder) == False:
             cmd = "mkdir {0}".format(sf_TEI_seq_folder)
             #Popen(cmd, shell=True, stdout=PIPE).communicate()
             self.run_cmd(cmd)
 
         for chrm in m_chrms:
-            sf_chrm_out = self.working_folder + global_values.FILTER_FOLDER + "/"
+            sf_chrm_out = self.working_folder + xtea.global_values.FILTER_FOLDER + "/"
             if os.path.isdir(sf_chrm_out) == False:
                 cmd = "mkdir {0}".format(sf_chrm_out)
                 self.run_cmd(cmd)
@@ -814,7 +814,7 @@ class XTEContig():
         sf_tei_seq=sf_kept_sites+".fa"
         with open(sf_kept_sites, "w") as fout_final, open(sf_tei_seq,"w") as fout_tei:
             for chrm in m_chrms:
-                sf_chrm_out = self.working_folder + global_values.FILTER_FOLDER + "/"
+                sf_chrm_out = self.working_folder + xtea.global_values.FILTER_FOLDER + "/"
                 sf_chrm_out += "{0}.filtered".format(chrm)
                 if os.path.isfile(sf_chrm_out) != False:
                     with open(sf_chrm_out) as fin_chrm:
@@ -830,7 +830,7 @@ class XTEContig():
     ####################################################################################################################
     ####for contigs and long reads align to reference ##################################################################
     ####################################################################################################################
-    ####merge the contigs of one type (global_values.ALL_HAP, global_values.HAP1, global_values.HAP2, global_values.HAP_UNKNOWN, global_values.HAP_DISCORD) to a single file
+    ####merge the contigs of one type (xtea.global_values.ALL_HAP, xtea.global_values.HAP1, xtea.global_values.HAP2, xtea.global_values.HAP_UNKNOWN, xtea.global_values.HAP_DISCORD) to a single file
     def creat_new_folder_no_exist(self, s_folder):
         if os.path.exists(s_folder) == False:
             cmd = 'mkdir -p {0}'.format(s_folder)
@@ -879,7 +879,7 @@ class XTEContig():
             query_name = algnmt.query_name
             map_pos = algnmt.reference_start
             query_seq = algnmt.query_sequence
-            site_fields = query_name.split(global_values.SEPERATOR)
+            site_fields = query_name.split(xtea.global_values.SEPERATOR)
             site_chrm = site_fields[0]
             site_pos = int(site_fields[1])
             s_dir = query_name[-1]  # L or R, direction of the 1st align on ref (before the masking step)
@@ -887,7 +887,7 @@ class XTEContig():
             if len(l_cigar) < 1:  # wrong alignment
                 continue
             if len(l_cigar) == 1 and l_cigar[0][0] == 0:  ##fully mapped
-                if len(query_seq) < global_values.MIN_CONTIG_CLIP_LENTH:
+                if len(query_seq) < xtea.global_values.MIN_CONTIG_CLIP_LENTH:
                     continue
                 self.save_site_info(site_chrm, site_pos, map_pos, query_seq, m_selected, m_seqs)
 
@@ -895,7 +895,7 @@ class XTEContig():
                 l_clip_lenth = l_cigar[0][1]
                 r_clip_lenth = l_cigar[-1][1]
                 mapped_seq = query_seq[l_clip_lenth: r_clip_lenth]
-                if len(mapped_seq) < global_values.MIN_CONTIG_CLIP_LENTH:
+                if len(mapped_seq) < xtea.global_values.MIN_CONTIG_CLIP_LENTH:
                     continue
                 self.save_site_info(site_chrm, site_pos, map_pos, mapped_seq, m_selected, m_seqs)
                 l_clip_seq = query_seq[:l_clip_lenth]
@@ -906,7 +906,7 @@ class XTEContig():
                 l_clip_lenth = l_cigar[0][1]
                 clip_seq = query_seq[:l_clip_lenth]
                 mapped_seq = query_seq[l_clip_lenth:]
-                if len(mapped_seq) < global_values.MIN_CONTIG_CLIP_LENTH:
+                if len(mapped_seq) < xtea.global_values.MIN_CONTIG_CLIP_LENTH:
                     continue
                 self.save_site_info(site_chrm, site_pos, map_pos, mapped_seq, m_selected, m_seqs)
                 self.save_seqs_to_dict(site_chrm, site_pos, clip_seq, s_dir, m_clip_seqs)  # save the left clip seq
@@ -914,7 +914,7 @@ class XTEContig():
                 r_clip_lenth = l_cigar[-1][1]
                 clip_seq = query_seq[r_clip_lenth:]
                 mapped_seq = query_seq[:r_clip_lenth]
-                if len(mapped_seq) < global_values.MIN_CONTIG_CLIP_LENTH:
+                if len(mapped_seq) < xtea.global_values.MIN_CONTIG_CLIP_LENTH:
                     continue
                 self.save_site_info(site_chrm, site_pos, map_pos, mapped_seq, m_selected, m_seqs)
                 self.save_seqs_to_dict(site_chrm, site_pos, clip_seq, s_dir, m_clip_seqs)  # save the right clip seq
@@ -928,8 +928,8 @@ class XTEContig():
                     fout_rslt.write(sinfo)
                     icnt = 0
                     for s_seq in m_seqs[site_chrm][site_pos]:
-                        shead = ">{0}{1}{2}{3}{4}\n".format(site_chrm, global_values.SEPERATOR, site_pos,
-                                                            global_values.SEPERATOR, icnt)
+                        shead = ">{0}{1}{2}{3}{4}\n".format(site_chrm, xtea.global_values.SEPERATOR, site_pos,
+                                                            xtea.global_values.SEPERATOR, icnt)
                         icnt += 1
                         fout_seqs.write(shead)
                         fout_seqs.write(s_seq + "\n")
@@ -938,9 +938,9 @@ class XTEContig():
                         icnt = 0
                         for (s_seq, s_dir) in m_clip_seqs[site_chrm][site_pos]:
                             ####
-                            shead = ">{0}{1}{2}{3}{4}{5}{6}\n".format(site_chrm, global_values.SEPERATOR, site_pos,
-                                                                      global_values.SEPERATOR, s_dir,
-                                                                      global_values.SEPERATOR, icnt)
+                            shead = ">{0}{1}{2}{3}{4}{5}{6}\n".format(site_chrm, xtea.global_values.SEPERATOR, site_pos,
+                                                                      xtea.global_values.SEPERATOR, s_dir,
+                                                                      xtea.global_values.SEPERATOR, icnt)
                             icnt += 1
                             fout_clip.write(shead)
                             fout_clip.write(s_seq + "\n")
@@ -948,12 +948,12 @@ class XTEContig():
     ####
     # get out the clipped part and align to repeat consensus to mask out the repeats part
     def call_MEIs_from_group_contigs(self, sf_ref, sf_cns, s_working_folder, stype, sf_in, sf_out, sf_seqs):
-        s_algnmt_folder = s_working_folder + global_values.MAP_FOLDER + "/"
+        s_algnmt_folder = s_working_folder + xtea.global_values.MAP_FOLDER + "/"
         sf_hap_bam = s_algnmt_folder + stype + ".sorted.bam"
         if os.path.isfile(sf_hap_bam) is False:
             return
         ####
-        s_seq_folder = s_working_folder + global_values.TEI_SEQ_FOLDER + "/"
+        s_seq_folder = s_working_folder + xtea.global_values.TEI_SEQ_FOLDER + "/"
         self.creat_new_folder_no_exist(s_seq_folder)
 
         lrclip = LContigClipReadInfo(sf_hap_bam, self.n_jobs, sf_ref, s_seq_folder)
@@ -985,41 +985,41 @@ class XTEContig():
 
     ####
     def call_MEIs_from_all_group_contigs(self, sf_sites, sf_ref, sf_cns, s_working_folder, sf_out_sites, sf_out_seqs):
-        s_seq_folder = s_working_folder + global_values.TEI_SEQ_FOLDER + "/"
+        s_seq_folder = s_working_folder + xtea.global_values.TEI_SEQ_FOLDER + "/"
         self.creat_new_folder_no_exist(s_seq_folder)
         m_final_list = {}
         # m_final_seqs = {}
 
         ####Hap1
-        sf_out_hap1 = s_seq_folder + global_values.HAP1 + ".candidate.list"  ###candidate list called from hap1
-        sf_seqs_hap1 = s_seq_folder + global_values.HAP1 + ".seqs.fa"
-        self.call_MEIs_from_group_contigs(sf_ref, sf_cns, s_working_folder, global_values.HAP1, sf_sites, sf_out_hap1, sf_seqs_hap1)
+        sf_out_hap1 = s_seq_folder + xtea.global_values.HAP1 + ".candidate.list"  ###candidate list called from hap1
+        sf_seqs_hap1 = s_seq_folder + xtea.global_values.HAP1 + ".seqs.fa"
+        self.call_MEIs_from_group_contigs(sf_ref, sf_cns, s_working_folder, xtea.global_values.HAP1, sf_sites, sf_out_hap1, sf_seqs_hap1)
         self.call_final_list_from_hap(sf_out_hap1, "1/0", m_final_list)
 
         ####Hap2
-        sf_out_hap2 = s_seq_folder + global_values.HAP2 + ".candidate.list"  ###candidate list called from hap2
-        sf_seqs_hap2 = s_seq_folder + global_values.HAP2 + ".seqs.fa"
-        self.call_MEIs_from_group_contigs(sf_ref, sf_cns, s_working_folder, global_values.HAP2, sf_sites, sf_out_hap2, sf_seqs_hap2)
+        sf_out_hap2 = s_seq_folder + xtea.global_values.HAP2 + ".candidate.list"  ###candidate list called from hap2
+        sf_seqs_hap2 = s_seq_folder + xtea.global_values.HAP2 + ".seqs.fa"
+        self.call_MEIs_from_group_contigs(sf_ref, sf_cns, s_working_folder, xtea.global_values.HAP2, sf_sites, sf_out_hap2, sf_seqs_hap2)
         self.call_final_list_from_hap(sf_out_hap2, "0/1", m_final_list)
 
         ####Hap_all
-        sf_out_hap_all = s_seq_folder + global_values.ALL_HAP + ".candidate.list"  ###candidate list called from all hap
-        sf_seqs_hap_all = s_seq_folder + global_values.ALL_HAP + ".seqs.fa"
-        self.call_MEIs_from_group_contigs(sf_ref, sf_cns, s_working_folder, global_values.ALL_HAP, sf_sites, sf_out_hap_all,
+        sf_out_hap_all = s_seq_folder + xtea.global_values.ALL_HAP + ".candidate.list"  ###candidate list called from all hap
+        sf_seqs_hap_all = s_seq_folder + xtea.global_values.ALL_HAP + ".seqs.fa"
+        self.call_MEIs_from_group_contigs(sf_ref, sf_cns, s_working_folder, xtea.global_values.ALL_HAP, sf_sites, sf_out_hap_all,
                                           sf_seqs_hap_all)
         self.call_final_list_from_hap(sf_out_hap_all, "1/1", m_final_list)
 
         ####Hap_unkown
-        sf_out_hap_uk = s_seq_folder + global_values.HAP_UNKNOWN + ".candidate.list"  ###candidate list called from unkown hap
-        sf_seqs_hap_uk = s_seq_folder + global_values.HAP_UNKNOWN + ".seqs.fa"
-        self.call_MEIs_from_group_contigs(sf_ref, sf_cns, s_working_folder, global_values.HAP_UNKNOWN, sf_sites, sf_out_hap_uk,
+        sf_out_hap_uk = s_seq_folder + xtea.global_values.HAP_UNKNOWN + ".candidate.list"  ###candidate list called from unkown hap
+        sf_seqs_hap_uk = s_seq_folder + xtea.global_values.HAP_UNKNOWN + ".seqs.fa"
+        self.call_MEIs_from_group_contigs(sf_ref, sf_cns, s_working_folder, xtea.global_values.HAP_UNKNOWN, sf_sites, sf_out_hap_uk,
                                           sf_seqs_hap_uk)
         self.call_final_list_from_hap(sf_out_hap_uk, "un", m_final_list)
 
         ####Hap_discord
-        sf_out_hap_disc = s_seq_folder + global_values.HAP_DISCORD + ".candidate.list"  ###candidate list called from disc hap
-        sf_seqs_hap_disc = s_seq_folder + global_values.HAP_DISCORD + ".seqs.fa"
-        self.call_MEIs_from_group_contigs(sf_ref, sf_cns, s_working_folder, global_values.HAP_DISCORD, sf_sites, sf_out_hap_disc,
+        sf_out_hap_disc = s_seq_folder + xtea.global_values.HAP_DISCORD + ".candidate.list"  ###candidate list called from disc hap
+        sf_seqs_hap_disc = s_seq_folder + xtea.global_values.HAP_DISCORD + ".seqs.fa"
+        self.call_MEIs_from_group_contigs(sf_ref, sf_cns, s_working_folder, xtea.global_values.HAP_DISCORD, sf_sites, sf_out_hap_disc,
                                           sf_seqs_hap_disc)
         self.call_final_list_from_hap(sf_out_hap_disc, "disc", m_final_list)
 
@@ -1047,7 +1047,7 @@ class XTEContig():
                 fields = line.split()
                 chrm = fields[0]
                 tmp_pos = fields[1]
-                sf_asm = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(global_values.ASM_FOLDER, chrm, tmp_pos, stype)
+                sf_asm = working_folder + "{0}/{1}_{2}/{3}/contig.fa".format(xtea.global_values.ASM_FOLDER, chrm, tmp_pos, stype)
                 if os.path.isfile(sf_asm) == False:
                     continue
                 s_prefix = "{0}~{1}~{2}~".format(chrm, tmp_pos, stype)
@@ -1060,9 +1060,9 @@ class XTEContig():
                             fout_fa.write(line)
 
     def align_one_group_contigs(self, sf_sites, stype, working_folder, sf_ref):
-        s_asm_folder = working_folder + global_values.ASM_FOLDER + "/"
+        s_asm_folder = working_folder + xtea.global_values.ASM_FOLDER + "/"
         self.creat_new_folder_no_exist(s_asm_folder)
-        s_algnmt_folder = working_folder + global_values.MAP_FOLDER + "/"
+        s_algnmt_folder = working_folder + xtea.global_values.MAP_FOLDER + "/"
         self.creat_new_folder_no_exist(s_algnmt_folder)
         # merge for hap1
         sf_hap_asm = s_asm_folder + stype + ".fa"
@@ -1074,15 +1074,15 @@ class XTEContig():
     # align the contigs to the reference genome
     def align_asm_contigs_to_reference(self, sf_sites, sf_ref, working_folder):
         # merge and align for hap1
-        self.align_one_group_contigs(sf_sites, global_values.HAP1, working_folder, sf_ref)
+        self.align_one_group_contigs(sf_sites, xtea.global_values.HAP1, working_folder, sf_ref)
         # merge and align for hap2
-        self.align_one_group_contigs(sf_sites, global_values.HAP2, working_folder, sf_ref)
+        self.align_one_group_contigs(sf_sites, xtea.global_values.HAP2, working_folder, sf_ref)
         # merge and align for all-hap
-        self.align_one_group_contigs(sf_sites, global_values.ALL_HAP, working_folder, sf_ref)
+        self.align_one_group_contigs(sf_sites, xtea.global_values.ALL_HAP, working_folder, sf_ref)
         # merge and align for unknown
-        self.align_one_group_contigs(sf_sites, global_values.HAP_UNKNOWN, working_folder, sf_ref)
+        self.align_one_group_contigs(sf_sites, xtea.global_values.HAP_UNKNOWN, working_folder, sf_ref)
         # merge and align for discord
-        self.align_one_group_contigs(sf_sites, global_values.HAP_DISCORD, working_folder, sf_ref)
+        self.align_one_group_contigs(sf_sites, xtea.global_values.HAP_DISCORD, working_folder, sf_ref)
 
 ####
     ####for long reads
