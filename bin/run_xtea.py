@@ -67,29 +67,6 @@ def parse_toml_args():
 
 def setup_annotation_paths(rep,rep_lib_annot_dir,genome_reference,genome):
 
-
-        # elif s_rep_type==REP_TYPE_PSEUDOGENE:
-        #     sf_config_pseudogene = sf_config_prefix + "Pseudogene.config"
-        #     sf_anno = "ANNOTATION " + sf_folder_rep + "Pseudogene/hg38/gencode_v28_GRCh38_exon_annotation.out\n"
-        #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Pseudogene/hg38/gencode_v28_GRCh38_exon_annotation.out\n"
-        #     sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "Pseudogene/hg38/gencode_v28_GRCh38_transcript_masked.fa\n"
-        #     sf_flank = "SF_FLANK null\n"
-        #     sf_cns = "L1_CNS " + sf_folder_rep + "consensus/gencode_v28_GRCh38_transcript_masked.fa\n"#
-        #     write_to_config(sf_anno, sf_anno1, sf_ref, sf_gene_anno, sf_black_list, sf_copy_with_flank, sf_flank,
-        #                     sf_cns, sf_xtea, s_bl, s_bam1, s_bc_bam, s_tmp, s_tmp_clip, s_tmp_cns, sf_config_pseudogene)
-
-        # elif s_rep_type=="Mitochondrion":####for Mitochondrion
-        #     sf_config_Mitochondrion = sf_config_prefix + "Mitochondrion.config"
-        #     sf_anno = "ANNOTATION " + sf_folder_rep + "Mitochondrion/hg38/hg38_numtS.out\n"
-        #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Mitochondrion/hg38/hg38_numtS.out\n"
-        #     sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep +\
-        #                          "Mitochondrion/hg38/hg38_mitochondrion_copies_with_flank.fa\n"
-        #     sf_flank = "SF_FLANK null\n"
-        #     sf_cns = "L1_CNS " + sf_folder_rep + "consensus/mitochondrion.fa\n"
-        #     write_to_config(sf_anno, sf_anno1, sf_ref, sf_gene_anno, sf_black_list, sf_copy_with_flank, sf_flank,
-        #                     sf_cns, sf_xtea, s_bl, s_bam1, s_bc_bam, s_tmp, s_tmp_clip, s_tmp_cns, sf_config_Mitochondrion)
-
-
     annotation_paths = dict()
     annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
     annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_{rep}.out" #options.annotation
@@ -141,8 +118,8 @@ def setup_annotation_paths(rep,rep_lib_annot_dir,genome_reference,genome):
     return annotation_paths
 
 def setup_output_dir(out_dir,tmp_dir,sample_name,repeat):
-    o_dir = f'{out_dir}/{sample_name}/{repeat}'
-    t_dir = f'{out_dir}/{sample_name}/tmp'
+    o_dir = f'{out_dir}/{sample_name}/{repeat}/'
+    t_dir = f'{out_dir}/{sample_name}/tmp/'
 
     Path(o_dir).mkdir(parents=True, exist_ok=True)
     Path(t_dir).mkdir(parents=True, exist_ok=True)
