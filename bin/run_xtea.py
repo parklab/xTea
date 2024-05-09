@@ -2,8 +2,10 @@
 ##@@author: Corinne Sexton, DBMI, Harvard Medical School
 ##@@contact: corinne_sexton@hms.harvard.edu
 
+from pathlib import Path
 import configargparse
 from xtea.locate_insertions import get_clipped_reads
+
 
 ## run_xtea -c config.toml -i bam_list (or file) -o output_dir
 ##          --repeat_type <list> --run_type germline (default)
@@ -35,14 +37,18 @@ def parse_toml_args():
           help = "Genome version used. Options: hg38 (default), hg19, chm13")
 
     # insertion detection paramaters:
-    p.add('--lc',
-            help="When specified, override default automatic calculation: cutoff of minimum # of left clipped reads")
-    p.add('--rc',
-          help="When specified, override default automatic calculation: cutoff of minimum # of right clipped reads")
     p.add('--cr',
           help="When specified, override default automatic calculation: cutoff of minimum # of clipped parts fall in repeats")
     p.add('--nd',
           help="When specified, override default automatic calculation: cutoff of minimum # of discordant pair")
+    p.add('--tumor',default=False,
+          help="Working on tumor samples")
+    p.add('--purity', type="float", default=0.45,
+          help="Tumor purity")
+    p.add('--single', default=False,
+          help="Call clip positions from single-end reads")
+    p.add('--mosaic', default=False,
+          help="Call mosaic events")
 
     # annotation directories:
     p.add("--rep_lib_annot_dir",required = True, help = 'Path to rep_lib_annotation/ directory')
@@ -54,6 +60,7 @@ def parse_toml_args():
 
 
     p.add('-n',dest = 'cores',default = 1, help = "number of cores")
+    p.add('--resume',default = True, help = "resume previous run if available")
     p.add('-v', help='version', action='store_true')
 
     return p.parse_args()
@@ -67,6 +74,22 @@ def setup_annotation_paths(rep,rep_lib_annot_dir,genome_reference,genome):
 
     return annotation_paths
 
+def setup_output_dir(out_dir,tmp_dir,sample_name,repeat):
+    if out_dir != '.':
+        o_dir = f'{out_dir}/{sample_name}/{repeat}'
+    else:
+        o_dir = f'{sample_name}/{repeat}'
+
+    if tmp_dir != '.':
+        t_dir = f'{out_dir}/{sample_name}/tmp'
+    else:
+        t_dir = f'{sample_name}/tmp'
+
+    Path(o_dir).mkdir(parents=True, exist_ok=True)
+    Path(t_dir).mkdir(parents=True, exist_ok=True)
+
+    return o_dir, t_dir
+
 
 if __name__ == '__main__':
     options = parse_toml_args()
@@ -77,12 +100,14 @@ if __name__ == '__main__':
 
     if germline:
         for r in repeats:
+            output_dir, tmp_dir = setup_output_dir(options.output_dir,options.tmp_dir,options.sample_name,r)
+
             annot_path_dict = setup_annotation_paths(r,options.rep_lib_annot_dir,
                                                      options.genome_reference,
                                                      options.genome)
             
             #perform clip step:
-            get_clipped_reads(options,r,annot_path_dict)
+            get_clipped_reads(options,r,annot_path_dict,output_dir,tmp_dir)
 
             #clip
             #disc
