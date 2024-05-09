@@ -92,8 +92,10 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
 
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
 
+
         ####by default, if number of clipped reads is larger than this value, then discard
-        max_cov_cutoff=int(15*options.cov) #by default, this value is 600
+        max_cov_cutoff=int(15*basic_rcd[0]) #by default, this value is 600
+        print(f'\t\testimated coverage = {basic_rcd[0]}')
 
         ##Hard code inside:
         # 1. call_TEI_candidate_sites_from_clip_reads_v2 --> run_cnt_clip_part_aligned_to_rep_by_chrm_sort_version
