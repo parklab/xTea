@@ -38,7 +38,7 @@ class TE_Multi_Locator():
         cnt = 0
         sf_ori_bam = ""
         # with open(self.sf_list) as fin_bam_list: # CS EDIT
-        for sf_ori_bam in sf_list:  ###for each bam file # CS EDIT
+        for sf_ori_bam in self.sf_list:  ###for each bam file # CS EDIT
             i_idx_bam=0 #indicates which bam this is 
             s_read_type="illumina" # BIG TODO BROKEN 10X SUPPORT!!!
             print(("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)))
