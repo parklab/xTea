@@ -60,7 +60,7 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
     print("Working on \"clipped reads\" step!")
 
     sf_bam_list = options.input_bams
-    n_jobs = options.cores
+    n_jobs = int(options.cores)
     b_force = False # removed command line option
     b_resume=options.resume #resume the running, which will skip the step if output file already exists
     

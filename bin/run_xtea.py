@@ -75,15 +75,8 @@ def setup_annotation_paths(rep,rep_lib_annot_dir,genome_reference,genome):
     return annotation_paths
 
 def setup_output_dir(out_dir,tmp_dir,sample_name,repeat):
-    if out_dir != '.':
-        o_dir = f'{out_dir}/{sample_name}/{repeat}'
-    else:
-        o_dir = f'{sample_name}/{repeat}'
-
-    if tmp_dir != '.':
-        t_dir = f'{out_dir}/{sample_name}/tmp'
-    else:
-        t_dir = f'{sample_name}/tmp'
+    o_dir = f'{out_dir}/{sample_name}/{repeat}'
+    t_dir = f'{out_dir}/{sample_name}/tmp'
 
     Path(o_dir).mkdir(parents=True, exist_ok=True)
     Path(t_dir).mkdir(parents=True, exist_ok=True)
