@@ -92,7 +92,7 @@ class TE_Multi_Locator():
         b_with_chr = bam_info.is_chrm_contain_chr()
         m_chrms = bam_info.get_all_reference_names()
 
-        xfilter = XIntemediateSites()
+        xfilter = XIntermediateSites()
         xchrom=XChromosome()
         sf_out_merged = sf_out + "_tmp"
         with open(sf_out_merged, "w") as fout_sites_merged, open(sf_out, "w") as fout_sites:
@@ -221,7 +221,7 @@ class TE_Multi_Locator():
         b_with_chr = bam_info.is_chrm_contain_chr()
         m_chrms = bam_info.get_all_reference_names()
 
-        xfilter = XIntemediateSites()
+        xfilter = XIntermediateSites()
         xchrom = XChromosome()
         sf_out_merged = sf_out + "_tmp"
         with open(sf_out_merged, "w") as fout_sites_merged, open(sf_out, "w") as fout_sites:
@@ -344,7 +344,7 @@ class TE_Multi_Locator():
                 tmp_cutoff = 1  # for here, not filtering #############################################################
                 m_sites_discord, m_sites_raw_disc = caller.filter_candidate_sites_by_discordant_pairs_non_barcode(
                     m_sites, iext, i_is, f_dev, sf_annotation, tmp_cutoff)
-                xfilter = XIntemediateSites()
+                xfilter = XIntermediateSites()
                 sf_out_tmp = self.working_folder + xtea.global_values.DISC_TMP + '{0}'.format(cnt)
                 xfilter.output_candidate_sites(m_sites_discord, sf_out_tmp)
 

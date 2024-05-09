@@ -10,7 +10,7 @@ import os
 
 import xtea.global_values
 from xtea.x_TEI_locator import TE_Multi_Locator
-from xtea.x_intermediate_sites import XIntemediateSites
+from xtea.x_intermediate_sites import XIntermediateSites
 from xtea.x_basic_info import X_BasicInfo
 from xtea.x_parameter import Parameters
 
@@ -84,6 +84,7 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
     rcd = None
     basic_rcd = None
     if b_resume is False or os.path.isfile(sf_out) is False:
+        print("\tGenerating cutoff parameters based on coverage.")
         if cutoff_clip_mate_in_rep is None:
             rcd, basic_rcd=automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
                                                         b_force, b_tumor, f_purity)
@@ -98,12 +99,13 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
         # 1. call_TEI_candidate_sites_from_clip_reads_v2 --> run_cnt_clip_part_aligned_to_rep_by_chrm_sort_version
         # here if half of the seq is mapped, then consider it as aligned work.
         ##2. require >=2 clip reads, whose clipped part is aligned to repeat copies
+        print("\tCalling insertion sites.")
         tem_locator.call_TEI_candidate_sites_from_multiple_alignmts(sf_annotation, sf_rep_cns, sf_rep, b_se,
                                                                     cutoff_left_clip, cutoff_right_clip,
                                                                     cutoff_clip_mate_in_rep, b_mosaic,
                                                                     wfolder_pub_clip, b_force, max_cov_cutoff, sf_out)
 
-    print("Working on \"disc\" step!")
+    print("Working on \"discordant reads\" step!")
     sf_candidate_list = sf_out
 
     sf_disc_out = f"{s_working_folder}/candidate_list_from_disc.txt"
@@ -112,7 +114,7 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
         PEAK_WINDOW = 30
 
     if b_resume == False or os.path.isfile(sf_disc_out) == False:
-        xfilter = XIntemediateSites()
+        xfilter = XIntermediateSites()
         m_original_sites = xfilter.load_in_candidate_list(sf_candidate_list)
         sf_peak_sites = f"{s_working_folder}/clip_peak_candidate.list"
         # get the peak sites
@@ -138,11 +140,10 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
         if n_disc_cutoff is None:
             n_disc_cutoff=rcd[1]
             
-        print("Discordant cutoff: {0} is used!!!".format(n_disc_cutoff))
-
-        sf_tmp = s_working_folder + "disc_tmp.list"
+        sf_tmp = s_working_folder + "/disc_tmp.list"
         sf_raw_disc=sf_disc_out + xtea.global_values.RAW_DISC_TMP_SUFFIX #save the left and right raw disc for each site
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
+        print("\Filtering insertion sites based on discordant cutoff: {n_disc_cutoff}.")
         tem_locator.filter_candidate_sites_by_discordant_pairs_multi_alignmts(m_sites_clip_peak, iextend, i_is,
                                                                                 f_dev, n_disc_cutoff, sf_annotation,
                                                                                 sf_tmp, sf_raw_disc, b_tumor)

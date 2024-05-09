@@ -440,7 +440,7 @@ if __name__ == '__main__':
             PEAK_WINDOW = 30
 
         if b_resume == False or os.path.isfile(sf_out) == False:#
-            xfilter = XIntemediateSites()
+            xfilter = XIntermediateSites()
             m_original_sites = xfilter.load_in_candidate_list(sf_candidate_list)
             sf_peak_sites = s_working_folder + "clip_peak_candidate.list"
             #m_sites_clip_peak = xfilter.call_peak_candidate_sites(m_original_sites, PEAK_WINDOW)  # get the peak sites
@@ -856,7 +856,7 @@ if __name__ == '__main__':
         sf_out = options.output
         sf_ref = options.ref  ###reference genome, some cram file require this file to open
 
-        xfilter = XIntemediateSites()
+        xfilter = XIntermediateSites()
         m_input_sites = xfilter.load_in_candidate_list(sf_candidate_list)
 
         iextend = 2500

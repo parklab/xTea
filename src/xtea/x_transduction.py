@@ -46,7 +46,7 @@ class XTransduction():
     ####        sf_candidates: this is the output of the "cns filter" step, these ones will NOT be re-selected
     def re_slct_with_clip_raw_disc_sites(self, sf_raw_disc, sf_candidates, n_disc_cutoff, xannotation,
                                          i_rep_type, b_tumor, sf_out, b_with_candidate=True):
-        xintmdt=XIntemediateSites()
+        xintmdt=XIntermediateSites()
         m_te_candidates=xintmdt.load_in_candidate_list_str_version(sf_candidates) #TE candidates
         with open(sf_raw_disc) as fin_raw, open(sf_out, "w") as fout_slct:
             if b_with_candidate==True:
@@ -602,7 +602,7 @@ class XTransduction():
 
     ####select full length insertions
     def pick_full_length_insertion(self, sf_candidates, ileftmost_cns):
-        xintmdt = XIntemediateSites()
+        xintmdt = XIntermediateSites()
         m_te_candidates = xintmdt.load_in_candidate_list_str_version(sf_candidates)  #TE candidates
         l_picked = []
         for ins_chrm in m_te_candidates:

@@ -7,7 +7,7 @@ from subprocess import *
 import xtea.global_values
 import numpy as np
 
-class XIntemediateSites():
+class XIntermediateSites():
     
 ####
     def parse_sites_with_clip_cutoff_for_chrm(self, m_clip_pos_freq, cutoff_left_clip, cutoff_right_clip,
