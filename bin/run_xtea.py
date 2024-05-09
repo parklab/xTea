@@ -27,7 +27,7 @@ def parse_toml_args():
 
 
     p.add('-c', '--config', required=True, is_config_file=True, help='TOML config file path')
-    p.add('--input_bam_list','-i',required = True, help = "Tab-separated input bam list file")
+    p.add('--input_bams','-i',nargs = '+',required = True, help = "input bam(s)")
     p.add('--sample_name','-s',required = True, help = "Sample identifier")
     p.add('--repeat_type',required = False, default = ['ALU','L1','SVA'], nargs='+',
            help = 'Type of repeats to detect. Options include: L1, ALU, SVA, HERV, Mitochondrial (Default = Alu L1 SVA)')

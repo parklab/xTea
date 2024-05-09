@@ -110,64 +110,65 @@ class X_BasicInfo():
         l_is = []  # insert size and std derivation for each bam
         #first randomly select some points for check the coverage
         n_sites=xtea.global_values.N_RANDOM_SITES
-        with open(sf_bam_list) as fin_bams:
-            for line in fin_bams:
-                fields=line.split()
-                sf_bam=fields[0]
+        # with open(sf_bam_list) as fin_bams: # CS EDIT 5/9/24 REMOVE FILE STRUCTURE
+        for sf_bam in sf_bam_list:
+            # for line in fin_bams:  # CS EDIT 5/9/24 REMOVE FILE STRUCTURE
+            # fields=line.split() # CS EDIT 5/9/24 REMOVE FILE STRUCTURE
+            # sf_bam=fields[0]
 
-                l_sites=self._random_slct_site(sf_bam, sf_ref, n_sites)
-                l_tmp_info=self.collect_basic_info_of_sites2(l_sites, sf_bam, search_win, search_win)
+            l_sites=self._random_slct_site(sf_bam, sf_ref, n_sites)
+            l_tmp_info=self.collect_basic_info_of_sites2(l_sites, sf_bam, search_win, search_win)
 
-                ####
-                acm_is = 0
-                acm_is_squre = 0
-                n_pairs = 0
-                m_rlth = {}
-                f_ave_cov=0
-                l_cov=[]
-                for record in l_tmp_info:
-                    ins_chrm = record[0]
-                    ins_pos = record[1]
-                    flcov = record[2]
-                    frcov = record[3]
-                    dom_rlth = record[4]
-                    acm_is += record[5]
-                    acm_is_squre += record[6]
-                    n_pairs += record[7]
+            ####
+            acm_is = 0
+            acm_is_squre = 0
+            n_pairs = 0
+            m_rlth = {}
+            f_ave_cov=0
+            l_cov=[]
+            for record in l_tmp_info:
+                ins_chrm = record[0]
+                ins_pos = record[1]
+                flcov = record[2]
+                frcov = record[3]
+                dom_rlth = record[4]
+                acm_is += record[5]
+                acm_is_squre += record[6]
+                n_pairs += record[7]
 
-                    if ins_chrm not in m_site_cov:
-                        m_site_cov[ins_chrm] = {}
-                    if ins_pos not in m_site_cov[ins_chrm]:
-                        m_site_cov[ins_chrm][ins_pos] = []
-                        m_site_cov[ins_chrm][ins_pos].append(0)
-                        m_site_cov[ins_chrm][ins_pos].append(0)
+                if ins_chrm not in m_site_cov:
+                    m_site_cov[ins_chrm] = {}
+                if ins_pos not in m_site_cov[ins_chrm]:
+                    m_site_cov[ins_chrm][ins_pos] = []
+                    m_site_cov[ins_chrm][ins_pos].append(0)
+                    m_site_cov[ins_chrm][ins_pos].append(0)
 
-                    m_site_cov[ins_chrm][ins_pos][0] += flcov
-                    m_site_cov[ins_chrm][ins_pos][1] += frcov
+                m_site_cov[ins_chrm][ins_pos][0] += flcov
+                m_site_cov[ins_chrm][ins_pos][1] += frcov
 
-                    f_cov=(flcov+frcov)/2
-                    if f_cov >= xtea.global_values.MIN_COV_RANDOM_SITE:# for WES, skip those intron regions
-                        l_cov.append(f_cov)
+                f_cov=(flcov+frcov)/2
+                if f_cov >= xtea.global_values.MIN_COV_RANDOM_SITE:# for WES, skip those intron regions
+                    l_cov.append(f_cov)
 
-                    if dom_rlth not in m_rlth:
-                        m_rlth[dom_rlth] = 1
-                    else:
-                        m_rlth[dom_rlth] += 1
+                if dom_rlth not in m_rlth:
+                    m_rlth[dom_rlth] = 1
+                else:
+                    m_rlth[dom_rlth] += 1
 
-                #for coverage
-                l_cov.sort()
-                n_slct_sites = len(l_cov)
-                if n_slct_sites>0:
-                    f_ave_cov=l_cov[int(n_slct_sites/2)]
+            #for coverage
+            l_cov.sort()
+            n_slct_sites = len(l_cov)
+            if n_slct_sites>0:
+                f_ave_cov=l_cov[int(n_slct_sites/2)]
 
-                # for read length
-                rlth = self._calc_read_length(m_rlth)
-                l_rlth.append(rlth)
-                # for insert size
-                mean_is, std_var = self._calc_insert_size(acm_is, acm_is_squre, n_pairs)
-                l_is.append((mean_is, std_var))
+            # for read length
+            rlth = self._calc_read_length(m_rlth)
+            l_rlth.append(rlth)
+            # for insert size
+            mean_is, std_var = self._calc_insert_size(acm_is, acm_is_squre, n_pairs)
+            l_is.append((mean_is, std_var))
 
-                m_sample_info[sf_bam]=(f_ave_cov, rlth, mean_is, std_var)
+            m_sample_info[sf_bam]=(f_ave_cov, rlth, mean_is, std_var)
         return m_sample_info
 
     ####save the basic information to file
