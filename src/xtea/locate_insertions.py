@@ -30,7 +30,7 @@ def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_f
     if b_tumor is True:
         f_cov=f_cov*f_purity
     par_rcd=xpar.get_par_by_cov(f_cov) #in format (iclip, idisc, i_clip-disc)
-    print("Ave coverage is {0}: automatic parameters (clip, disc, clip-disc) with value ({1}, {2} ,{3})\n"
+    print("\t\tAve coverage is {0}: automatic parameters (clip, disc, clip-disc) with value ({1}, {2} ,{3})\n"
           .format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2]))
     return par_rcd, rcd
 
@@ -92,8 +92,9 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
 
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
 
-        ####by default, if number of clipped reads is larger than this value, then discard
-        max_cov_cutoff=int(15*options.cov) #by default, this value is 600
+
+        #by default, if number of clipped reads is larger than this value, then discard
+        max_cov_cutoff=int(15*basic_rcd[0])
 
         ##Hard code inside:
         # 1. call_TEI_candidate_sites_from_clip_reads_v2 --> run_cnt_clip_part_aligned_to_rep_by_chrm_sort_version
