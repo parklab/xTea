@@ -43,7 +43,7 @@ def parse_toml_args():
           help="When specified, override default automatic calculation: cutoff of minimum # of discordant pair")
     p.add('--tumor',default=False,
           help="Working on tumor samples")
-    p.add('--purity', type="float", default=0.45,
+    p.add('--purity', default=0.45,
           help="Tumor purity")
     p.add('--single', default=False,
           help="Call clip positions from single-end reads")
