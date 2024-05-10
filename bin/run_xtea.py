@@ -124,7 +124,10 @@ def setup_output_dir(out_dir,tmp_dir,sample_name,repeat):
     Path(o_dir).mkdir(parents=True, exist_ok=True)
     Path(t_dir).mkdir(parents=True, exist_ok=True)
 
-    return o_dir, t_dir
+    o_abs_dir = str(Path(o_dir).resolve())
+    t_abs_dir = str(Path(t_dir).resolve())
+
+    return o_abs_dir, t_abs_dir
 
 
 if __name__ == '__main__':
