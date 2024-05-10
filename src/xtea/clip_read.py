@@ -211,7 +211,16 @@ class ClipReadInfo():
             if n_cnt>n_half:
                 return False
         return True
-
+    
+    def _get_chrm_id_name(self, samfile):
+        m_chrm = {}
+        references = samfile.references
+        for schrm in references:
+            chrm_id = samfile.get_tid(schrm)
+            m_chrm[chrm_id] = schrm
+        m_chrm[-1] = "*"
+        return m_chrm
+    
     ####return two files:
     ####1. the clip_position
     def collect_clip_positions_by_chrm(self, record):
