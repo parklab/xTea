@@ -22,15 +22,9 @@ class TE_Multi_Locator():
         self.sf_ref=sf_ref ##reference genome
 
     def collect_all_clipped_from_multiple_alignmts(self, sf_annotation, b_se, s_clip_wfolder, wfolder_pub_clip):
-        with open(self.sf_list) as fin_bam_list:
-            for line in fin_bam_list:  ###for each bam file
-                fields = line.split()
-                sf_ori_bam = fields[0]
-                if len(sf_ori_bam) <= 1:
-                    continue
-
-                caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
-                caller.collect_all_clipped_reads_only(sf_annotation, b_se, s_clip_wfolder, wfolder_pub_clip)
+        for sf_ori_bam in self.sf_list:  # CS EDIT
+            caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
+            caller.collect_all_clipped_reads_only(sf_annotation, b_se, s_clip_wfolder, wfolder_pub_clip)
 
     def call_TEI_candidate_sites_from_multiple_alignmts(self, sf_annotation, sf_rep_cns, sf_ref, b_se, cutoff_left_clip,
                                                         cutoff_right_clip, cutoff_clip_mate_in_rep, b_mosaic,
@@ -156,56 +150,49 @@ class TE_Multi_Locator():
         cnt = 0
         s_sample_bam = ""
         b_set = False
-        with open(self.sf_list) as fin_bam_list:
-            i_idx_bam = 0  # indicates which bam this is
-            for line in fin_bam_list:  ###for each bam file
-                fields = line.split()
-                if len(fields) < 2:
-                    print(("Error input bam file {0}!!!".format(line.rstrip())))
-                    continue
-                sf_ori_bam = fields[0]
-                s_read_type = fields[1].rstrip()
-                print(("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)))
-                if xtea.global_values.X10 == s_read_type:  ###for 10X, we use a larger cutoff, as more clipped reads
-                    print(("10X bam! Set the initial cutoff as {0}".format(
-                        xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)))
-                    xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
+        for sf_ori_bam in self.sf_list:  # CS EDIT
+            s_read_type = 'illumina' # NO 10X SUPPORT TODO
+            print(("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)))
+            if xtea.global_values.X10 == s_read_type:  ###for 10X, we use a larger cutoff, as more clipped reads
+                print(("10X bam! Set the initial cutoff as {0}".format(
+                    xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)))
+                xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
+            else:
+                if cutoff_left_clip <= 3:#
+                    print("Clip cutoff is small (<=3), keep all the clipped reads (initial cutoff set as 1)!!!")
+                    xtea.global_values.set_initial_min_clip_cutoff(1)  # for low coverage data, set this to 1
                 else:
-                    if cutoff_left_clip <= 3:#
-                        print("Clip cutoff is small (<=3), keep all the clipped reads (initial cutoff set as 1)!!!")
-                        xtea.global_values.set_initial_min_clip_cutoff(1)  # for low coverage data, set this to 1
-                    else:
-                        xtea.global_values.set_initial_min_clip_cutoff(
-                            xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
-                if len(sf_ori_bam) <= 1:
-                    continue
-                if b_set == False:
-                    s_sample_bam = sf_ori_bam
-                    b_set = True
+                    xtea.global_values.set_initial_min_clip_cutoff(
+                        xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
+            if len(sf_ori_bam) <= 1:
+                continue
+            if not b_set:
+                s_sample_bam = sf_ori_bam
+                b_set = True
 
-                b_cutoff = True
-                cutoff_hit_rep_copy = xtea.global_values.INITIAL_MIN_CLIP_CUTOFF
+            b_cutoff = True
+            cutoff_hit_rep_copy = xtea.global_values.INITIAL_MIN_CLIP_CUTOFF
 
-                # view the barcode bam as normal illumina bam
-                # for each alignment, has one output
-                sf_out_tmp = self.working_folder + xtea.global_values.CLIP_TMP + '{0}'.format(cnt)
-                cnt += 1
+            # view the barcode bam as normal illumina bam
+            # for each alignment, has one output
+            sf_out_tmp = self.working_folder + xtea.global_values.CLIP_TMP + '{0}'.format(cnt)
+            cnt += 1
 
-                caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
-                # s_working_folder + xtea.global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
-                sf_new_pub = ""
-                if len(sf_clip_folder) == 0 or sf_clip_folder == None:
-                    print("public folder is null!!!!")
-                    continue
-                if sf_clip_folder[-1] == "/":
-                    sf_new_pub = sf_clip_folder + "{0}/".format(i_idx_bam)
-                else:
-                    sf_new_pub = sf_clip_folder + "/{0}/".format(i_idx_bam)
-                caller.call_TEI_candidate_sites_from_clip_reads_v2_mosaic(sf_annotation, sf_rep_cns, sf_ref, b_se,
-                                                                   cutoff_hit_rep_copy, cutoff_hit_rep_copy,
-                                                                   b_cutoff, sf_new_pub, i_idx_bam, b_force, max_cov,
-                                                                          sf_out_tmp)
-                i_idx_bam += 1
+            caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
+            # s_working_folder + xtea.global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
+            sf_new_pub = ""
+            if len(sf_clip_folder) == 0 or sf_clip_folder == None:
+                print("public folder is null!!!!")
+                continue
+            if sf_clip_folder[-1] == "/":
+                sf_new_pub = sf_clip_folder + "{0}/".format(i_idx_bam)
+            else:
+                sf_new_pub = sf_clip_folder + "/{0}/".format(i_idx_bam)
+            caller.call_TEI_candidate_sites_from_clip_reads_v2_mosaic(sf_annotation, sf_rep_cns, sf_ref, b_se,
+                                                                cutoff_hit_rep_copy, cutoff_hit_rep_copy,
+                                                                b_cutoff, sf_new_pub, i_idx_bam, b_force, max_cov,
+                                                                        sf_out_tmp)
+            i_idx_bam += 1
                 ####
         # get all the chromsomes names
         bam_info = BamInfo(s_sample_bam, self.sf_ref)
@@ -325,23 +312,19 @@ class TE_Multi_Locator():
     # sum the num of the discordant pairs from different alignments
     def filter_candidate_sites_by_discordant_pairs_multi_alignmts(self, m_sites, iext, i_is, f_dev, cutoff,
                                                                   sf_annotation, sf_out, sf_raw_disc="", b_tumor=False):
-        with open(self.sf_list) as fin_list:
-            cnt = 0
-            for line in fin_list:
-                fields=line.split()
-                sf_bam = fields[0]
+        cnt = 0
+        for sf_bam in self.sf_list:  # CS EDIT
+            caller = TELocator(sf_bam, sf_bam, self.working_folder, self.n_jobs, self.sf_ref)
+            tmp_cutoff = 1  # for here, not filtering #############################################################
+            m_sites_discord, m_sites_raw_disc = caller.filter_candidate_sites_by_discordant_pairs_non_barcode(
+                m_sites, iext, i_is, f_dev, sf_annotation, tmp_cutoff)
+            xfilter = XIntermediateSites()
+            sf_out_tmp = self.working_folder + xtea.global_values.DISC_TMP + '{0}'.format(cnt)
+            xfilter.output_candidate_sites(m_sites_discord, sf_out_tmp)
 
-                caller = TELocator(sf_bam, sf_bam, self.working_folder, self.n_jobs, self.sf_ref)
-                tmp_cutoff = 1  # for here, not filtering #############################################################
-                m_sites_discord, m_sites_raw_disc = caller.filter_candidate_sites_by_discordant_pairs_non_barcode(
-                    m_sites, iext, i_is, f_dev, sf_annotation, tmp_cutoff)
-                xfilter = XIntermediateSites()
-                sf_out_tmp = self.working_folder + xtea.global_values.DISC_TMP + '{0}'.format(cnt)
-                xfilter.output_candidate_sites(m_sites_discord, sf_out_tmp)
-
-                sf_raw_tmp=self.working_folder+xtea.global_values.RAW_DISC_TMP+'{0}'.format(cnt)
-                xfilter.output_candidate_sites(m_sites_raw_disc, sf_raw_tmp)
-                cnt += 1
+            sf_raw_tmp=self.working_folder+xtea.global_values.RAW_DISC_TMP+'{0}'.format(cnt)
+            xfilter.output_candidate_sites(m_sites_raw_disc, sf_raw_tmp)
+            cnt += 1
 
         # merge the output by summing up all the alignments,
         #  and output in a single file
