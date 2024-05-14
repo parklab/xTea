@@ -7,6 +7,8 @@ import pysam
 from xtea.x_intermediate_sites import *
 from xtea.x_reference import *
 from xtea.disc_cluster import *
+import xtea.global_values
+
 
 #
 def unwrap_self_extract_reads_for_region(arg, **kwarg):
@@ -108,7 +110,7 @@ class BamInfo():#
                 continue
             if algnmt.is_secondary == True:  ##skip secondary alignment
                 continue
-            if algnmt.mapping_quality < global_values.MINIMUM_DISC_MAPQ:###############anchor mapping quality
+            if algnmt.mapping_quality < xtea.global_values.MINIMUM_DISC_MAPQ:###############anchor mapping quality
                 continue
             if algnmt.next_reference_id<0:
                 continue
@@ -144,7 +146,7 @@ class BamInfo():#
                 if b_mate_within_rep:
                     n_cnt += 1
         dc = DiscCluster()
-        b_cluster, c_chrm, c_pos=dc.form_one_side_cluster(m_mate_pos, i_is, global_values.MIN_RAW_DISC_CLUSTER_RATIO)
+        b_cluster, c_chrm, c_pos=dc.form_one_side_cluster(m_mate_pos, i_is, xtea.global_values.MIN_RAW_DISC_CLUSTER_RATIO)
         return n_cnt, n_raw_cnt, (b_cluster, c_chrm, c_pos)
 
 
@@ -405,7 +407,7 @@ class XBamInfo(BamInfo):
         # 1. get all the barcodes for the sites
         set_barcodes = self.parse_barcodes_for_one_site(bamfile, chrm, pos, i_extend)
         ###here skip the region with extremely lots of barcodes cover
-        if len(set_barcodes) > global_values.BARCODE_COV_CUTOFF:
+        if len(set_barcodes) > xtea.global_values.BARCODE_COV_CUTOFF:
             return None
 
         # 2. given all the barcode, get all the alignments

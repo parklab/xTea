@@ -145,7 +145,7 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
         sf_tmp = s_working_folder + "/disc_tmp.list"
         sf_raw_disc=sf_disc_out + xtea.global_values.RAW_DISC_TMP_SUFFIX #save the left and right raw disc for each site
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
-        print("\Filtering insertion sites based on discordant cutoff: {n_disc_cutoff}.")
+        print(f"\tFiltering insertion sites based on discordant cutoff: {n_disc_cutoff}.")
         tem_locator.filter_candidate_sites_by_discordant_pairs_multi_alignmts(m_sites_clip_peak, iextend, i_is,
                                                                                 f_dev, n_disc_cutoff, sf_annotation,
                                                                                 sf_tmp, sf_raw_disc, b_tumor)
