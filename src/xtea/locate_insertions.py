@@ -127,9 +127,9 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
         if rcd is None or basic_rcd is None:
             rcd, basic_rcd = automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
                                                         b_force, b_tumor, f_purity)
-            rlth = basic_rcd[1]  # read length
-            mean_is = basic_rcd[2]  # mean insert size
-            std_var = basic_rcd[3]  # standard derivation
+        rlth = basic_rcd[1]  # read length
+        mean_is = basic_rcd[2]  # mean insert size
+        std_var = basic_rcd[3]  # standard derivation
             
         max_is = int(mean_is + 3 * std_var) + int(rlth)
         iextend = max_is
