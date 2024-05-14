@@ -112,7 +112,7 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
 
     sf_disc_out = f"{s_working_folder}/candidate_list_from_disc.txt"
     PEAK_WINDOW = 100
-    if options.postFmosaic or options.somatic: #for mosaic events
+    if b_mosaic: #for mosaic/somatic events # CS EDIT!
         PEAK_WINDOW = 30
 
     if b_resume == False or os.path.isfile(sf_disc_out) == False:
