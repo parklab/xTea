@@ -21,9 +21,9 @@ def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_f
     x_basic_info = X_BasicInfo(s_working_folder, n_jobs, sf_ref)
     rcd=x_basic_info.get_cov_is_rlth(sf_bam_list, sf_ref, search_win, b_force)
     f_cov=rcd[0]
-    rlth=rcd[1]
-    mean_is=rcd[2]
-    std_var=rcd[3]
+    # rlth=rcd[1]
+    # mean_is=rcd[2]
+    # std_var=rcd[3]
 
     ####2. based on the coverage, set the parameters
     xpar=Parameters()
@@ -35,7 +35,7 @@ def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_f
     return par_rcd, rcd
 
 
-def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
+def get_candidate_sites(options,annot_path_dict,output_dir,tmp_dir):
 
 # OPTIONS STILL MISSING
     # if options.mit: #if this to call mitochondrial insertion, then will not filter out chrM in "x_intermediate_sites.py"
@@ -95,7 +95,8 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
 
 
         #by default, if number of clipped reads is larger than this value, then discard
-        max_cov_cutoff=int(15*basic_rcd[0])
+        # max_cov_cutoff=int(15*basic_rcd[0])   # ORIGINALLY WAS A CL PARAMETER (cov) set to 40 by default
+        max_cov_cutoff=600
 
         ##Hard code inside:
         # 1. call_TEI_candidate_sites_from_clip_reads_v2 --> run_cnt_clip_part_aligned_to_rep_by_chrm_sort_version

@@ -58,7 +58,6 @@ class TE_Multi_Locator():
             cnt += 1
 
             caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
-            # s_working_folder + xtea.global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
             sf_new_pub=""
             if len(sf_clip_folder)==0 or sf_clip_folder==None:
                 print("public folder is null!!!!")
@@ -80,6 +79,7 @@ class TE_Multi_Locator():
         xfilter = XIntermediateSites()
         xchrom=XChromosome()
         sf_out_merged = sf_out + "_tmp"
+        # GOING THROUGH SAME FILE MANY TIMES TO GET INDIVIDUAL CHROMOSOMES, MUST BE BETTER WAY: TODO
         with open(sf_out_merged, "w") as fout_sites_merged, open(sf_out, "w") as fout_sites:
             for chrm in m_chrms:  # write out chrm by chrm to save memory
                 if xchrom.is_decoy_contig_chrms(chrm) == True:  ###filter out decoy and other contigs
@@ -129,14 +129,6 @@ class TE_Multi_Locator():
                         fout_sites.write(s_feature + "\t")
                     fout_sites.write("\n")
 
-                    # # sort the list
-                    # sf_out_merged_sorted = sf_out + "_tmp.sorted"
-                    # cmd = "sort -k1,1 -k2,2n {0} > {1}".format(sf_out_merged, sf_out_merged_sorted)
-                    # Popen(cmd, shell=True, stdout=PIPE).communicate()
-                    #
-                    # sf_peak_events = sf_out + ".peak_events.txt"
-                    # self.chain_regions(sf_out_merged_sorted, xtea.global_values.NEARBY_REGION, cutoff_left_clip, cutoff_right_clip,
-                    #                    cutoff_clip_mate_in_rep, sf_out, sf_peak_events)
 
 ####
     #this version is designed for mosaic calling only, which:
@@ -457,10 +449,6 @@ class TELocator():
         self.n_jobs = int(n_jobs)
         self.sf_reference = sf_ref  ##reference genome
         self.cmd_runner = CMD_RUNNER()
-
-    ###First, Use (left, right) clipped read as threshold. Also, require some of the mate read are within repeat region
-    ###Then: check the nearby small region, whether the merged number saftisfy the threshold
-    ###Then, from the candidate list, pick the peak in each window.
 
     ###First, Use (left, right) clipped read as threshold. Also, require some of the mate read are within repeat region
     ##Note, this version consider the insertion with deletion cases, that is common in many cases

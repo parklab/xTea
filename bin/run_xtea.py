@@ -4,7 +4,7 @@
 
 from pathlib import Path
 import configargparse
-from xtea.locate_insertions import get_clipped_reads
+from xtea.locate_insertions import get_candidate_sites
 
 
 ## run_xtea -c config.toml -i bam_list (or file) -o output_dir
@@ -146,7 +146,7 @@ if __name__ == '__main__':
                                                      options.genome)
             
             #perform clip step:
-            get_clipped_reads(options,r,annot_path_dict,output_dir,tmp_dir)
+            get_candidate_sites(options,annot_path_dict,output_dir,tmp_dir)
 
             #clip
             #disc
