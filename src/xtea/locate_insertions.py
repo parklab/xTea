@@ -138,7 +138,7 @@ def get_clipped_reads(options,repeat,annot_path_dict,output_dir,tmp_dir):
 
         # this is the cutoff for  "left discordant" and "right discordant"
         # Either of them is larger than this cutoff, the site will be reported
-        n_disc_cutoff = options.ndisc
+        n_disc_cutoff = options.nd
         if n_disc_cutoff is None:
             n_disc_cutoff=rcd[1]
             
