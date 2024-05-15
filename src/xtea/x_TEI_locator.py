@@ -49,6 +49,7 @@ class TE_Multi_Locator():
             if len(sf_ori_bam) <= 1:
                 continue
 
+            # NEVER OVERWRITTEN REMOVE? TODO
             b_cutoff = True
             cutoff_hit_rep_copy=xtea.global_values.INITIAL_MIN_CLIP_CUTOFF
 
@@ -72,6 +73,7 @@ class TE_Multi_Locator():
             i_idx_bam+=1
 
         # OUTPUT OF ABOVE IS *clip_read_tmp0
+        # SLIGHTLY DIFFERENT DUE TO bwa non deterministic
         
         # get all the chromsomes names
         bam_info = BamInfo(sf_ori_bam, self.sf_ref)
@@ -81,6 +83,8 @@ class TE_Multi_Locator():
         xfilter = XIntermediateSites()
         xchrom=XChromosome()
         sf_out_merged = sf_out + "_tmp"
+        # creating candidate_list_from_clip.txt_tmp
+        # creating candidate_list_from_clip.txt
         # GOING THROUGH SAME FILE MANY TIMES TO GET INDIVIDUAL CHROMOSOMES, MUST BE BETTER WAY: TODO
         with open(sf_out_merged, "w") as fout_sites_merged, open(sf_out, "w") as fout_sites:
             for chrm in m_chrms:  # write out chrm by chrm to save memory
@@ -484,14 +488,15 @@ class TELocator():
             ##collect the clip positions
             initial_clip_pos_freq_cutoff = xtea.global_values.INITIAL_MIN_CLIP_CUTOFF ##########################################################################
             print(("Initial minimum clip cutoff is {0}".format(initial_clip_pos_freq_cutoff)))
-            # done in parallel
+            # done in parallel outputs  // chrm.clip_pos
             clip_info.collect_clip_positions(sf_annotation, initial_clip_pos_freq_cutoff, b_se, sf_pub_folder) ##save clip pos by chrm
             print(("Output info: Collect clipped parts for file ", self.sf_bam))
             sf_all_clip_fq_ori=sf_clip_working_folder+sf_bam_name + CLIP_FQ_SUFFIX
-            # done in parallel
+            # done in parallel // outputs: TP087_S.cram.clipped.fq
             clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
 ####
-            if os.path.isfile(sf_all_clip_fq)==True or os.path.islink(sf_all_clip_fq)==True):
+            # links TP087_S.cram.clipped.fq to pub_clip/TP087_S.cram.clipped.fq
+            if os.path.isfile(sf_all_clip_fq)==True or os.path.islink(sf_all_clip_fq)==True:
                 os.remove(sf_all_clip_fq)
             cmd="ln -s {0} {1}".format(sf_all_clip_fq_ori, sf_all_clip_fq)
             self.cmd_runner.run_cmd_small_output(cmd)
@@ -502,19 +507,22 @@ class TELocator():
         sf_algnmt = self.working_folder + sf_bam_name + CLIP_BAM_SUFFIX
         print(("Output info: Re-align clipped parts for file ", self.sf_bam))
 
+        # outputs TP087_S.cram.clipped.sam
         bwa_align=BWAlign(xtea.global_values.BWA_PATH, xtea.global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
         bwa_align.two_stage_realign(sf_rep_cns, sf_ref, sf_all_clip_fq, sf_algnmt)
 
         ####cnt number of clipped reads aligned to repeat copies from the re-alignment
+        # OUTPUTS .clip_realign_pos
         clip_info.cnt_clip_part_aligned_to_rep(sf_algnmt)  ##require at least half of the seq is mapped !!!!
 
         # if b_cutoff is set, then directly return the dict
-        if b_cutoff == False:
+        # OUTPUTS : clip_read_tmp0
+        if b_cutoff == False: # THIS NEVER HAPPENS
             clip_info.merge_clip_positions(sf_pub_folder, sf_out)
         else:
             clip_info.merge_clip_positions_with_cutoff(cutoff_left_clip, cutoff_right_clip, max_cov_cutoff,
                                                        sf_pub_folder, sf_out)
-        if os.path.isfile(sf_algnmt)==True:####remove the file
+        if os.path.isfile(sf_algnmt)==True and not xtea.global_values.KEEP_INT_FILES:####remove the file
             os.remove(sf_algnmt)
 ####
     ###First, Use (left, right) clipped read as threshold. Also, require some of the mate read are within repeat region
@@ -559,7 +567,7 @@ class TELocator():
         sf_all_clip_fq_ori = sf_clip_working_folder + sf_bam_name + CLIP_FQ_SUFFIX
         clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
 
-        if os.path.isfile(sf_all_clip_fq) == True:
+        if os.path.isfile(sf_all_clip_fq) == True and not xtea.global_values.KEEP_INT_FILES:
             os.remove(sf_all_clip_fq)
         cmd = "ln -s {0} {1}".format(sf_all_clip_fq_ori, sf_all_clip_fq)
         # Popen(cmd, shell=True, stdout=PIPE).communicate()

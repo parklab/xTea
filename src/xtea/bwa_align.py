@@ -12,7 +12,8 @@ class BWAlign():
         self.BWA_PATH=BWA_PATH
         self.BWA_REALIGN_CUTOFF=BWA_REALIGN_CUTOFF
         self.n_jobs = n_jobs
-        self.BWA_SEED_FREQ=10 #by default, this value is 500 in bwa mem
+        # HACKED THIS TO GET REPRODUCIBLE RESULTS:
+        self.BWA_SEED_FREQ="10 -K 10000000" #by default, this value is 500 in bwa mem
         self.BWA_SEED_MEDIUM_FREQ = 70 #by default, this value is 500 in bwa mem
         self.cmd_runner=CMD_RUNNER()
 

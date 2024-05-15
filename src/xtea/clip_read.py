@@ -944,6 +944,7 @@ class ClipReadInfo():
         samfile = pysam.AlignmentFile(self.sf_bam, "rb", reference_filename=self.sf_reference)
         references = samfile.references
 
+        # outputs clip_reads_tmp0
         with open(sf_out, "w") as fout_clip_pos:
             for chrm in references:
                 ##first, load in the whole file into dict
@@ -976,7 +977,9 @@ class ClipReadInfo():
                             fout_clip_pos.write(chrm + "\t")
                             fout_clip_pos.write(line.rstrip() + "\t")
                             fout_clip_pos.write("0\t0\n")
-                #os.remove(sf_clip_pos)
+
+                if not xtea.global_values.KEEP_INT_FILES:
+                    os.remove(sf_clip_pos)
         samfile.close()
 
     ####
