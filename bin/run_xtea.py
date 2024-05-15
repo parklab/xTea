@@ -39,6 +39,8 @@ def parse_toml_args():
     # insertion detection paramaters:
     p.add('--cr',
           help="When specified, override default automatic calculation: cutoff of minimum # of clipped parts fall in repeats")
+    p.add('--clip_cutoff',
+          help="When specified, override default automatic calculation: cutoff of minimum # of clipped reads (used for both left & right sides)")
     p.add('--nd',
           help="When specified, override default automatic calculation: cutoff of minimum # of discordant pair")
     p.add('--tumor',default=False,

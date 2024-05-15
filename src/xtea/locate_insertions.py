@@ -77,9 +77,9 @@ def get_candidate_sites(options,annot_path_dict,output_dir,tmp_dir):
     
     wfolder_pub_clip = tmp_dir #public clip folder
 
-    # downstream NOT USED (filler values for now, remove downstream later)
-    cutoff_left_clip = 10
-    cutoff_right_clip = 10
+    # downstream USED only in (filler values for now, remove downstream later)
+    cutoff_left_clip = options.clip_cutoff
+    cutoff_right_clip = options.clip_cutoff
     
     # true clipping cutoff
     cutoff_clip_mate_in_rep = options.cr
@@ -88,10 +88,13 @@ def get_candidate_sites(options,annot_path_dict,output_dir,tmp_dir):
     basic_rcd = None
     if b_resume is False or os.path.isfile(sf_out) is False:
         print("\tGenerating cutoff parameters based on coverage.")
-        if cutoff_clip_mate_in_rep is None:
+        if cutoff_clip_mate_in_rep is None or cutoff_left_clip is None
             rcd, basic_rcd=automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
                                                         b_force, b_tumor, f_purity)
-            cutoff_clip_mate_in_rep=rcd[2]
+            if cutoff_clip_mate_in_rep is None: cutoff_clip_mate_in_rep=rcd[2]
+            if cutoff_left_clip is None:
+                cutoff_left_clip=rcd[0]
+                cutoff_right_clip=rcd[0]
 
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
 
