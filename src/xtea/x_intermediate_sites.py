@@ -12,6 +12,7 @@ class XIntermediateSites():
 ####
     def parse_sites_with_clip_cutoff_for_chrm(self, m_clip_pos_freq, cutoff_left_clip, cutoff_right_clip,
                                               cutoff_clip_mate_in_rep):
+        print(f"CUTOFFS IN x_int_sites.py::: {cutoff_left_clip},{cutoff_right_clip},{cutoff_clip_mate_in_rep}")
         m_candidate_sites = {}
         for pos in m_clip_pos_freq:
             ####here need to check the nearby region
