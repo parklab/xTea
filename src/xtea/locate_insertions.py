@@ -47,6 +47,9 @@ def get_candidate_sites(options,annot_path_dict,output_dir,tmp_dir):
     # if options.sva:
     #     xtea.global_values.turn_on_sva()
 
+    if options.int_files:
+        xtea.global_values.keep_intermediate_files()
+
     b_tumor=options.tumor #whether this is tumor sample
     f_purity=options.purity #tumor purity, by default 0.45
     b_se = options.single  ##single end reads or not, default is not

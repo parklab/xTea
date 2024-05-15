@@ -61,6 +61,7 @@ def parse_toml_args():
 
     p.add('-n',dest = 'cores',default = 1, help = "number of cores")
     p.add('--resume',default = True, help = "resume previous run if available")
+    p.add('--save-intermediate-files',dest = "int_files", default = False, help = "Save all intermediate files")
     p.add('-v', help='version', action='store_true')
 
     return p.parse_args()

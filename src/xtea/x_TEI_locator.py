@@ -71,6 +71,8 @@ class TE_Multi_Locator():
                                                                 sf_new_pub, i_idx_bam, b_force, max_cov, sf_out_tmp)
             i_idx_bam+=1
 
+        # OUTPUT OF ABOVE IS *clip_read_tmp0
+        
         # get all the chromsomes names
         bam_info = BamInfo(sf_ori_bam, self.sf_ref)
         b_with_chr = bam_info.is_chrm_contain_chr()
@@ -489,7 +491,7 @@ class TELocator():
             # done in parallel
             clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
 ####
-            if os.path.isfile(sf_all_clip_fq)==True or os.path.islink(sf_all_clip_fq)==True:
+            if os.path.isfile(sf_all_clip_fq)==True or os.path.islink(sf_all_clip_fq)==True):
                 os.remove(sf_all_clip_fq)
             cmd="ln -s {0} {1}".format(sf_all_clip_fq_ori, sf_all_clip_fq)
             self.cmd_runner.run_cmd_small_output(cmd)

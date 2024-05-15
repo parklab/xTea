@@ -2,6 +2,11 @@
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
 ##@@contact: chong.simon.chu@gmail.com
 
+KEEP_INT_FILES = False
+def keep_intermediate_files():
+    global KEEP_INT_FILES
+    KEEP_INT_FILES = True
+
 ##############################################################################
 ####originally used  in x_TEA_main.py
 GLOBAL_RNA_MEDIATED=True #non-rna mediated cases will not have the polyA (so will not require polyA support at the filtering step)

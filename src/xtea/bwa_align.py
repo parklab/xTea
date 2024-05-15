@@ -54,10 +54,12 @@ class BWAlign():
                     if line[0]=="@":
                         continue
                     fout_sam.write(line)
-        os.remove(sf_reads1)
-        os.remove(sf_reads2)
-        os.remove(sf_sam1)
-        os.remove(sf_sam2)
+
+        if not xtea.global_values.KEEP_INT_FILES:
+            os.remove(sf_reads1)
+            os.remove(sf_reads2)
+            os.remove(sf_sam1)
+            os.remove(sf_sam2)
 
     # re-align the collected clipped and discordant reads
     def realign_clipped_polyA(self, sf_ref, sf_reads, sf_out_sam):
@@ -228,8 +230,9 @@ class BWAlign():
 
 
         #clean the temporary files
-        os.remove(sf_sam_cns)
-        os.remove(sf_fully_sam)
-        os.remove(sf_unmap_fa)
-        os.remove(sf_polyA_fa)
-        os.remove(sf_polyA_sam)
+        if not xtea.global_values.KEEP_INT_FILES:
+            os.remove(sf_sam_cns)
+            os.remove(sf_fully_sam)
+            os.remove(sf_unmap_fa)
+            os.remove(sf_polyA_fa)
+            os.remove(sf_polyA_sam)
