@@ -521,7 +521,7 @@ class ClipReadInfo():
                     for line in fin_clip:
                         fout_all.write(line)
                 if not xtea.global_values.KEEP_INT_FILES:
-                    # os.remove(sf_clip_fq)#clean the temporary file
+                    os.remove(sf_clip_fq)#clean the temporary file
 ####
 
     def decrease_clip_freq(self, chrm, mpos, sflag, m_clip_freq):
