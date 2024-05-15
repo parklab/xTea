@@ -88,7 +88,7 @@ def get_candidate_sites(options,annot_path_dict,output_dir,tmp_dir):
     basic_rcd = None
     if b_resume is False or os.path.isfile(sf_out) is False:
         print("\tGenerating cutoff parameters based on coverage.")
-        if cutoff_clip_mate_in_rep is None or cutoff_left_clip is None
+        if cutoff_clip_mate_in_rep is None or cutoff_left_clip is None:
             rcd, basic_rcd=automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
                                                         b_force, b_tumor, f_purity)
             if cutoff_clip_mate_in_rep is None: cutoff_clip_mate_in_rep=rcd[2]
