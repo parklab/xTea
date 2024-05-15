@@ -11,15 +11,14 @@ class BWAlign():
     def __init__(self, BWA_PATH, BWA_REALIGN_CUTOFF, n_jobs):
         self.BWA_PATH=BWA_PATH
         self.BWA_REALIGN_CUTOFF=BWA_REALIGN_CUTOFF
-        # HACKED THIS TO GET REPRODUCIBLE RESULTS:
-        self.n_jobs = f'{n_jobs} -K 10000000'
+        self.n_jobs = n_jobs
         self.BWA_SEED_FREQ=10 #by default, this value is 500 in bwa mem
         self.BWA_SEED_MEDIUM_FREQ = 70 #by default, this value is 500 in bwa mem
         self.cmd_runner=CMD_RUNNER()
 
     # re-align the collected clipped and discordant reads
     def realign_clipped_reads(self, sf_ref, sf_reads, sf_out_sam):
-        cmd = "{0} mem -t {1} -T {2} -k {3} -o {4} {5} {6}" \
+        cmd = "{0} mem -K 10000000 -t {1} -T {2} -k {3} -o {4} {5} {6}" \
               "".format(self.BWA_PATH, self.n_jobs, self.BWA_REALIGN_CUTOFF, self.BWA_REALIGN_CUTOFF, sf_out_sam,
                         sf_ref, sf_reads)
         #Popen(cmd, shell=True, stdout=PIPE).communicate()
@@ -64,7 +63,7 @@ class BWAlign():
 
     # re-align the collected clipped and discordant reads
     def realign_clipped_polyA(self, sf_ref, sf_reads, sf_out_sam):
-        cmd = "{0} mem -t {1} -T {2} -k {3} -o {4} -c {5} {6} {7}".format(self.BWA_PATH, self.n_jobs,
+        cmd = "{0} mem -K 10000000 -t {1} -T {2} -k {3} -o {4} -c {5} {6} {7}".format(self.BWA_PATH, self.n_jobs,
                                                                    xtea.global_values.MINIMUM_POLYA_CLIP,
                                                                    xtea.global_values.MINIMUM_POLYA_CLIP, sf_out_sam,
                                                                           self.BWA_SEED_MEDIUM_FREQ, sf_ref, sf_reads)
@@ -78,14 +77,14 @@ class BWAlign():
         if n_cores <= 0:
             n_cores = 1
 
-        cmd = "{0} mem -t {1} -T {2} -k {3} -c {4} -D 0.9 -h 2 -H {5} {6} {7} | " \
+        cmd = "{0} mem -K 10000000 -t {1} -T {2} -k {3} -c {4} -D 0.9 -h 2 -H {5} {6} {7} | " \
               "{8} view -hS -F 4 -o {9} -".format(self.BWA_PATH, n_cores,
                                                    self.BWA_REALIGN_CUTOFF,
                                                    self.BWA_REALIGN_CUTOFF,
                                                    self.BWA_SEED_FREQ,
                                                    sf_head, sf_ref, sf_reads,
                                                    xtea.global_values.SAMTOOLS_PATH, sf_out_sam)
-        # cmd = "{0} mem -t {1} -T {2} -k {3} -c {4} -D 0.9 -h 2 -H {5} -o {6} {7} {8}".format(self.BWA_PATH, n_cores,
+        # cmd = "{0} mem -K 10000000 -t {1} -T {2} -k {3} -c {4} -D 0.9 -h 2 -H {5} -o {6} {7} {8}".format(self.BWA_PATH, n_cores,
         #                                                            self.BWA_REALIGN_CUTOFF,
         #                                                            self.BWA_REALIGN_CUTOFF, self.BWA_SEED_FREQ,
         #                                                            sf_head, sf_out_sam, sf_ref, sf_reads)
@@ -98,7 +97,7 @@ class BWAlign():
 
     # re-align the collected clipped and discordant reads
     def realign_disc_reads(self, sf_ref, sf_reads, sf_out_sam):
-        cmd = "{0} mem -t {1} -o {2} {3} {4}".format(self.BWA_PATH, self.n_jobs, sf_out_sam, sf_ref, sf_reads)
+        cmd = "{0} mem -K 10000000 -t {1} -o {2} {3} {4}".format(self.BWA_PATH, self.n_jobs, sf_out_sam, sf_ref, sf_reads)
         #Popen(cmd, shell=True, stdout=PIPE).communicate()
         self.cmd_runner.run_cmd_small_output(cmd)
 
@@ -107,7 +106,7 @@ class BWAlign():
     # re-align the collected reads
     # re-align the collected reads
     def realign_reads_to_bam(self, SAMTOOLS, sf_ref, sf_reads, sf_out_bam):
-        cmd = "{0} mem -t {1} {2} {3} | {4} view -hSb - | {5} sort - ".format(
+        cmd = "{0} mem -K 10000000 -t {1} {2} {3} | {4} view -hSb - | {5} sort - ".format(
             self.BWA_PATH, self.n_jobs, sf_ref, sf_reads, SAMTOOLS, SAMTOOLS)
         print(("Run command: {0}".format(cmd)))
         str_err=self.cmd_runner.run_cmd_to_file(cmd, sf_out_bam)
@@ -184,7 +183,7 @@ class BWAlign():
         n_cores = self.n_jobs - 1
         if n_cores <= 0:
             n_cores = 1
-        cmd = "{0} mem -t {1} -T {2} -k {3} -o {4} {5} {6}".format(self.BWA_PATH, n_cores,
+        cmd = "{0} mem -K 10000000 -t {1} -T {2} -k {3} -o {4} {5} {6}".format(self.BWA_PATH, n_cores,
                                                                    self.BWA_REALIGN_CUTOFF, self.BWA_REALIGN_CUTOFF,
                                                                    sf_sam_cns, sf_ref_cns, sf_reads)
         #Popen(cmd, shell=True, stdout=PIPE).communicate()
