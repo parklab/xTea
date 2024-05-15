@@ -590,7 +590,7 @@ class TELocator():
         else:
             clip_info.merge_clip_positions_with_cutoff_polyA(cutoff_left_clip, cutoff_right_clip, max_cov_cutoff,
                                                        sf_pub_folder, sf_out)
-        if os.path.isfile(sf_algnmt) == True:  ####remove the file
+        if os.path.isfile(sf_algnmt) == True and not xtea.global_values.KEEP_INT_FILES:  ####remove the file
             os.remove(sf_algnmt)
 ####
     def collect_all_clipped_reads_only(self, sf_annotation, b_se, s_working_folder, wfolder_pub_clip):
