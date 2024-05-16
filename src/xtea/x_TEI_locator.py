@@ -2,6 +2,7 @@
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
 ##@@contact: chong_chu@hms.harvard.edu
 
+from glob import glob
 import os
 import pysam
 from subprocess import *
@@ -115,13 +116,18 @@ class TE_Multi_Locator():
                                     m_sites_chrm[pos][i_value] += int(value)
                                     i_value += 1
 
-                for pos in m_sites_chrm:
-                    lth = len(m_sites_chrm[pos])
-                    fout_sites_merged.write(chrm + "\t" + str(pos) + "\t")
-                    for i in range(lth):
-                        s_feature = str(m_sites_chrm[pos][i])
-                        fout_sites_merged.write(s_feature + "\t")
-                    fout_sites_merged.write("\n")
+                # OUTPUTTING ALL SITES, NO FILTERING
+                if xtea.global_values.KEEP_INT_FILES:
+                    for pos in m_sites_chrm:
+                        lth = len(m_sites_chrm[pos])
+                        fout_sites_merged.write(chrm + "\t" + str(pos) + "\t")
+                        for i in range(lth):
+                            s_feature = str(m_sites_chrm[pos][i])
+                            fout_sites_merged.write(s_feature + "\t")
+                        fout_sites_merged.write("\n")
+                else:
+                    # shutil.rmtree(self.working_folder)
+                    map(os.remove, glob(f"{self.working_folder}{xtea.global_values.CLIP_TMP}*"))
 
                 #this will use the number of clipped reads within the nearby region
                 m_sites_chrm_filtered = xfilter.parse_sites_with_clip_cutoff_for_chrm(m_sites_chrm, cutoff_left_clip,
@@ -496,9 +502,7 @@ class TELocator():
             clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
 ####
             # links TP087_S.cram.clipped.fq to pub_clip/TP087_S.cram.clipped.fq
-            if os.path.isfile(sf_all_clip_fq)==True or os.path.islink(sf_all_clip_fq)==True:
-                os.remove(sf_all_clip_fq)
-            cmd="ln -s {0} {1}".format(sf_all_clip_fq_ori, sf_all_clip_fq)
+            cmd=f"mv {sf_all_clip_fq_ori} {sf_all_clip_fq_ori}"
             self.cmd_runner.run_cmd_small_output(cmd)
         else:
             print(("Collected clipped reads file {0} already exist!".format(sf_all_clip_fq)))
@@ -567,9 +571,9 @@ class TELocator():
         sf_all_clip_fq_ori = sf_clip_working_folder + sf_bam_name + CLIP_FQ_SUFFIX
         clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
 
-        if os.path.isfile(sf_all_clip_fq) == True and not xtea.global_values.KEEP_INT_FILES:
-            os.remove(sf_all_clip_fq)
-        cmd = "ln -s {0} {1}".format(sf_all_clip_fq_ori, sf_all_clip_fq)
+        # links TP087_S.cram.clipped.fq to pub_clip/TP087_S.cram.clipped.fq
+        cmd=f"mv {sf_all_clip_fq_ori} {sf_all_clip_fq_ori}"
+        self.cmd_runner.run_cmd_small_output(cmd)
         # Popen(cmd, shell=True, stdout=PIPE).communicate()
         self.cmd_runner.run_cmd_small_output(cmd)
 

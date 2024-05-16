@@ -35,7 +35,7 @@ def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_f
     return par_rcd, rcd
 
 
-def get_candidate_sites(options,annot_path_dict,output_dir,tmp_dir):
+def get_clip_sites(options,annot_path_dict,output_dir,tmp_dir):
 
 # OPTIONS STILL MISSING
     # if options.mit: #if this to call mitochondrial insertion, then will not filter out chrM in "x_intermediate_sites.py"
@@ -91,10 +91,16 @@ def get_candidate_sites(options,annot_path_dict,output_dir,tmp_dir):
         if cutoff_clip_mate_in_rep is None or cutoff_left_clip is None:
             rcd, basic_rcd=automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
                                                         b_force, b_tumor, f_purity)
-            if cutoff_clip_mate_in_rep is None: cutoff_clip_mate_in_rep=rcd[2]
+            if cutoff_clip_mate_in_rep is None: 
+                cutoff_clip_mate_in_rep=rcd[2]
+            else:
+                rcd[2] = cutoff_clip_mate_in_rep # set to user preset
             if cutoff_left_clip is None:
                 cutoff_left_clip=rcd[0]
                 cutoff_right_clip=rcd[0]
+            else:
+                rcd[0] = cutoff_left_clip # set to user preset
+        
 
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
 
@@ -113,9 +119,33 @@ def get_candidate_sites(options,annot_path_dict,output_dir,tmp_dir):
                                                                     cutoff_left_clip, cutoff_right_clip,
                                                                     cutoff_clip_mate_in_rep, b_mosaic,
                                                                     wfolder_pub_clip, b_force, max_cov_cutoff, sf_out)
+        
+        return rcd,basic_rcd
+
+    
+def get_disc_sites(options,annot_path_dict,output_dir,tmp_dir,rcd,basic_rcd):
 
     print("Working on \"discordant reads\" step!")
-    sf_candidate_list = sf_out
+
+    b_tumor=options.tumor #whether this is tumor sample
+    f_purity=options.purity #tumor purity, by default 0.45
+    b_mosaic=options.mosaic #this is for mosaic calling from normal tissue
+
+
+    ###take in the normal illumina reads (10x will be viewed as normal illumina)
+    print("Working on \"clipped reads\" step!")
+
+    sf_bam_list = options.input_bams
+    n_jobs = int(options.cores)
+    b_force = False # removed command line option
+    b_resume=options.resume #resume the running, which will skip the step if output file already exists
+    
+    sf_annotation = annot_path_dict['sf_annotation']
+    sf_ref = annot_path_dict['sf_ref'] #reference genome "-ref"
+
+    s_working_folder = output_dir
+
+    sf_candidate_list = f"{s_working_folder}/candidate_list_from_clip.txt"
 
     sf_disc_out = f"{s_working_folder}/candidate_list_from_disc.txt"
     PEAK_WINDOW = 100

@@ -1,10 +1,12 @@
+#!/usr/bin/env python
+
 ##05/08/2024
 ##@@author: Corinne Sexton, DBMI, Harvard Medical School
 ##@@contact: corinne_sexton@hms.harvard.edu
 
 from pathlib import Path
 import configargparse
-from xtea.locate_insertions import get_candidate_sites
+from xtea.locate_insertions import get_clip_sites,get_disc_sites
 
 
 ## run_xtea -c config.toml -i bam_list (or file) -o output_dir
@@ -149,9 +151,11 @@ if __name__ == '__main__':
                                                      options.genome_reference,
                                                      options.genome)
             
-            #perform clip step:
-            get_candidate_sites(options,annot_path_dict,output_dir,tmp_dir)
+            #perform clipped step:
+            rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,tmp_dir)
 
+            get_disc_sites(options,annot_path_dict,output_dir,tmp_dir,rcd,basic_rcd)
+            # perform discordant step:
             #clip
             #disc
             #transduction
