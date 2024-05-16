@@ -1459,7 +1459,7 @@ class XClipDiscFilter():
     # 4. ndisc_cutoff:
     # 5. max_depth: by default: 4*calc-depth
     # 6. check the background clipped reads (reads clipped at the location, but with low mapping quality)
-    def call_MEIs_consensus(self, sf_candidate_list, sf_raw_disc, extnd, bin_size, sf_rep_cns, sf_flank, i_flank_lenth,
+    def call_MEIs_consensus(self, sf_candidate_list, extnd, bin_size, sf_rep_cns,
                             bmapped_cutoff, i_concord_dist, f_concord_ratio, nclip_cutoff, ndisc_cutoff, sf_final_list):
         sf_cns_log=self.working_folder + "filtering_log.txt"
         xlog=XLog()
@@ -1472,14 +1472,7 @@ class XClipDiscFilter():
         sf_disc_fa = self.working_folder + "candidate_sites_all_disc.fa"
         xlog.append_to_file(f_log, "[Filtering:collect_clipped_disc_reads:Starts...]\n")
         m_lowq_clip_cnt = self.collect_clipped_disc_reads(sf_candidate_list, extnd, bin_size, sf_clip_fq,
-                                                          sf_disc_fa, sf_raw_disc)
-#need to be comment out !!!!!
-        # sf_temp_lowq_clip=self.working_folder + "low_mapq_clip_cnt.txt"
-        # with open(sf_temp_lowq_clip, "w") as fout_lowq:
-        #     for tmp_chrm in m_lowq_clip_cnt:
-        #         for tmp_pos in m_lowq_clip_cnt[tmp_chrm]:
-        #             sinfo="{0} {1} {2}\n".format(tmp_chrm, tmp_pos, m_lowq_clip_cnt[tmp_chrm][tmp_pos])
-        #             fout_lowq.write(sinfo)
+                                                          sf_disc_fa)
 
         xlog.append_to_file(f_log, "[Filtering:collect_clipped_disc_reads:Finished]\n")
 
@@ -1510,7 +1503,6 @@ class XClipDiscFilter():
         ratio = xtea.global_values.CLIP_CONSISTENT_RATIO
         # Each returned record in format: (l_peak_pos, r_peak_pos, cns_peak_start, cns_peak_end)
         EXD_BIN_SIZE = idist
-        n_bam = self.cnt_n_bams(self.sf_bam_list)
 ####
         #1. check clip consistency
         #check left side and right side seperately: Check whether they form cluster (> ratio of reads within a cluster)
@@ -2481,9 +2473,7 @@ class XClipDiscFilter():
     # for given a lits of candidate sites, and a given list of bam files
     # get all the clipped and discordant reads
     # also add the sample id when merging the reads
-    def collect_clipped_disc_reads(self, sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa, sf_raw_sites=""):
-        #sf_raw_clip_fq=sf_raw_sites+xtea.global_values.RAW_CLIP_FQ_SUFFIX
-        sf_raw_disc_fa=sf_raw_sites+xtea.global_values.RAW_DISC_FA_SUFFIX
+    def collect_clipped_disc_reads(self, sf_candidate_list, extnd, bin_size, sf_clip_fq, sf_disc_fa):
         m_lowq_clip = {}
         with open(sf_clip_fq, "w") as fout_clip_fq, open(sf_disc_fa, "w") as fout_disc_fa:
             # first collect all the clipped and discordant reads

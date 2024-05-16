@@ -6,7 +6,7 @@
 
 from pathlib import Path
 import configargparse
-from xtea.locate_insertions import get_clip_sites,get_disc_sites
+from xtea.locate_insertions import get_clip_sites,get_disc_sites,filter_csn
 
 
 ## run_xtea -c config.toml -i bam_list (or file) -o output_dir
@@ -74,8 +74,6 @@ def parse_toml_args():
 def setup_annotation_paths(rep,rep_lib_annot_dir,genome_reference,genome):
 
     annotation_paths = dict()
-    annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
-    annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_{rep}.out" #options.annotation
 
     if rep == 'ALU':
         r = 'Alu'
@@ -83,37 +81,37 @@ def setup_annotation_paths(rep,rep_lib_annot_dir,genome_reference,genome):
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_{r}.out" #options.annotation
         # sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Alu/hg38/hg38_Alu.out\n"
-        # sf_flank = "SF_FLANK null\n"
+        annotation_paths["sf_flank"] = "null"
     elif rep == 'L1':
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_L1HS_copies_larger_5K_with_flank.fa"
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/LINE1.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_L1_larger_500_with_all_L1HS.out" #options.annotation
         # sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "LINE/hg38/hg38_L1.fa.out\n"
-        # sf_flank = "SF_FLANK " + sf_folder_rep + "LINE/hg38/hg38_FL_L1_flanks_3k.fa\n"
+        annotation_paths["sf_flank"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_FL_L1_flanks_3k.fa"
     elif rep == 'SVA':
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_SVA_copies_with_flank.fa"
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_{rep}.out" #options.annotation
         #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "SVA/hg38/hg38_SVA.out\n"
-        #     sf_flank = "SF_FLANK " + sf_folder_rep + "SVA/hg38/hg38_FL_SVA_flanks_3k.fa\n"
+        annotation_paths["sf_flank"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_FL_SVA_flanks_3k.fa"
     elif rep == 'HERV':
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_HERV_copies_with_flank.fa"
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_{rep}.out" #options.annotation
         #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "HERV/hg38/hg38_HERV.out\n"
-        #     sf_flank = "SF_FLANK null\n"
+        annotation_paths["sf_flank"] = "null"
     # elif rep == "MSTA":  ## TODO NOT TESTED
     #     annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_MSTA_copies_with_flank.fa"
     #     annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
     #     annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_{rep}.out" #options.annotation
     #     #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "MSTA/hg38/hg38_MSTA.out\n"
-    #     #     sf_flank = "SF_FLANK null\n"
+    #     annotation_paths["sf_flank"] = "SF_FLANK null\n"
     # elif rep == "Pseudogene":
     #     annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/gencode_v28_GRCh38_transcript_masked.fa"
     #     annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/gencode_v28_GRCh38_transcript_masked.fa" #options.cns
     #     annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/Pseudogene/{genome}/gencode_v28_GRCh38_exon_annotation.out" #options.annotation
     #     #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Pseudogene/hg38/gencode_v28_GRCh38_exon_annotation.out\n"
-    #     #     sf_flank = "SF_FLANK null\n"
+    #     annotation_paths["sf_flank"] = "SF_FLANK null\n"
     # elif rep == "Mitochondrion":
     #     annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/Mitochondrion/hg38/hg38_mitochondrion_copies_with_flank.fa"
     #     annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus//mitochondrion.fa" #options.cns
@@ -136,6 +134,11 @@ def setup_output_dir(out_dir,tmp_dir,sample_name,repeat):
     return o_abs_dir, t_abs_dir
 
 
+
+# BIG TODOS
+#   - NO 10x support
+#   - fflank file not used at all
+
 if __name__ == '__main__':
     options = parse_toml_args()
 
@@ -145,24 +148,65 @@ if __name__ == '__main__':
 
     if germline:
         for r in repeats:
-            output_dir, tmp_dir = setup_output_dir(options.output_dir,options.tmp_dir,options.sample_name,r)
+            output_dir, sample_public_dir = setup_output_dir(options.output_dir,options.tmp_dir,options.sample_name,r)
 
             annot_path_dict = setup_annotation_paths(r,options.rep_lib_annot_dir,
                                                      options.genome_reference,
                                                      options.genome)
             
             #perform clipped step:
-            rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,tmp_dir)
+            rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir)
 
-            get_disc_sites(options,annot_path_dict,output_dir,tmp_dir,rcd,basic_rcd)
             # perform discordant step:
-            #clip
-            #disc
+            get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd)
+
+
+            # perform filter based on consensus seq
+            filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd)
+
+
             #transduction
+            # --transduction --cr 3 --nd 5 -b ${BAM_LIST}
+            # -p ${TMP_TNSD} --fflank ${SF_FLANK} --flklen 3000 -n 8 -i ${PREFIX}"candidate_disc_filtered_cns.txt" 
+            # -r ${L1_CNS} --ref ${REF} --input2 ${PREFIX}"candidate_list_from_disc.txt.clip_sites_raw_disc.txt" 
+            # --rtype 2 -a ${ANNOTATION1}    -o ${PREFIX}"candidate_disc_filtered_cns2.txt"
+
+
+
             #sibling
+            # time python ${XTEA_PATH}"x_TEA_main.py" --sibling --cr 3 --nd 5 -b ${BAM_LIST} 
+            # -p ${TMP_TNSD} --fflank ${SF_FLANK} --flklen 3000 -n 8 -i ${PREFIX}"candidate_disc_filtered_cns2.txt" 
+            # -r ${L1_CNS} --ref ${REF} --input2 ${PREFIX}"candidate_list_from_disc.txt.clip_sites_raw_disc.txt" 
+            # --rtype 2 -a ${ANNOTATION1} --blacklist ${BLACK_LIST}    -o ${PREFIX}"candidate_sibling_transduction2.txt"
+            
+            
+            
+            
             #filter
+            # time python ${XTEA_PATH}"x_TEA_main.py" --postF --rtype 2 -p ${TMP_CNS} -n 8 
+            # -i ${PREFIX}"candidate_disc_filtered_cns2.txt" -a ${ANNOTATION1}   
+            # -o ${PREFIX}"candidate_disc_filtered_cns_post_filtering.txt"
+
+            # time python ${XTEA_PATH}"x_TEA_main.py" --postF --rtype 2 -p ${TMP_CNS} -n 8 
+            # -i ${PREFIX}"candidate_disc_filtered_cns2.txt.high_confident" -a ${ANNOTATION1} 
+            # --blacklist ${BLACK_LIST}   -o ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt"
+
+
             #annotate
+            # time python ${XTEA_PATH}"x_TEA_main.py" --gene -a ${GENE} 
+            # -i ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt"  -n 8 
+            # -o ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt"
+
+            # time python ${XTEA_PATH}"x_TEA_main.py" --gntp_classify 
+            # -i ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt"  
+            # -n 1 --model ${XTEA_PATH}"genotyping/DF21_model_1_2"  
+            # -o ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene_gntp.txt"
+            
+            
             #output
+            # time python ${XTEA_PATH}"x_TEA_main.py" --gVCF 
+            # -i ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene_gntp.txt"  
+            # -o ${PREFIX} -b ${BAM_LIST} --ref ${REF} --rtype 2
 
     # elif 'mosaic':
 

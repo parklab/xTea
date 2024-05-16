@@ -13,6 +13,7 @@ from xtea.x_TEI_locator import TE_Multi_Locator
 from xtea.x_intermediate_sites import XIntermediateSites
 from xtea.x_basic_info import X_BasicInfo
 from xtea.x_parameter import Parameters
+from x_clip_disc_filter import XClipDiscFilter
 
 
 def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_force=False, b_tumor=False, f_purity=0.45):
@@ -35,7 +36,7 @@ def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_f
     return par_rcd, rcd
 
 
-def get_clip_sites(options,annot_path_dict,output_dir,tmp_dir):
+def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
 
 # OPTIONS STILL MISSING
     # if options.mit: #if this to call mitochondrial insertion, then will not filter out chrM in "x_intermediate_sites.py"
@@ -75,8 +76,6 @@ def get_clip_sites(options,annot_path_dict,output_dir,tmp_dir):
     s_working_folder = output_dir
     sf_out = f"{s_working_folder}/candidate_list_from_clip.txt"
     
-    wfolder_pub_clip = tmp_dir #public clip folder
-
     # downstream USED only in (filler values for now, remove downstream later)
     cutoff_left_clip = options.clip_cutoff
     cutoff_right_clip = options.clip_cutoff
@@ -123,7 +122,7 @@ def get_clip_sites(options,annot_path_dict,output_dir,tmp_dir):
         return rcd,basic_rcd
 
     
-def get_disc_sites(options,annot_path_dict,output_dir,tmp_dir,rcd,basic_rcd):
+def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd):
 
     print("Working on \"discordant reads\" step!")
 
@@ -161,9 +160,6 @@ def get_disc_sites(options,annot_path_dict,output_dir,tmp_dir,rcd,basic_rcd):
         xfilter.output_candidate_sites(m_sites_clip_peak, sf_peak_sites)  # output the sites
         m_original_sites.clear()  #release the memory
 
-        if rcd is None or basic_rcd is None:
-            rcd, basic_rcd = automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
-                                                        b_force, b_tumor, f_purity)
         rlth = basic_rcd[1]  # read length
         mean_is = basic_rcd[2]  # mean insert size
         std_var = basic_rcd[3]  # standard derivation
@@ -177,7 +173,8 @@ def get_disc_sites(options,annot_path_dict,output_dir,tmp_dir,rcd,basic_rcd):
         # Either of them is larger than this cutoff, the site will be reported
         n_disc_cutoff = options.nd
         if n_disc_cutoff is None:
-            n_disc_cutoff=rcd[1]
+            n_disc_cutoff = rcd[1]
+            rcd[1] = n_disc_cutoff
             
         sf_tmp = s_working_folder + "/disc_tmp.list"
         sf_raw_disc=sf_disc_out + xtea.global_values.RAW_DISC_TMP_SUFFIX #save the left and right raw disc for each site
@@ -187,3 +184,62 @@ def get_disc_sites(options,annot_path_dict,output_dir,tmp_dir,rcd,basic_rcd):
                                                                                 f_dev, n_disc_cutoff, sf_annotation,
                                                                                 sf_tmp, sf_raw_disc, b_tumor)
         xfilter.merge_clip_disc(sf_tmp, sf_candidate_list, sf_disc_out)
+
+
+def filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd):
+    print("Working on \"clip-disc-filtering\" step!")
+
+    sf_bam_list = options.input_bams
+    n_jobs = int(options.cores)
+    b_resume=options.resume #resume the running, which will skip the step if output file already exists
+    
+    sf_ref = annot_path_dict['sf_ref'] # reference genome "-ref"
+    sf_cns = annot_path_dict['sf_rep'] # cns ref "-r"
+
+    s_working_folder = output_dir
+    print("Current working folder is: {0}\n".format(s_working_folder))
+
+    sf_candidate_list = f"{s_working_folder}/candidate_list_from_disc.txt"
+    sf_output = f"{s_working_folder}/candidate_disc_filtered_cns.txt"
+
+    iextnd = 400  ###for each site, re-collect reads in range [-iextnd, iextnd], this around ins +- 3*derivation
+    bin_size = 50000000  # block size for parallelization
+    i_concord_dist = 550  # this should be the 3*std_derivation, used to cluster disc reads on the consensus
+    f_concord_ratio = 0.45
+
+    bmapped_cutoff = xtea.global_values.MIN_CLIP_MAPPED_RATIO
+    
+    if b_resume == False or os.path.isfile(sf_output) == False:
+        ave_cov = basic_rcd[0]  # ave coverage
+        rlth = basic_rcd[1]  # read length
+        mean_is = basic_rcd[2]  # mean insert size
+        std_var = basic_rcd[3]  # standard derivation
+
+        print("Mean insert size is: {0}\n".format(mean_is))
+        print("Standard derivation is: {0}\n".format(std_var))
+
+        max_is = int(mean_is + 3 * std_var)
+        if iextnd < max_is: #correct the bias
+            iextnd = max_is
+        if i_concord_dist < max_is: #correct the bias
+            i_concord_dist = max_is
+
+        xtea.global_values.set_read_length(rlth)
+        xtea.global_values.set_insert_size(max_is)
+        xtea.global_values.set_average_cov(ave_cov)
+
+        print("Read length is: {0}\n".format(rlth))
+        print("Maximum insert size is: {0}\n".format(max_is))
+        print("Average coverage is: {0}\n".format(ave_cov))
+
+        n_clip_cutoff=rcd[0]
+        n_disc_cutoff=rcd[1]
+
+        print("Filter (on cns) cutoff: {0} and {1} are used!!!".format(n_clip_cutoff, n_disc_cutoff))
+
+        x_cd_filter = XClipDiscFilter(sf_bam_list, s_working_folder, n_jobs, sf_ref)
+        x_cd_filter.call_MEIs_consensus(sf_candidate_list, iextnd, bin_size, sf_cns, bmapped_cutoff, i_concord_dist, f_concord_ratio,
+                                        n_clip_cutoff, n_disc_cutoff, sf_output)
+        ####        
+
+
