@@ -86,7 +86,7 @@ class XGenotyper():
         i_cnt=0
         with open(sf_merged_out, "w") as fout_merged:
             m_merged={}
-            for sf_bam in l_bams:
+            for sf_bam in sf_bam_list:
                 sf_out_features = sf_out + "{0}.out".format(i_cnt)
                 i_cnt += 1
                 m_info=self.load_in_features_from_file(sf_out_features)
