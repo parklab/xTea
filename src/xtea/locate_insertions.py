@@ -13,7 +13,7 @@ from xtea.x_TEI_locator import TE_Multi_Locator
 from xtea.x_intermediate_sites import XIntermediateSites
 from xtea.x_basic_info import X_BasicInfo
 from xtea.x_parameter import Parameters
-from x_clip_disc_filter import XClipDiscFilter
+from xtea.x_clip_disc_filter import XClipDiscFilter
 
 
 def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_force=False, b_tumor=False, f_purity=0.45):
