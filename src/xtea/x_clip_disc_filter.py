@@ -41,9 +41,6 @@ from xtea.x_genotype_feature import *
 def unwrap_self_collect_clip_disc_reads(arg, **kwarg):
     return XClipDisc.collect_clipped_disc_reads_by_region(*arg, **kwarg)
 
-def unwrap_self_calc_AF_by_clip_reads(arg, **kwarg):
-    return XClipDisc.calc_AF_of_site(*arg, **kwarg)
-
 class XClipDisc():####
     def __init__(self, sf_bam, working_folder, n_jobs, sf_ref):
         self.sf_bam = sf_bam
@@ -446,192 +443,7 @@ class XClipDisc():####
         m_chrm[-1] = "*"
         return m_chrm
 
-    # calculate AF for one site
-    # by default: cnt # of clipped reads within [-30, 30] of the insertion site
-    ##calculate the average # of reads cover a site
-    # then calculate the AF
-    def calc_AF_of_site(self, record):
-        chrm = record[0]  ##this is the chrm style in candidate list
-        sf_bam_list = record[1]
-        sf_candidate_list = record[2]
-        extend = int(record[3])
-        clip_extnd = int(record[4])
-        af_cutoff = float(record[5])
-        working_folder = record[6]
-        if working_folder[-1] != "/":
-            working_folder += "/"
-
-        l_bams = []
-        with open(sf_bam_list) as fin_bam_list:
-            for line in fin_bam_list:
-                fields=line.split()
-                l_bams.append(fields[0])
-
-        m_candidate_sites = {}
-        with open(sf_candidate_list) as fin_candidates:
-            for line in fin_candidates:
-                fields = line.split()
-                tmp_chrm = fields[0]
-                pos = int(fields[1])
-                if tmp_chrm not in m_candidate_sites:
-                    m_candidate_sites[tmp_chrm] = []
-                m_candidate_sites[tmp_chrm].append(pos)
-
-        m_rslts = {}
-        for sf_bam in l_bams:
-            bam_info = BamInfo(sf_bam, self.sf_reference)
-            b_with_chr = bam_info.is_chrm_contain_chr()
-            chrm_in_bam = self._process_chrm_name(b_with_chr, chrm)
-            samfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference)
-            m_chrm_id=self._get_chrm_id_name(samfile)
-            for insertion_pos in m_candidate_sites[chrm]:
-                start_pos = insertion_pos - extend
-                if start_pos <= 0:
-                    start_pos = 1
-                end_pos = insertion_pos + extend
-                cnt_all_reads = 0
-                cnt_clip = 0
-                cnt_disc = 0
-                cnt_all_2 = 0
-                lmost_region = -1
-                rmost_region = -1
-                for algnmt in samfile.fetch(chrm_in_bam, start_pos, end_pos):  ##fetch reads mapped to "chrm:start_pos-end_pos"
-                    if algnmt.is_duplicate == True:  ##duplciate
-                        continue
-                    if algnmt.is_unmapped == True:  # unmapped
-                        continue
-                    l_cigar = algnmt.cigar
-                    if len(l_cigar) < 1:  # wrong alignment
-                        continue
-                    if algnmt.mapping_quality < xtea.global_values.MINIMUM_DISC_MAPQ:
-                        continue
-                    if algnmt.is_supplementary or algnmt.is_secondary:
-                        continue
-
-
-                    map_pos = algnmt.reference_start
-                    if lmost_region == -1:
-                        lmost_region = map_pos
-                    if rmost_region == -1:
-                        rmost_region = map_pos
-
-                    if map_pos < lmost_region:
-                        lmost_region = map_pos
-                    if map_pos > rmost_region:
-                        rmost_region = map_pos
-
-                    cnt_all_reads += 1
-                    if abs(insertion_pos - map_pos) < extend:
-                        cnt_all_2 += 1
-
-                    mate_chrm = '*'
-                    mate_pos = 0
-                    if (algnmt.next_reference_id in m_chrm_id) and (algnmt.mate_is_unmapped == False) \
-                            and (algnmt.next_reference_id >= 0):
-                        mate_chrm = algnmt.next_reference_name
-                        mate_pos = algnmt.next_reference_start
-
-                    ##check disc information
-                    if mate_chrm != "*":
-                        if self.is_discordant(chrm_in_bam, map_pos, mate_chrm, mate_pos, xtea.global_values.DISC_THRESHOLD) == True:
-                            cnt_disc += 1
-                    ##check clip information
-                    clip_pos = map_pos
-                    if l_cigar[0][0] == 4:
-                        if abs(insertion_pos - clip_pos) <= clip_extnd:
-                            cnt_clip += 1
-                    elif l_cigar[-1][0] == 4:
-                        for (type, lenth) in l_cigar[:-1]:
-                            if type == 4 or type == 5 or type == 1:  # (1 for insertion)
-                                continue
-                            else:
-                                clip_pos += lenth
-                        if abs(insertion_pos - clip_pos) <= clip_extnd:
-                            cnt_clip += 1
-
-                if insertion_pos not in m_rslts:
-                    m_rslts[insertion_pos] = []
-                irange = abs(rmost_region - lmost_region)
-                m_rslts[insertion_pos].append((cnt_clip, 2 * clip_extnd, cnt_all_reads, irange, cnt_disc, cnt_all_2))
-            samfile.close()
-        sf_tmp_out = working_folder + chrm + xtea.global_values.ALLELE_FREQUENCY_SUFFIX
-        with open(sf_tmp_out, "w") as fout_tmp:
-            for ins_pos in m_rslts:
-                cnt_clip = 0
-                cnt_all = 0
-                l_af = []
-                l_af_disc = []
-                for tmp_rcd in m_rslts[ins_pos]:
-                    cnt_clip = tmp_rcd[0]
-                    clip_range = tmp_rcd[1]
-                    cnt_all = tmp_rcd[2]
-                    all_range = tmp_rcd[3]
-                    cnt_disc = tmp_rcd[4]
-                    cnt_disc_all = tmp_rcd[5]
-
-                    if cnt_all <= 0:
-                        l_af.append(str(0.0))
-                        l_af_disc.append(str(0.0))
-                    else:
-                        af = float(cnt_clip * all_range) / float(cnt_all * clip_range)
-                        if af > 1.0:
-                            af = 1.0
-                        l_af.append(str(af))
-
-                        af_disc = float(cnt_disc) / float(cnt_disc_all)
-                        if af_disc > 1.0:
-                            af_disc = 1.0
-                        l_af_disc.append(str(af_disc))#
-
-                s_af = "\t".join(l_af)
-                s_af_disc = "\t".join(l_af_disc)
-
-                b_clip_satisfield = False
-                for clip_af in l_af:
-                    if float(clip_af) <= af_cutoff:
-                        b_clip_satisfield = True
-                        break
-                b_disc_satisfield = False
-                for disc_af in l_af_disc:
-                    if float(disc_af) <= af_cutoff:
-                        b_disc_satisfield = True
-                        break
-                if b_clip_satisfield == True and b_disc_satisfield == True:
-                    s_info = "{0}\t{1}\t{2}\t{3}\t{4}\t{5}\n".format(chrm, ins_pos, cnt_clip, cnt_all, s_af, s_af_disc)
-                    fout_tmp.write(s_info)
-                    ####
-#
-    # Given:
-    #   sf_bam_list: bam files
-    #   sf_candidate_list: candidate sites
-    #   #
-    def calc_AF_by_clip_reads_of_given_list(self, sf_bam_list, sf_candidate_list, extnd, clip_slack, af, sf_out):
-        m_chrm = {}
-        with open(sf_candidate_list) as fin_list:
-            for line in fin_list:
-                fields = line.split()
-                chrm = fields[0]
-                m_chrm[chrm] = 1
-
-        l_chrm_records = []
-        for chrm in m_chrm:
-            l_chrm_records.append((chrm, sf_bam_list, sf_candidate_list, extnd, clip_slack, af, self.working_folder))
-
-        pool = Pool(self.n_jobs)
-        pool.map(unwrap_self_calc_AF_by_clip_reads, list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
-        pool.close()
-        pool.join()
-
-        ####
-        with open(sf_out, "w") as fout_rslt:
-            for chrm in m_chrm:
-                sf_tmp_out = self.working_folder + chrm + xtea.global_values.ALLELE_FREQUENCY_SUFFIX
-                if os.path.isfile(sf_tmp_out) == False:
-                    continue
-                with open(sf_tmp_out) as fin_tmp:
-                    for line in fin_tmp:
-                        fout_rslt.write(line)
-
+    
 ####
 class XClipDiscFilter():
     def __init__(self, sf_bam_list, working_folder, n_jobs, sf_reference):
@@ -641,12 +453,7 @@ class XClipDiscFilter():
         self.sf_reference = sf_reference
 
     def _get_n_bams(self):
-        n_cnt = 0
-        with open(self.sf_bam_list) as fin_list:
-            for line in fin_list:
-                if len(line.rstrip()) > 0:
-                    n_cnt += 1
-        return n_cnt
+        return len(self.sf_bam_list)
 
     ####
     def _cnt_clip_reads(self, ins_chrm, ins_pos, peak_clip_pos, m_clip_pos):
@@ -2478,44 +2285,41 @@ class XClipDiscFilter():
         with open(sf_clip_fq, "w") as fout_clip_fq, open(sf_disc_fa, "w") as fout_disc_fa:
             # first collect all the clipped and discordant reads
             sample_cnt = 0
-            with open(self.sf_bam_list) as fin_bam_list:
-                for line in fin_bam_list:  # for each bam file
-                    fields=line.split()
-                    sf_bam = fields[0]
-                    xclip_disc = XClipDisc(sf_bam, self.working_folder, self.n_jobs, self.sf_reference)
-                    sf_disc_fa_tmp = self.working_folder + "temp_disc.fa" + str(sample_cnt)
-                    sf_clip_fa_tmp = self.working_folder + "temp_clip.fq" + str(sample_cnt)
+            for sf_bam in self.sf_list:  # CS EDIT
+                xclip_disc = XClipDisc(sf_bam, self.working_folder, self.n_jobs, self.sf_reference)
+                sf_disc_fa_tmp = self.working_folder + "temp_disc.fa" + str(sample_cnt)
+                sf_clip_fa_tmp = self.working_folder + "temp_clip.fq" + str(sample_cnt)
 
-                    ####collect clipped and disc reads
-                    l_low_mapq_clip=xclip_disc.collect_clipped_disc_reads_of_given_list(sf_candidate_list, extnd,
-                                                                                        bin_size, sf_clip_fa_tmp,
-                                                                                        sf_disc_fa_tmp)
-                    for lowq_rcd in l_low_mapq_clip:
-                        tmp_chrm=lowq_rcd[0]
-                        tmp_pos=int(lowq_rcd[1])
-                        n_lowq_clip=int(lowq_rcd[2])
-                        if tmp_chrm not in m_lowq_clip:
-                            m_lowq_clip[tmp_chrm]={}
-                        if tmp_pos not in m_lowq_clip[tmp_chrm]:
-                            m_lowq_clip[tmp_chrm][tmp_pos]=0
-                        m_lowq_clip[tmp_chrm][tmp_pos] += n_lowq_clip
+                ####collect clipped and disc reads
+                l_low_mapq_clip=xclip_disc.collect_clipped_disc_reads_of_given_list(sf_candidate_list, extnd,
+                                                                                    bin_size, sf_clip_fa_tmp,
+                                                                                    sf_disc_fa_tmp)
+                for lowq_rcd in l_low_mapq_clip:
+                    tmp_chrm=lowq_rcd[0]
+                    tmp_pos=int(lowq_rcd[1])
+                    n_lowq_clip=int(lowq_rcd[2])
+                    if tmp_chrm not in m_lowq_clip:
+                        m_lowq_clip[tmp_chrm]={}
+                    if tmp_pos not in m_lowq_clip[tmp_chrm]:
+                        m_lowq_clip[tmp_chrm][tmp_pos]=0
+                    m_lowq_clip[tmp_chrm][tmp_pos] += n_lowq_clip
 
-                    with open(sf_disc_fa_tmp) as fin_tmp_fa:
-                        n_cnt = 0
-                        for line in fin_tmp_fa:
-                            if n_cnt % 2 == 0:
-                                line = line.rstrip() + xtea.global_values.SEPERATOR + str(sample_cnt) + "\n"  ###here add the sample id
-                            fout_disc_fa.write(line)
-                            n_cnt += 1
-                    with open(sf_clip_fa_tmp) as fin_clip_fq:
-                        n_cnt = 0
-                        for line in fin_clip_fq:
-                            if n_cnt % 4 == 0:
-                                line = line.rstrip() + xtea.global_values.SEPERATOR + str(sample_cnt) + "\n"
-                            fout_clip_fq.write(line)
-                            n_cnt += 1
-                    sample_cnt += 1
-                    #clean the temporary files
-                    self.clean_file_by_path(sf_disc_fa_tmp)
-                    self.clean_file_by_path(sf_clip_fa_tmp)
+                with open(sf_disc_fa_tmp) as fin_tmp_fa:
+                    n_cnt = 0
+                    for line in fin_tmp_fa:
+                        if n_cnt % 2 == 0:
+                            line = line.rstrip() + xtea.global_values.SEPERATOR + str(sample_cnt) + "\n"  ###here add the sample id
+                        fout_disc_fa.write(line)
+                        n_cnt += 1
+                with open(sf_clip_fa_tmp) as fin_clip_fq:
+                    n_cnt = 0
+                    for line in fin_clip_fq:
+                        if n_cnt % 4 == 0:
+                            line = line.rstrip() + xtea.global_values.SEPERATOR + str(sample_cnt) + "\n"
+                        fout_clip_fq.write(line)
+                        n_cnt += 1
+                sample_cnt += 1
+                #clean the temporary files
+                self.clean_file_by_path(sf_disc_fa_tmp)
+                self.clean_file_by_path(sf_clip_fa_tmp)
         return m_lowq_clip

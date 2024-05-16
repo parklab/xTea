@@ -49,19 +49,11 @@ class XGenotyper():
         self.n_jobs=n_jobs
 
     def call_genotype(self, sf_bam_list, sf_candidate_list, extnd, sf_out):
-        l_bams=[]
         sf_merged_out=sf_out
-        with open(sf_bam_list) as fin_bam_list:
-            for line in fin_bam_list:
-                fields=line.split()
-                sf_bam=fields[0]
-                l_bams.append(sf_bam)
         i_cnt = 0
-        for sf_bam in l_bams:
+        for sf_bam in sf_bam_list:
             sf_out_features=sf_out+"{0}.out".format(i_cnt)
             i_cnt+=1
-            # if len(l_bams) == 1:
-            #     sf_out_features = sf_out
             l_chrm_records = []
             with open(sf_candidate_list) as fin_list:
                 for line in fin_list:

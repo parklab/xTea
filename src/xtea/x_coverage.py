@@ -166,42 +166,38 @@ class ReadDepth(X_BasicInfo):
     #focal_win2: calc the depth in this range too!
     def calc_coverage_of_two_regions(self, m_sites, sf_bam_list, search_win, focal_win, focal_win2):
         m_site_cov = {}
-        with open(sf_bam_list) as fin_bams:
-            for line in fin_bams:
-                fields=line.split()
-                sf_bam=fields[0]
+        for sf_bam in sf_bam_list:  # CS EDIT
+            l_records = []
+            for chrm in m_sites:
+                for pos in m_sites[chrm]:
+                    l_records.append(((chrm, pos, search_win, focal_win, focal_win2), sf_bam, self.working_folder))
 
-                l_records = []
-                for chrm in m_sites:
-                    for pos in m_sites[chrm]:
-                        l_records.append(((chrm, pos, search_win, focal_win, focal_win2), sf_bam, self.working_folder))
+            pool = Pool(self.n_jobs)
+            l_sites_cov=pool.map(unwrap_self_calc_depth_for_site2, list(zip([self] * len(l_records), l_records)), 1)
+            pool.close()
+            pool.join()
 
-                pool = Pool(self.n_jobs)
-                l_sites_cov=pool.map(unwrap_self_calc_depth_for_site2, list(zip([self] * len(l_records), l_records)), 1)
-                pool.close()
-                pool.join()
+            for record in l_sites_cov:
+                ins_chrm=record[0]
+                ins_pos=record[1]
+                flcov=record[2]
+                frcov=record[3]
+                flcov2 = record[4]
+                frcov2 = record[5]
 
-                for record in l_sites_cov:
-                    ins_chrm=record[0]
-                    ins_pos=record[1]
-                    flcov=record[2]
-                    frcov=record[3]
-                    flcov2 = record[4]
-                    frcov2 = record[5]
+                if ins_chrm not in m_site_cov:
+                    m_site_cov[ins_chrm]={}
+                if ins_pos not in m_site_cov[ins_chrm]:
+                    m_site_cov[ins_chrm][ins_pos] = []
+                    m_site_cov[ins_chrm][ins_pos].append(0)
+                    m_site_cov[ins_chrm][ins_pos].append(0)
+                    m_site_cov[ins_chrm][ins_pos].append(0)
+                    m_site_cov[ins_chrm][ins_pos].append(0)
 
-                    if ins_chrm not in m_site_cov:
-                        m_site_cov[ins_chrm]={}
-                    if ins_pos not in m_site_cov[ins_chrm]:
-                        m_site_cov[ins_chrm][ins_pos] = []
-                        m_site_cov[ins_chrm][ins_pos].append(0)
-                        m_site_cov[ins_chrm][ins_pos].append(0)
-                        m_site_cov[ins_chrm][ins_pos].append(0)
-                        m_site_cov[ins_chrm][ins_pos].append(0)
-
-                    m_site_cov[ins_chrm][ins_pos][0] += flcov
-                    m_site_cov[ins_chrm][ins_pos][1] += frcov
-                    m_site_cov[ins_chrm][ins_pos][2] += flcov2
-                    m_site_cov[ins_chrm][ins_pos][3] += frcov2
+                m_site_cov[ins_chrm][ins_pos][0] += flcov
+                m_site_cov[ins_chrm][ins_pos][1] += frcov
+                m_site_cov[ins_chrm][ins_pos][2] += flcov2
+                m_site_cov[ins_chrm][ins_pos][3] += frcov2
         return m_site_cov
 
 #
