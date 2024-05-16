@@ -83,27 +83,23 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
     # true clipping cutoff
     cutoff_clip_mate_in_rep = options.cr
 
-    rcd = None
-    basic_rcd = None
+    print("\tGenerating cutoff parameters based on coverage.")
+    # ALWAYS ATTEMPT TO CALCULATE BECAUSE NEEDED DOWNSTREAM
+    rcd, basic_rcd=automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
+                                                    b_force, b_tumor, f_purity)
+    if cutoff_clip_mate_in_rep is None: 
+        cutoff_clip_mate_in_rep=rcd[2]
+    else:
+        rcd[2] = cutoff_clip_mate_in_rep # set to user preset
+    if cutoff_left_clip is None:
+        cutoff_left_clip=rcd[0]
+        cutoff_right_clip=rcd[0]
+    else:
+        rcd[0] = cutoff_left_clip # set to user preset
+
+
     if b_resume is False or os.path.isfile(sf_out) is False:
-        print("\tGenerating cutoff parameters based on coverage.")
-        if cutoff_clip_mate_in_rep is None or cutoff_left_clip is None:
-            rcd, basic_rcd=automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
-                                                        b_force, b_tumor, f_purity)
-            if cutoff_clip_mate_in_rep is None: 
-                cutoff_clip_mate_in_rep=rcd[2]
-            else:
-                rcd[2] = cutoff_clip_mate_in_rep # set to user preset
-            if cutoff_left_clip is None:
-                cutoff_left_clip=rcd[0]
-                cutoff_right_clip=rcd[0]
-            else:
-                rcd[0] = cutoff_left_clip # set to user preset
-        
-
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
-
-
 
         #by default, if number of clipped reads is larger than this value, then discard
         # max_cov_cutoff=int(15*basic_rcd[0])   # ORIGINALLY WAS A CL PARAMETER (cov) set to 40 by default
@@ -119,7 +115,7 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
                                                                     cutoff_clip_mate_in_rep, b_mosaic,
                                                                     wfolder_pub_clip, b_force, max_cov_cutoff, sf_out)
         
-        return (rcd,basic_rcd)
+    return (rcd,basic_rcd)
 
     
 def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd):
