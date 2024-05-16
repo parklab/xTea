@@ -2285,7 +2285,7 @@ class XClipDiscFilter():
         with open(sf_clip_fq, "w") as fout_clip_fq, open(sf_disc_fa, "w") as fout_disc_fa:
             # first collect all the clipped and discordant reads
             sample_cnt = 0
-            for sf_bam in self.sf_list:  # CS EDIT
+            for sf_bam in self.sf_bam_list:  # CS EDIT
                 xclip_disc = XClipDisc(sf_bam, self.working_folder, self.n_jobs, self.sf_reference)
                 sf_disc_fa_tmp = self.working_folder + "temp_disc.fa" + str(sample_cnt)
                 sf_clip_fa_tmp = self.working_folder + "temp_clip.fq" + str(sample_cnt)
