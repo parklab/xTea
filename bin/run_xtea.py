@@ -6,7 +6,7 @@
 
 from pathlib import Path
 import configargparse
-from xtea.locate_insertions import get_clip_sites,get_disc_sites,filter_csn,get_transduction
+from xtea.locate_insertions import get_clip_sites,get_disc_sites,filter_csn
 
 
 ## run_xtea -c config.toml -i bam_list (or file) -o output_dir
