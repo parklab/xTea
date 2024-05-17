@@ -692,7 +692,7 @@ class XClipDiscFilter():
                     s_hit_end="\t"+xtea.global_values.NOT_HIT_END_OF_CNS
 
                 #save a fields for both end consistent
-                s_both_consistent="\t"+ONE_END_CONSISTNT
+                s_both_consistent="\t"+ xtea.global_values.ONE_END_CONSISTNT
                 if (ins_chrm in m_high_confident) and (ins_pos in m_high_confident[ins_chrm]):
                     s_both_consistent="\t"+xtea.global_values.BOTH_END_CONSISTNT
 

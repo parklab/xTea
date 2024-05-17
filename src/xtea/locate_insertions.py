@@ -14,6 +14,8 @@ from xtea.x_intermediate_sites import XIntermediateSites
 from xtea.x_basic_info import X_BasicInfo
 from xtea.x_parameter import Parameters
 from xtea.x_clip_disc_filter import XClipDiscFilter
+from xtea.x_transduction import XTransduction
+from xtea.x_orphan_transduction import XOrphanTransduction
 
 
 def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_force=False, b_tumor=False, f_purity=0.45):
@@ -123,16 +125,10 @@ def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd):
     print("Working on \"discordant reads\" step!")
 
     b_tumor=options.tumor #whether this is tumor sample
-    f_purity=options.purity #tumor purity, by default 0.45
     b_mosaic=options.mosaic #this is for mosaic calling from normal tissue
-
-
-    ###take in the normal illumina reads (10x will be viewed as normal illumina)
-    print("Working on \"clipped reads\" step!")
 
     sf_bam_list = options.input_bams
     n_jobs = int(options.cores)
-    b_force = False # removed command line option
     b_resume=options.resume #resume the running, which will skip the step if output file already exists
     
     sf_annotation = annot_path_dict['sf_annotation']
@@ -238,4 +234,103 @@ def filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd):
                                         n_clip_cutoff, n_disc_cutoff, sf_output)
         ####        
 
+# def get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
+
+#     b_tumor=options.tumor #whether this is tumor sample
+
+#     sf_bam_list = options.input_bams
+#     n_jobs = int(options.cores)
+#     b_resume=options.resume #resume the running, which will skip the step if output file already exists
+
+   
+#     sf_flank = annot_path_dict['sf_flank']
+#     sf_reference = annot_path_dict['sf_ref'] #reference genome "-ref"
+#     sf_rmsk = annot_path_dict["sf_anno1"]
+#     sf_cns = annot_path_dict['sf_rep']  ####repeat copies/cns here
+
+#     s_working_folder = output_dir
+#     i_rep_type = r
+
+#     iextnd = 400  ###for each site, re-collect reads in range [-iextnd, iextnd], this around ins +- 3*derivation
+#     bin_size = 50000000  # block size for parallelization
+#     i_flank_lenth = 3000
+
+#     #need to re-collect all the clip, disc reads
+#     sf_candidate_list = f"{s_working_folder}/candidate_disc_filtered_cns.txt" #this is the output from the "cns" step.
+#     sf_raw_disc = f"{s_working_folder}/candidate_list_from_disc.txt.clip_sites_raw_disc.txt"  # this is the raw disc file
+#     sf_output = f"{s_working_folder}/candidate_sibling_transduction2.txt"
+
+#     print("Current working folder is: {0}\n".format(s_working_folder))
+
+    
+#     if b_resume == False or os.path.isfile(sf_output) == False:
+#         if os.path.isfile(sf_flank)==True:#for Alu and many others, there is no transduction
+#             ave_cov = basic_rcd[0]  # ave coverage
+#             rlth = basic_rcd[1]  # read length
+#             mean_is = basic_rcd[2]  # mean insert size
+#             std_var = basic_rcd[3]  # standard derivation
+#             print("Mean insert size is: {0}\n".format(mean_is))
+#             print("Standard derivation is: {0}\n".format(std_var))
+
+#             max_is = int(mean_is + 3 * std_var)
+#             if iextnd < max_is:  # correct the bias
+#                 iextnd = max_is
+#             i_concord_dist=550
+#             f_concord_ratio = 0.25
+#             if i_concord_dist < max_is:  # correct the bias
+#                 i_concord_dist = max_is
+                
+#             xtea.global_values.set_read_length(rlth)
+#             xtea.global_values.set_insert_size(max_is)
+#             xtea.global_values.set_average_cov(ave_cov)
+
+#             n_clip_cutoff = rcd[0]
+#             n_disc_cutoff = rcd[1]
+
+#             xtransduction = XTransduction(s_working_folder, n_jobs, sf_reference)
+
+#             i_win=150 #if a site is close to an existing site, then will not be considered again
+#             sf_tmp_slct=sf_raw_disc+".slct"
+#             i_min_copy_len = 225
+#             xannotation = xtransduction.prep_annotation_interval_tree(sf_rmsk, i_min_copy_len)
+#             xtransduction.re_slct_with_clip_raw_disc_sites(sf_raw_disc, sf_candidate_list, n_disc_cutoff, xannotation,
+#                                             i_rep_type, b_tumor, sf_tmp_slct)
+#             #now for the selected sites, re-evaluate each one
+#             x_cd_filter = XClipDiscFilter(sf_bam_list, s_working_folder, n_jobs, sf_reference)
+#             i_max_cov=ave_cov*(xtea.global_values.MAX_COV_TIMES+1)
+#             sf_output_tmp=sf_output + xtea.global_values.TD_NON_SIBLING_SUFFIX
+#             xtransduction.call_candidate_transduction_v3(sf_tmp_slct, sf_candidate_list, x_cd_filter,
+#                                                             sf_flank, sf_cns, i_flank_lenth, iextnd, bin_size, n_clip_cutoff,
+#                                                             n_disc_cutoff, i_concord_dist, f_concord_ratio, xannotation,
+#                                                             sf_bam_list, i_rep_type, i_max_cov, ave_cov, sf_output_tmp)
+# ####
+#             xorphan=XOrphanTransduction(s_working_folder, n_jobs, sf_reference)
+#             n_half_disc_cutoff=n_disc_cutoff/2
+#             i_search_win=2000
+#             sf_updated_cns=sf_output #this is the final updated
+
+#             #1.Call out the sibling transduction events from the current list
+#             sf_sibling_TD=sf_output+".sibling_transduction_from_existing_list"#
+#             xorphan.call_sibling_TD_from_existing_list(sf_output_tmp, sf_bam_list, iextnd, n_half_disc_cutoff,
+#                                                         i_search_win, xannotation, i_rep_type, i_max_cov,
+#                                                         sf_updated_cns, sf_sibling_TD)
+# #
+#             # #2. Call orphan "sibling" transdcution from non_existing list
+#             # sf_sibling_TD2 = sf_output + ".novel_sibling_transduction"
+#             # b_with_original=False
+#             # sf_tmp_slct2=sf_raw_disc+".slct2"
+#             # #select the sites to exclude the already called out sites
+#             # xorpha.re_slct_with_clip_raw_disc_sites(sf_raw_disc, sf_output_tmp, n_disc_cutoff, xannotation,
+#             #                                                i_rep_type, b_tumor, sf_tmp_slct2, b_with_original)
+# ####
+#             #update high confident ones (in "cns" filter step, two results are generated)
+#             sf_ori_hc=sf_candidate_list+xtea.global_values.HIGH_CONFIDENT_SUFFIX
+#             sf_new_hc=sf_output+xtea.global_values.HIGH_CONFIDENT_SUFFIX
+#             xorphan.update_high_confident_callset(sf_ori_hc, sf_updated_cns, sf_new_hc)
+# ####
+#         else:#rename the two files generated in previous step
+#             copyfile(sf_candidate_list, sf_output)
+#             sf_ori_hc = sf_candidate_list + xtea.global_values.HIGH_CONFIDENT_SUFFIX
+#             sf_new_hc=sf_output+xtea.global_values.HIGH_CONFIDENT_SUFFIX
+#             copyfile(sf_ori_hc, sf_new_hc)
 

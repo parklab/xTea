@@ -6,7 +6,7 @@
 
 from pathlib import Path
 import configargparse
-from xtea.locate_insertions import get_clip_sites,get_disc_sites,filter_csn
+from xtea.locate_insertions import get_clip_sites,get_disc_sites,filter_csn,get_transduction
 
 
 ## run_xtea -c config.toml -i bam_list (or file) -o output_dir
@@ -80,25 +80,25 @@ def setup_annotation_paths(rep,rep_lib_annot_dir,genome_reference,genome):
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_AluJabc_copies_with_flank.fa"
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_{r}.out" #options.annotation
-        # sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Alu/hg38/hg38_Alu.out\n"
+        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_Alu.out\n"
         annotation_paths["sf_flank"] = "null"
     elif rep == 'L1':
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_L1HS_copies_larger_5K_with_flank.fa"
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/LINE1.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_L1_larger_500_with_all_L1HS.out" #options.annotation
-        # sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "LINE/hg38/hg38_L1.fa.out\n"
+        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_L1.fa.out\n"
         annotation_paths["sf_flank"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_FL_L1_flanks_3k.fa"
     elif rep == 'SVA':
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_SVA_copies_with_flank.fa"
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_{rep}.out" #options.annotation
-        #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "SVA/hg38/hg38_SVA.out\n"
+        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_SVA.out\n"
         annotation_paths["sf_flank"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_FL_SVA_flanks_3k.fa"
     elif rep == 'HERV':
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_HERV_copies_with_flank.fa"
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_{rep}.out" #options.annotation
-        #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "HERV/hg38/hg38_HERV.out\n"
+        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_HERV.out\n"
         annotation_paths["sf_flank"] = "null"
     # elif rep == "MSTA":  ## TODO NOT TESTED
     #     annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_MSTA_copies_with_flank.fa"
@@ -161,11 +161,12 @@ if __name__ == '__main__':
             get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd)
 
 
-            # perform filter based on consensus seq
+            # perform filter based on consensus seq:
             filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd)
 
 
-            #transduction
+            #perform transduction step:
+            # get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
             # --transduction --cr 3 --nd 5 -b ${BAM_LIST}
             # -p ${TMP_TNSD} --fflank ${SF_FLANK} --flklen 3000 -n 8 -i ${PREFIX}"candidate_disc_filtered_cns.txt" 
             # -r ${L1_CNS} --ref ${REF} --input2 ${PREFIX}"candidate_list_from_disc.txt.clip_sites_raw_disc.txt" 
