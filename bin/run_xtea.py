@@ -93,7 +93,7 @@ def setup_annotation_paths(rep,rep_lib_annot_dir,genome_reference,genome):
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_SVA_copies_with_flank.fa"
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_{rep}.out" #options.annotation
-        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_SVA.out\n"
+        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_SVA.out\n"
         annotation_paths["sf_flank"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_FL_SVA_flanks_3k.fa"
     elif rep == 'HERV':
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_HERV_copies_with_flank.fa"
