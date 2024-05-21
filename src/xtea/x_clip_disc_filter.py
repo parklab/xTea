@@ -2345,22 +2345,19 @@ class XClipDiscFilter():
         with open(sf_disc_fa, "w") as fout_disc_fa:
             # first collect all the clipped and discordant reads
             sample_cnt = 0
-            with open(self.sf_bam_list) as fin_bam_list:
-                for line in fin_bam_list:  # for each bam file
-                    fields=line.split()
-                    sf_bam = fields[0]
-                    xclip_disc = XClipDisc(sf_bam, self.working_folder, self.n_jobs, self.sf_reference)
-                    sf_disc_fa_tmp = self.working_folder + "temp_disc.fa" + str(sample_cnt)
+            for sf_bam in self.sf_bam_list:
+                xclip_disc = XClipDisc(sf_bam, self.working_folder, self.n_jobs, self.sf_reference)
+                sf_disc_fa_tmp = self.working_folder + "temp_disc.fa" + str(sample_cnt)
 
-                    ####collect clipped and disc reads
-                    xclip_disc.collect_disc_reads_of_given_list(sf_candidate_list, extnd, bin_size, sf_disc_fa_tmp)
-                    with open(sf_disc_fa_tmp) as fin_tmp_fa:
-                        n_cnt = 0
-                        for line in fin_tmp_fa:
-                            if n_cnt % 2 == 0:
-                                line = line.rstrip() + global_values.SEPERATOR + str(sample_cnt) + "\n"  ###here add the sample id
-                            fout_disc_fa.write(line)
-                            n_cnt += 1
-                    sample_cnt += 1
-                    #clean the temporary files
-                    self.clean_file_by_path(sf_disc_fa_tmp)
+                ####collect clipped and disc reads
+                xclip_disc.collect_disc_reads_of_given_list(sf_candidate_list, extnd, bin_size, sf_disc_fa_tmp)
+                with open(sf_disc_fa_tmp) as fin_tmp_fa:
+                    n_cnt = 0
+                    for line in fin_tmp_fa:
+                        if n_cnt % 2 == 0:
+                            line = line.rstrip() + global_values.SEPERATOR + str(sample_cnt) + "\n"  ###here add the sample id
+                        fout_disc_fa.write(line)
+                        n_cnt += 1
+                sample_cnt += 1
+                #clean the temporary files
+                self.clean_file_by_path(sf_disc_fa_tmp)
