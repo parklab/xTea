@@ -1111,12 +1111,12 @@ class XTransduction():
                 n_SVA=0
                 if (ins_chrm in m_SVA) and (ins_pos in m_SVA[ins_chrm]):
                     n_SVA=m_SVA[ins_chrm][ins_pos]
-                if i_rep_type & 1 != 0:#for L1
+                if i_rep_type == "L1": #for L1
                     if n_Alu>=n_cutoff:
                         b_slct=False
                     if n_SVA>=n_cutoff:
                         b_slct=False
-                elif i_rep_type & 4 !=0:#for SVA
+                elif i_rep_type == "SVA ":#for SVA
                     if n_Alu>=n_cutoff:
                         b_slct=False
                     if n_L1>=n_cutoff:

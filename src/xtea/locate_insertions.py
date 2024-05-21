@@ -461,7 +461,6 @@ def filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd):
         #here sf_black_list is the centromere + duplication region
         xpost_filter.run_post_filtering(sf_xtea_rslt, sf_rmsk, i_min_copy_len, i_rep_type, f_cov, sf_black_list,
                                         sf_new_out, b_tumor)
-        
 
 
 def annotate_genes(options,output_dir):
@@ -469,7 +468,7 @@ def annotate_genes(options,output_dir):
     s_working_folder = output_dir
     sf_input=f"{s_working_folder}/candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt"
     sf_output=f"{s_working_folder}/candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt"
-    
+
     sf_gene_annotation=options.genome_gff3
 
     gff=GFF3(sf_gene_annotation)
