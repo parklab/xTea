@@ -80,13 +80,13 @@ def setup_annotation_paths(rep,rep_lib_annot_dir,genome_reference,genome):
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_AluJabc_copies_with_flank.fa"
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_{r}.out" #options.annotation
-        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_Alu.out\n"
+        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_Alu.out"
         annotation_paths["sf_flank"] = "null"
     elif rep == 'L1':
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_L1HS_copies_larger_5K_with_flank.fa"
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/LINE1.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_L1_larger_500_with_all_L1HS.out" #options.annotation
-        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_L1.fa.out\n"
+        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_L1.fa.out"
         annotation_paths["sf_flank"] = f"{rep_lib_annot_dir}/LINE/{genome}/{genome}_FL_L1_flanks_3k.fa"
     elif rep == 'SVA':
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_SVA_copies_with_flank.fa"
@@ -98,19 +98,19 @@ def setup_annotation_paths(rep,rep_lib_annot_dir,genome_reference,genome):
         annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_HERV_copies_with_flank.fa"
         annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
         annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_{rep}.out" #options.annotation
-        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_HERV.out\n"
+        annotation_paths["sf_anno1"] = f"{rep_lib_annot_dir}/{r}/{genome}/{genome}_HERV.out"
         annotation_paths["sf_flank"] = "null"
     # elif rep == "MSTA":  ## TODO NOT TESTED
     #     annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_MSTA_copies_with_flank.fa"
     #     annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/{rep}.fa" #options.cns
     #     annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/{rep}/{genome}/{genome}_{rep}.out" #options.annotation
-    #     #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "MSTA/hg38/hg38_MSTA.out\n"
+    #     #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "MSTA/hg38/hg38_MSTA.out"
     #     annotation_paths["sf_flank"] = "SF_FLANK null\n"
     # elif rep == "Pseudogene":
     #     annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/{rep}/{genome}/gencode_v28_GRCh38_transcript_masked.fa"
     #     annotation_paths["sf_rep_cns"] = f"{rep_lib_annot_dir}/consensus/gencode_v28_GRCh38_transcript_masked.fa" #options.cns
     #     annotation_paths["sf_annotation"] = f"{rep_lib_annot_dir}/Pseudogene/{genome}/gencode_v28_GRCh38_exon_annotation.out" #options.annotation
-    #     #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Pseudogene/hg38/gencode_v28_GRCh38_exon_annotation.out\n"
+    #     #     sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Pseudogene/hg38/gencode_v28_GRCh38_exon_annotation.out"
     #     annotation_paths["sf_flank"] = "SF_FLANK null\n"
     # elif rep == "Mitochondrion":
     #     annotation_paths["sf_rep"] = f"{rep_lib_annot_dir}/Mitochondrion/hg38/hg38_mitochondrion_copies_with_flank.fa"
