@@ -38,8 +38,8 @@ class gVCF():
         shead = "##fileformat=VCFv4.2\n"
         if "SQ" not in m_header:#
             print(("No head information in bam file: {0}".format(sf_bam)))
-            shead+="##reference=GCA_000001405.15_GRCh38_no_alt_analysis_set.fna\n"
-            shead+=prepare_head_hg38(True)
+            # shead+="##reference=GCA_000001405.15_GRCh38_no_alt_analysis_set.fna\n"
+            # shead+=prepare_head_hg38(True) # NOT A FUNCTION
         else:
             sf_ref=""
             l_chrm=[]
@@ -152,6 +152,16 @@ class gVCF():
 ####
         #get the repeat type
         rep_type=RepType()
+        if i_rep_type == 'ALU':
+            s_rep_type = rep_type.get_Alu_str()
+        elif i_rep_type == "L1":
+            s_rep_type = rep_type.get_L1_str()
+        elif i_rep_type == "SVA":
+            s_rep_type = rep_type.get_SVA_str()
+        elif i_rep_type == "HERV":
+            s_rep_type = rep_type.get_HERV_str()
+
+
         s_rep_type=rep_type.get_rep_vcf_alt_type(i_rep_type)
         #get the TSD sequences
         xTSD=XTSD()
@@ -166,7 +176,7 @@ class gVCF():
             fout_vcf.write(s_head)
             #for rcd in l_rslts:
             if len(l_rslts) != len(l_sites) or len(l_sites) != len(l_ref_seqs) or len(l_rslts) != len(l_ref_seqs):
-                print("[Error in x_vcf.py]: Arrzy size is different!\n")
+                print("[Error in x_vcf.py]: Array size is different!\n")
             for (l_fields, s_tsd, s_site_seq) in zip(l_rslts, l_sTSD, l_ref_seqs):
                 sid="."
                 s_rcd=self._cvt_to_vcf_rcd(l_fields, s_rep_type, s_tsd, sid, s_site_seq)

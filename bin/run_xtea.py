@@ -6,7 +6,7 @@
 
 from pathlib import Path
 import configargparse
-from xtea.locate_insertions import get_clip_sites,get_disc_sites,filter_csn
+from xtea.locate_insertions import get_clip_sites,get_disc_sites,filter_csn,get_transduction,get_sibling,filter_sites_post,annotate_genes,call_genotypes, generate_VCF
 
 
 ## run_xtea -c config.toml -i bam_list (or file) -o output_dir
@@ -32,7 +32,7 @@ def parse_toml_args():
     p.add('--input_bams','-i',nargs = '+',required = True, help = "input bam(s)")
     p.add('--sample_name','-s',required = True, help = "Sample identifier")
     p.add('--repeat_type',required = False, default = ['ALU','L1','SVA'], nargs='+',
-           help = 'Type of repeats to detect. Options include: L1, ALU, SVA, HERV, Mitochondrial (Default = Alu L1 SVA)')
+           help = 'Type of repeats to detect. Options include: L1, ALU, SVA, HERV, Mitochondrial (Default = ALU L1 SVA)')
     p.add('-m','--mode',required = False, default = 'germline',
            help = 'Which mode to run. Options: germline, mosaic, case-control, denovo (Default: germline)')
     p.add('-g','--genome',required = False, default = 'hg38',
@@ -160,37 +160,18 @@ if __name__ == '__main__':
             # perform discordant step:
             get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd)
 
-
             # perform filter based on consensus seq:
             filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd)
 
-
             #perform transduction step:
-            # get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
-            # --transduction --cr 3 --nd 5 -b ${BAM_LIST}
-            # -p ${TMP_TNSD} --fflank ${SF_FLANK} --flklen 3000 -n 8 -i ${PREFIX}"candidate_disc_filtered_cns.txt" 
-            # -r ${L1_CNS} --ref ${REF} --input2 ${PREFIX}"candidate_list_from_disc.txt.clip_sites_raw_disc.txt" 
-            # --rtype 2 -a ${ANNOTATION1}    -o ${PREFIX}"candidate_disc_filtered_cns2.txt"
-
-
+            get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
 
             #sibling
-            # time python ${XTEA_PATH}"x_TEA_main.py" --sibling --cr 3 --nd 5 -b ${BAM_LIST} 
-            # -p ${TMP_TNSD} --fflank ${SF_FLANK} --flklen 3000 -n 8 -i ${PREFIX}"candidate_disc_filtered_cns2.txt" 
-            # -r ${L1_CNS} --ref ${REF} --input2 ${PREFIX}"candidate_list_from_disc.txt.clip_sites_raw_disc.txt" 
-            # --rtype 2 -a ${ANNOTATION1} --blacklist ${BLACK_LIST}    -o ${PREFIX}"candidate_sibling_transduction2.txt"
+            get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
             
-            
-            
-            
-            #filter
-            # time python ${XTEA_PATH}"x_TEA_main.py" --postF --rtype 2 -p ${TMP_CNS} -n 8 
-            # -i ${PREFIX}"candidate_disc_filtered_cns2.txt" -a ${ANNOTATION1}   
-            # -o ${PREFIX}"candidate_disc_filtered_cns_post_filtering.txt"
-
-            # time python ${XTEA_PATH}"x_TEA_main.py" --postF --rtype 2 -p ${TMP_CNS} -n 8 
-            # -i ${PREFIX}"candidate_disc_filtered_cns2.txt.high_confident" -a ${ANNOTATION1} 
-            # --blacklist ${BLACK_LIST}   -o ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt"
+            #filter ( WHY DOES THIS HAPPEN 2x??? )
+            filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
+            # filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
 
 
             #annotate

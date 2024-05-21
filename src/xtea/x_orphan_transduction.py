@@ -36,56 +36,51 @@ class XOrphanTransduction(XTransduction):
                                            xannotation, i_rep_type, i_max_cov, sf_updated_cns, sf_sibling_TD):
         # for each site, parse the alignment
         m_merged_info = {}
-        with open(sf_bam_list) as fin_bam_list:
-            icnt = 0
-            for bam_line in fin_bam_list:  # for each bam file
-                bam_fields = bam_line.split()
-                sf_bam = bam_fields[0]
-                ####
-                l_chrm_records = []
-                with open(sf_cns_sites) as fin_list:
-                    for line in fin_list:
-                        sline = line.rstrip()
-                        fields = sline.split()
-                        if len(fields) <= 1:
-                            continue
-                        chrm = fields[0]
-                        pos = int(fields[1])  # candidate insertion site
-                        # here the last par is set to "0", as we don't set cutoff here
-                        one_record = ((chrm, pos, extnd), sf_bam, self.working_folder, 0)
-                        l_chrm_records.append(one_record)
-                        # tmp_rslt=self.parse_td_sibling_by_site(one_record)
-                        # rslts.append(tmp_rslt)
-                ####
-                pool = Pool(self.n_jobs)
-                rslts = pool.map(unwrap_parse_td_sibling_from_bam,
-                                 list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
-                pool.close()
-                pool.join()
+        for sf_bam in sf_bam_list:  # for each bam file
+            l_chrm_records = []
+            with open(sf_cns_sites) as fin_list:
+                for line in fin_list:
+                    sline = line.rstrip()
+                    fields = sline.split()
+                    if len(fields) <= 1:
+                        continue
+                    chrm = fields[0]
+                    pos = int(fields[1])  # candidate insertion site
+                    # here the last par is set to "0", as we don't set cutoff here
+                    one_record = ((chrm, pos, extnd), sf_bam, self.working_folder, 0)
+                    l_chrm_records.append(one_record)
+                    # tmp_rslt=self.parse_td_sibling_by_site(one_record)
+                    # rslts.append(tmp_rslt)
+            ####
+            pool = Pool(self.n_jobs)
+            rslts = pool.map(unwrap_parse_td_sibling_from_bam,
+                                list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
+            pool.close()
+            pool.join()
 
-                #chrm, insertion_pos, True, False, s_lmchrm, i_lpos
-                for (tmp_chrm, tmp_pos, blcluster, brcluster, s_src_chrm, i_src_pos, nspot) in rslts:
-                    if blcluster == False and brcluster == False:
+            #chrm, insertion_pos, True, False, s_lmchrm, i_lpos
+            for (tmp_chrm, tmp_pos, blcluster, brcluster, s_src_chrm, i_src_pos, nspot) in rslts:
+                if blcluster == False and brcluster == False:
+                    continue
+                if blcluster == True and brcluster == True:
+                    continue
+                if tmp_chrm not in m_merged_info:
+                    m_merged_info[tmp_chrm] = {}
+                if tmp_pos not in m_merged_info[tmp_chrm]:
+                    m_merged_info[tmp_chrm][tmp_pos] = (blcluster, brcluster, s_src_chrm, i_src_pos, nspot)
+                else:  # already exist:
+                    tmp_rcd = m_merged_info[tmp_chrm][tmp_pos]
+                    # different bams must have same pattern! (same source, same-side-cluster)
+                    if blcluster != tmp_rcd[0] or brcluster != tmp_rcd[1] or s_src_chrm != tmp_rcd[2]:
                         continue
-                    if blcluster == True and brcluster == True:
+                    if abs(i_src_pos - tmp_rcd[3]) > xtea.global_values.MAX_NORMAL_INSERT_SIZE:
                         continue
-                    if tmp_chrm not in m_merged_info:
-                        m_merged_info[tmp_chrm] = {}
-                    if tmp_pos not in m_merged_info[tmp_chrm]:
-                        m_merged_info[tmp_chrm][tmp_pos] = (blcluster, brcluster, s_src_chrm, i_src_pos, nspot)
-                    else:  # already exist:
-                        tmp_rcd = m_merged_info[tmp_chrm][tmp_pos]
-                        # different bams must have same pattern! (same source, same-side-cluster)
-                        if blcluster != tmp_rcd[0] or brcluster != tmp_rcd[1] or s_src_chrm != tmp_rcd[2]:
-                            continue
-                        if abs(i_src_pos - tmp_rcd[3]) > xtea.global_values.MAX_NORMAL_INSERT_SIZE:
-                            continue
-                        if tmp_rcd[4] > nspot:
-                            m_merged_info[tmp_chrm][tmp_pos] = (
-                            blcluster, brcluster, s_src_chrm, tmp_rcd[3], nspot + tmp_rcd[4])
-                        else:
-                            m_merged_info[tmp_chrm][tmp_pos] = (
-                            blcluster, brcluster, s_src_chrm, i_src_pos, nspot + tmp_rcd[4])
+                    if tmp_rcd[4] > nspot:
+                        m_merged_info[tmp_chrm][tmp_pos] = (
+                        blcluster, brcluster, s_src_chrm, tmp_rcd[3], nspot + tmp_rcd[4])
+                    else:
+                        m_merged_info[tmp_chrm][tmp_pos] = (
+                        blcluster, brcluster, s_src_chrm, i_src_pos, nspot + tmp_rcd[4])
 ####
         # load in the "one-side" related candidates
         rslt_parser = XTEARsltParser()
@@ -232,84 +227,79 @@ class XOrphanTransduction(XTransduction):
         x_blklist = XBlackList()
         x_blklist.load_index_regions(sf_black_list)
         # for each site, parse the alignment
-        m_merged_info = {}#
-        with open(sf_bam_list) as fin_bam_list:
-            icnt = 0
-            for bam_line in fin_bam_list:  # for each bam file
-                bam_fields = bam_line.split()
-                sf_bam = bam_fields[0]
-
-                m_chrms={}
-                sf_tmp_file=sf_raw_sites+".tmp"
-                with open(sf_raw_sites) as fin_list, open(sf_tmp_file, "w") as fout_tmp:
-                    for line in fin_list:
-                        sline = line.rstrip()
-                        fields = sline.split()
-                        if len(fields) <= 1:
-                            continue
-                        chrm = fields[0]
-                        pos = int(fields[1])  # candidate insertion site
-                        # filter out fall in black list ones
-                        b_in_blacklist, tmp_pos2 = x_blklist.fall_in_region(chrm, int(pos))
-                        if b_in_blacklist == True:
-                            print("{0}:{1} fall in black list region, filtered out!".format(chrm, pos))
-                            continue
-
-                        m_chrms[chrm]=1
-                        fout_tmp.write(str(chrm)+"\t"+str(pos)+"\n")
-
-                l_chrm_records = []
-                for chrm in m_chrms:
-                    n_tmp_polyA_cutoff=n_clip_cutoff/2
-                    n_half_disc_cutoff=n_disc_cutoff/2
-                    one_record=((chrm, extnd, sf_tmp_file), sf_bam, self.working_folder, sf_rmsk,
-                                n_tmp_polyA_cutoff, n_half_disc_cutoff)
-                    l_chrm_records.append(one_record)
-                    #self.parse_td_sibling_by_site_novel_sites(one_record) #for test only
-
-                pool = Pool(self.n_jobs)
-                rslts = pool.map(unwrap_parse_novel_td_sibling_from_bam,
-                                 list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
-                pool.close()
-                pool.join()
-
-                l_tmp_candidates=[]
-                for chrm_rcds in rslts:
-                    for rcd in chrm_rcds:
-                        l_tmp_candidates.append((rcd, sf_bam))
-                # #check the "source region" in parallel
-                pool = Pool(self.n_jobs)
-                l_tmp_candidates2 = pool.map(unwrap_check_candidate_source_region_from_bam,
-                                 list(zip([self] * len(l_tmp_candidates), l_tmp_candidates)), 1)
-                pool.close()
-                pool.join()
-
-                for rcd in l_tmp_candidates2:
-                    if rcd is None:
+        m_merged_info = {}
+        for sf_bam in sf_bam_list:  # for each bam file
+            m_chrms={}
+            sf_tmp_file=sf_raw_sites+".tmp"
+            with open(sf_raw_sites) as fin_list, open(sf_tmp_file, "w") as fout_tmp:
+                for line in fin_list:
+                    sline = line.rstrip()
+                    fields = sline.split()
+                    if len(fields) <= 1:
                         continue
-                    (tmp_chrm, tmp_pos, s_src_chrm, i_src_lpos, i_src_rpos, n_lclip, n_rclip,
-                     n_lpolyA, n_rpolyA, nlspot, nrspot, n_l_rc, n_l_nrc, n_r_rc, n_r_nrc, f_lcov, f_rcov)=rcd
-                    if tmp_chrm not in m_merged_info:
-                        m_merged_info[tmp_chrm] = {}
-                    if tmp_pos not in m_merged_info[tmp_chrm]:
-                        m_merged_info[tmp_chrm][tmp_pos] = (s_src_chrm, i_src_lpos, i_src_rpos, n_lclip, n_rclip,
-                                                            n_lpolyA, n_rpolyA, nlspot, nrspot,
-                                                            n_l_rc, n_l_nrc, n_r_rc, n_r_nrc, f_lcov, f_rcov)
-                    else:# already exist:
-                        tmp_rcd = m_merged_info[tmp_chrm][tmp_pos]
-                        # different bams must have same pattern! (same source, same-side-cluster)
-                        if tmp_rcd[0]!=s_src_chrm:
-                            continue#
-                        if abs(i_src_lpos - tmp_rcd[1]) > xtea.global_values.MAX_NORMAL_INSERT_SIZE:
-                            continue
-                        if abs(i_src_rpos - tmp_rcd[2]) > xtea.global_values.MAX_NORMAL_INSERT_SIZE:
-                            continue
+                    chrm = fields[0]
+                    pos = int(fields[1])  # candidate insertion site
+                    # filter out fall in black list ones
+                    b_in_blacklist, tmp_pos2 = x_blklist.fall_in_region(chrm, int(pos))
+                    if b_in_blacklist == True:
+                        print("{0}:{1} fall in black list region, filtered out!".format(chrm, pos))
+                        continue
 
-                        new_rcd=(s_src_chrm, i_src_lpos, i_src_rpos, n_lclip+tmp_rcd[3], n_rclip+tmp_rcd[4],
-                                 n_lpolyA+tmp_rcd[5], n_rpolyA+tmp_rcd[6], nlspot+tmp_rcd[7], nrspot+tmp_rcd[8],
-                                 n_l_rc+tmp_rcd[9], n_l_nrc+tmp_rcd[10], n_r_rc+tmp_rcd[11], n_r_nrc+tmp_rcd[12],
-                                 f_lcov+tmp_rcd[13], f_rcov+tmp_rcd[14])
-                        m_merged_info[tmp_chrm][tmp_pos] = new_rcd
+                    m_chrms[chrm]=1
+                    fout_tmp.write(str(chrm)+"\t"+str(pos)+"\n")
+
+            l_chrm_records = []
+            for chrm in m_chrms:
+                n_tmp_polyA_cutoff=n_clip_cutoff/2
+                n_half_disc_cutoff=n_disc_cutoff/2
+                one_record=((chrm, extnd, sf_tmp_file), sf_bam, self.working_folder, sf_rmsk,
+                            n_tmp_polyA_cutoff, n_half_disc_cutoff)
+                l_chrm_records.append(one_record)
+                #self.parse_td_sibling_by_site_novel_sites(one_record) #for test only
+
+            pool = Pool(self.n_jobs)
+            rslts = pool.map(unwrap_parse_novel_td_sibling_from_bam,
+                                list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
+            pool.close()
+            pool.join()
+
+            l_tmp_candidates=[]
+            for chrm_rcds in rslts:
+                for rcd in chrm_rcds:
+                    l_tmp_candidates.append((rcd, sf_bam))
+            # #check the "source region" in parallel
+            pool = Pool(self.n_jobs)
+            l_tmp_candidates2 = pool.map(unwrap_check_candidate_source_region_from_bam,
+                                list(zip([self] * len(l_tmp_candidates), l_tmp_candidates)), 1)
+            pool.close()
+            pool.join()
+
+            for rcd in l_tmp_candidates2:
+                if rcd is None:
+                    continue
+                (tmp_chrm, tmp_pos, s_src_chrm, i_src_lpos, i_src_rpos, n_lclip, n_rclip,
+                    n_lpolyA, n_rpolyA, nlspot, nrspot, n_l_rc, n_l_nrc, n_r_rc, n_r_nrc, f_lcov, f_rcov)=rcd
+                if tmp_chrm not in m_merged_info:
+                    m_merged_info[tmp_chrm] = {}
+                if tmp_pos not in m_merged_info[tmp_chrm]:
+                    m_merged_info[tmp_chrm][tmp_pos] = (s_src_chrm, i_src_lpos, i_src_rpos, n_lclip, n_rclip,
+                                                        n_lpolyA, n_rpolyA, nlspot, nrspot,
+                                                        n_l_rc, n_l_nrc, n_r_rc, n_r_nrc, f_lcov, f_rcov)
+                else:# already exist:
+                    tmp_rcd = m_merged_info[tmp_chrm][tmp_pos]
+                    # different bams must have same pattern! (same source, same-side-cluster)
+                    if tmp_rcd[0]!=s_src_chrm:
+                        continue#
+                    if abs(i_src_lpos - tmp_rcd[1]) > xtea.global_values.MAX_NORMAL_INSERT_SIZE:
+                        continue
+                    if abs(i_src_rpos - tmp_rcd[2]) > xtea.global_values.MAX_NORMAL_INSERT_SIZE:
+                        continue
+
+                    new_rcd=(s_src_chrm, i_src_lpos, i_src_rpos, n_lclip+tmp_rcd[3], n_rclip+tmp_rcd[4],
+                                n_lpolyA+tmp_rcd[5], n_rpolyA+tmp_rcd[6], nlspot+tmp_rcd[7], nrspot+tmp_rcd[8],
+                                n_l_rc+tmp_rcd[9], n_l_nrc+tmp_rcd[10], n_r_rc+tmp_rcd[11], n_r_nrc+tmp_rcd[12],
+                                f_lcov+tmp_rcd[13], f_rcov+tmp_rcd[14])
+                    m_merged_info[tmp_chrm][tmp_pos] = new_rcd
 ####
 
         m_site_info = {}
@@ -674,54 +664,49 @@ class XOrphanTransduction(XTransduction):
         x_blklist.load_index_regions(sf_black_list)
         # for each site, parse the alignment
         m_failed_sites={}
-        with open(sf_bam_list) as fin_bam_list:
-            icnt = 0
-            for bam_line in fin_bam_list:  # for each bam file
-                bam_fields = bam_line.split()
-                sf_bam = bam_fields[0]
+        for sf_bam in sf_bam_list:  # for each bam file
+            m_chrms = {}
+            sf_tmp_file = sf_ori_td_sites + ".tmp"
+            with open(sf_ori_td_sites) as fin_list, open(sf_tmp_file, "w") as fout_tmp:
+                for line in fin_list:
+                    # if xtea.global_values.NOT_TRANSDUCTION in line:#only check transduction cases
+                    #     continue
+                    sline = line.rstrip()
+                    fields = sline.split()
+                    if len(fields) <= 1:
+                        continue
+                    chrm = fields[0]
+                    pos = int(fields[1])  # candidate insertion site
+                    # filter out fall in black list ones
+                    b_in_blacklist, tmp_pos2 = x_blklist.fall_in_region(chrm, int(pos))
+                    if b_in_blacklist == True:
+                        print("{0}:{1} fall in black list region, filtered out!".format(chrm, pos))
+                        continue
 
-                m_chrms = {}
-                sf_tmp_file = sf_ori_td_sites + ".tmp"
-                with open(sf_ori_td_sites) as fin_list, open(sf_tmp_file, "w") as fout_tmp:
-                    for line in fin_list:
-                        # if xtea.global_values.NOT_TRANSDUCTION in line:#only check transduction cases
-                        #     continue
-                        sline = line.rstrip()
-                        fields = sline.split()
-                        if len(fields) <= 1:
-                            continue
-                        chrm = fields[0]
-                        pos = int(fields[1])  # candidate insertion site
-                        # filter out fall in black list ones
-                        b_in_blacklist, tmp_pos2 = x_blklist.fall_in_region(chrm, int(pos))
-                        if b_in_blacklist == True:
-                            print("{0}:{1} fall in black list region, filtered out!".format(chrm, pos))
-                            continue
+                    m_chrms[chrm] = 1
+                    fout_tmp.write(str(chrm) + "\t" + str(pos) + "\n")
 
-                        m_chrms[chrm] = 1
-                        fout_tmp.write(str(chrm) + "\t" + str(pos) + "\n")
+            l_chrm_records = []
+            for chrm in m_chrms:
+                n_tmp_polyA_cutoff = n_clip_cutoff / 2
+                n_half_disc_cutoff = n_disc_cutoff / 2
+                one_record = ((chrm, extnd, sf_tmp_file), sf_bam, self.working_folder, sf_rmsk,
+                                n_tmp_polyA_cutoff, n_half_disc_cutoff)
+                l_chrm_records.append(one_record)
+                # self.parse_td_sibling_by_site_novel_sites(one_record) #for test only
 
-                l_chrm_records = []
-                for chrm in m_chrms:
-                    n_tmp_polyA_cutoff = n_clip_cutoff / 2
-                    n_half_disc_cutoff = n_disc_cutoff / 2
-                    one_record = ((chrm, extnd, sf_tmp_file), sf_bam, self.working_folder, sf_rmsk,
-                                  n_tmp_polyA_cutoff, n_half_disc_cutoff)
-                    l_chrm_records.append(one_record)
-                    # self.parse_td_sibling_by_site_novel_sites(one_record) #for test only
-
-                pool = Pool(self.n_jobs)
-                failed_rcds = pool.map(unwrap_filter_ori_td_from_bam,
-                                 list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
-                pool.close()
-                pool.join()
-                for chrm_rcd in failed_rcds:
-                    for rcd in chrm_rcd:
-                        tmp_chrm=rcd[0]
-                        tmp_pos=int(rcd[1])
-                        if tmp_chrm  not in m_failed_sites:
-                            m_failed_sites[tmp_chrm]={}
-                        m_failed_sites[tmp_chrm][tmp_pos]=1
+            pool = Pool(self.n_jobs)
+            failed_rcds = pool.map(unwrap_filter_ori_td_from_bam,
+                                list(zip([self] * len(l_chrm_records), l_chrm_records)), 1)
+            pool.close()
+            pool.join()
+            for chrm_rcd in failed_rcds:
+                for rcd in chrm_rcd:
+                    tmp_chrm=rcd[0]
+                    tmp_pos=int(rcd[1])
+                    if tmp_chrm  not in m_failed_sites:
+                        m_failed_sites[tmp_chrm]={}
+                    m_failed_sites[tmp_chrm][tmp_pos]=1
         return m_failed_sites
 
 ####

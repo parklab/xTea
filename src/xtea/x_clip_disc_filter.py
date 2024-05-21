@@ -1139,7 +1139,7 @@ class XClipDiscFilter():
                 b_partial_clip = True
 
             if b_tailed_disc == False and b_partial_disc == False and b_tailed_clip == False and b_partial_clip == False:
-                xlog.append_to_file(f_log, "{0}:{1} is filtered out: {2} {3} {4} {5}!\n".format(ins_chrm, ins_pos, min_cns_end, ildisc_end, irdisc_end, ilclip_end, irclip_end))
+                xlog.append_to_file(f_log, "{0}:{1} is filtered out: {2} {3} {4} {5}!\n".format(ins_chrm, ins_pos, min_cns_end, ildisc_end, irdisc_end, ilclip_end))
                 xlog.append_to_file(f_log, "{0}:{1} is filtered out: Disc or clip cluster doesn't reach the end of cns"
                                            "!\n".format(ins_chrm, ins_pos))
                 continue
@@ -1563,16 +1563,6 @@ class XClipDiscFilter():
         if min_len > i_acm_len:
             min_len = i_acm_len
         return min_len
-
-    ####
-    def cnt_n_bams(self, sf_bam):
-        n_cnt = 0
-        with open(sf_bam) as fin_bam:
-            for line in fin_bam:
-                sinfo = line.rstrip()
-                if len(sinfo) > 1:
-                    n_cnt += 1
-        return n_cnt
 
 
     # check whether the clipped parts aligned on the repeat copies are clustered in a region
