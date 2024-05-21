@@ -464,7 +464,7 @@ def filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd):
         
 
 
-def annotate_genes(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
+def annotate_genes(options,output_dir):
 
     s_working_folder = output_dir
     sf_input=f"{s_working_folder}/candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt"
