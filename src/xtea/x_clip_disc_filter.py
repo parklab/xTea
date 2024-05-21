@@ -2313,3 +2313,30 @@ class XClipDiscFilter():
                 self.clean_file_by_path(sf_disc_fa_tmp)
                 self.clean_file_by_path(sf_clip_fa_tmp)
         return m_lowq_clip
+    
+####
+# for given a lits of candidate sites, and a given list of bam files
+# get all the clipped and discordant reads
+# also add the sample id when merging the reads
+def collect_clipped_reads(self, sf_candidate_list, extnd, sf_clip_fq):
+    with open(sf_clip_fq, "w") as fout_clip_fq:
+        # first collect all the clipped and discordant reads
+        sample_cnt = 0
+        with open(self.sf_bam_list) as fin_bam_list:
+            for line in fin_bam_list:  # for each bam file
+                fields=line.split()
+                sf_bam = fields[0]
+                xclip_disc = XClipDisc(sf_bam, self.working_folder, self.n_jobs, self.sf_reference)
+                sf_clip_fa_tmp = self.working_folder + "temp_clip.fq" + str(sample_cnt)
+                ####collect clipped and disc reads
+                xclip_disc.collect_clipped_reads_of_given_list(sf_candidate_list, extnd, sf_clip_fa_tmp)
+                with open(sf_clip_fa_tmp) as fin_clip_fq:
+                    n_cnt = 0
+                    for line in fin_clip_fq:
+                        if n_cnt % 4 == 0:
+                            line = line.rstrip() + xtea.global_values.SEPERATOR + str(sample_cnt) + "\n"
+                        fout_clip_fq.write(line)
+                        n_cnt += 1
+                sample_cnt += 1
+                #clean the temporary files
+                self.clean_file_by_path(sf_clip_fa_tmp)

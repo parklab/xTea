@@ -57,6 +57,7 @@ def parse_toml_args():
     # annotation directories:
     p.add("--rep_lib_annot_dir",required = True, help = 'Path to rep_lib_annotation/ directory')
     p.add("--genome_reference",required = True, help = 'Path to genome fasta file')
+    p.add("--genome_gff3",required = True, help = 'Path to genome annotation file (.gff3 format)')
 
     # output directories:
     p.add("-o","--output_dir",required = True, help = 'Output directory',default = '.')

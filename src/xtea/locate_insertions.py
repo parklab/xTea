@@ -11,6 +11,7 @@ from shutil import copyfile
 
 import xtea.global_values
 from xtea.x_TEI_locator import TE_Multi_Locator
+import xtea.x_annotation
 from xtea.x_intermediate_sites import XIntermediateSites
 from xtea.x_basic_info import X_BasicInfo
 from xtea.x_parameter import Parameters
@@ -20,6 +21,8 @@ from xtea.x_orphan_transduction import XOrphanTransduction
 from xtea.x_mosaic_calling import MosaicCaller
 from xtea.x_post_filter import XPostFilter
 from xtea.x_gvcf import gVCF
+from xtea.x_gene_annotation import GFF3
+
 
 
 def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_force=False, b_tumor=False, f_purity=0.45):
@@ -463,7 +466,21 @@ def filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd):
 
 def annotate_genes(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
 
-    return
+    s_working_folder = output_dir
+    sf_input=f"{s_working_folder}/candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt"
+    sf_output=f"{s_working_folder}/candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt"
+    
+    sf_gene_annotation=options.genome_gff3
+
+    gff=GFF3(sf_gene_annotation)
+    iextnd=xtea.global_values.UP_DOWN_GENE
+    i_user_extnd = options.extend
+    if i_user_extnd>iextnd:
+        iextnd=i_user_extnd
+    gff.load_gene_annotation_with_extnd(iextnd)
+    gff.index_gene_annotation_interval_tree()
+    gff.annotate_results(sf_input, sf_output)
+
 
 def call_genotypes(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
     return
