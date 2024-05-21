@@ -880,53 +880,53 @@ class XTPRTFilter():
 #         return True
 
 # ####
-# class AFConflictFilter():
-#     def __init__(self, swfolder, n_jobs):
-#         self.swfolder = swfolder
-#         if self.swfolder[-1] != "/":
-#             self.swfolder += "/"
-#         self.n_jobs = n_jobs
+class AFConflictFilter():
+    def __init__(self, swfolder, n_jobs):
+        self.swfolder = swfolder
+        if self.swfolder[-1] != "/":
+            self.swfolder += "/"
+        self.n_jobs = n_jobs
 
-#     ####
-#     def get_rep_type(self):
-#         l_types = []
-#         l_types.append(xtea.global_values.ONE_SIDE_FLANKING)
-#         l_types.append(xtea.global_values.TWO_SIDE)
-#         l_types.append(xtea.global_values.TWO_SIDE_TPRT_BOTH)
-#         l_types.append(xtea.global_values.TWO_SIDE_TPRT)
-#         l_types.append(xtea.global_values.ONE_HALF_SIDE)
-#         l_types.append(xtea.global_values.ONE_HALF_SIDE_TRPT_BOTH)
-#         l_types.append(xtea.global_values.ONE_HALF_SIDE_TRPT)
-#         l_types.append(xtea.global_values.ONE_HALF_SIDE_POLYA_DOMINANT)
-#         l_types.append(xtea.global_values.ONE_SIDE)
-#         l_types.append(xtea.global_values.ONE_SIDE_COVERAGE_CONFLICT)
-#         l_types.append(xtea.global_values.ONE_SIDE_TRSDCT)
-#         l_types.append(xtea.global_values.ONE_SIDE_WEAK)
-#         l_types.append(xtea.global_values.ONE_SIDE_OTHER)
-#         l_types.append(xtea.global_values.ONE_SIDE_SV)
-#         l_types.append(xtea.global_values.ONE_SIDE_POLYA_DOMINANT)
-#         l_types.append(xtea.global_values.TWO_SIDE_POLYA_DOMINANT)
-#         l_types.append(xtea.global_values.HIGH_COV_ISD)
-#         l_types.append(xtea.global_values.OTHER_TYPE)
-#         return l_types
+    ####
+    def get_rep_type(self):
+        l_types = []
+        l_types.append(xtea.global_values.ONE_SIDE_FLANKING)
+        l_types.append(xtea.global_values.TWO_SIDE)
+        l_types.append(xtea.global_values.TWO_SIDE_TPRT_BOTH)
+        l_types.append(xtea.global_values.TWO_SIDE_TPRT)
+        l_types.append(xtea.global_values.ONE_HALF_SIDE)
+        l_types.append(xtea.global_values.ONE_HALF_SIDE_TRPT_BOTH)
+        l_types.append(xtea.global_values.ONE_HALF_SIDE_TRPT)
+        l_types.append(xtea.global_values.ONE_HALF_SIDE_POLYA_DOMINANT)
+        l_types.append(xtea.global_values.ONE_SIDE)
+        l_types.append(xtea.global_values.ONE_SIDE_COVERAGE_CONFLICT)
+        l_types.append(xtea.global_values.ONE_SIDE_TRSDCT)
+        l_types.append(xtea.global_values.ONE_SIDE_WEAK)
+        l_types.append(xtea.global_values.ONE_SIDE_OTHER)
+        l_types.append(xtea.global_values.ONE_SIDE_SV)
+        l_types.append(xtea.global_values.ONE_SIDE_POLYA_DOMINANT)
+        l_types.append(xtea.global_values.TWO_SIDE_POLYA_DOMINANT)
+        l_types.append(xtea.global_values.HIGH_COV_ISD)
+        l_types.append(xtea.global_values.OTHER_TYPE)
+        return l_types
 
-# ####
-#     ####
-#     def get_cutoff_by_type(self, l_types, b_tumor=False):
-#         m_cutoff = {}
-#         for s_type in l_types:
-#             if b_tumor==True:
-#                 m_cutoff[s_type] = (0.001, 0.001, 0.001, 0.001)
-#                 continue
-#             if ("two_side" in s_type) or ("both-side" in s_type) or (xtea.global_values.ONE_SIDE_TRSDCT is s_type):
-#                 m_cutoff[s_type] = (0.075, 0.075, 0.075, 0.075)
-#             elif "one_side" in s_type:  #
-#                 m_cutoff[s_type] = (0.075, 0.075, 0.075, 0.075)
-#             elif ("one_half" in s_type) or ("one-half" in s_type):
-#                 m_cutoff[s_type] = (0.075, 0.075, 0.075, 0.075)
-#             else:
-#                 m_cutoff[s_type] = (0.075, 0.075, 0.075, 0.075)
-#         return m_cutoff
+####
+    ####
+    def get_cutoff_by_type(self, l_types, b_tumor=False):
+        m_cutoff = {}
+        for s_type in l_types:
+            if b_tumor==True:
+                m_cutoff[s_type] = (0.001, 0.001, 0.001, 0.001)
+                continue
+            if ("two_side" in s_type) or ("both-side" in s_type) or (xtea.global_values.ONE_SIDE_TRSDCT is s_type):
+                m_cutoff[s_type] = (0.075, 0.075, 0.075, 0.075)
+            elif "one_side" in s_type:  #
+                m_cutoff[s_type] = (0.075, 0.075, 0.075, 0.075)
+            elif ("one_half" in s_type) or ("one-half" in s_type):
+                m_cutoff[s_type] = (0.075, 0.075, 0.075, 0.075)
+            else:
+                m_cutoff[s_type] = (0.075, 0.075, 0.075, 0.075)
+        return m_cutoff
 
 #     def is_qualified_td(self, rcd):
 #         n_disc = int(rcd[39])
