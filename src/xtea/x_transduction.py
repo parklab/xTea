@@ -1096,8 +1096,6 @@ class XTransduction():
 
     ###
     def _chk_decoy_cns_cnt(self, m_trsdct, m_Alu, m_L1, m_SVA, n_cutoff, i_rep_type):
-        if i_rep_type<0:
-            return m_trsdct
         m_slct={}
         for ins_chrm in m_trsdct:
             for ins_pos in m_trsdct[ins_chrm]:

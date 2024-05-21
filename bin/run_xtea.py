@@ -156,21 +156,27 @@ if __name__ == '__main__':
                                                      options.genome)
             
             #perform clipped step:
+            print("Clipped reads step...")
             rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir)
 
             # perform discordant step:
+            print("Discordant reads step...")
             get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd)
 
             # perform filter based on consensus seq:
+            print("Consensus filter step...")
             filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd)
 
             #perform transduction step:
+            print("Transduction step...")
             get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
 
             #sibling
+            print("Sibling step...")
             get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
             
             #filter ( WHY DOES THIS HAPPEN 2x??? )
+            print("Filter step...")
             filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
             # filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
 
