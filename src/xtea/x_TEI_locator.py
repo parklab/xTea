@@ -502,7 +502,7 @@ class TELocator():
             clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
 ####
             # links TP087_S.cram.clipped.fq to pub_clip/TP087_S.cram.clipped.fq
-            cmd=f"mv {sf_all_clip_fq_ori} {sf_all_clip_fq_ori}"
+            cmd=f"mv {sf_all_clip_fq_ori} {sf_all_clip_fq}"
             self.cmd_runner.run_cmd_small_output(cmd)
         else:
             print(("Collected clipped reads file {0} already exist!".format(sf_all_clip_fq)))
@@ -572,7 +572,7 @@ class TELocator():
         clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
 
         # links TP087_S.cram.clipped.fq to pub_clip/TP087_S.cram.clipped.fq
-        cmd=f"mv {sf_all_clip_fq_ori} {sf_all_clip_fq_ori}"
+        cmd=f"mv {sf_all_clip_fq_ori} {sf_all_clip_fq}"
         self.cmd_runner.run_cmd_small_output(cmd)
         # Popen(cmd, shell=True, stdout=PIPE).communicate()
         self.cmd_runner.run_cmd_small_output(cmd)
