@@ -164,35 +164,35 @@ if __name__ == '__main__':
             print("Clipped reads step...")
             rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir)
             curr_time = time.time() - start
-            print(f"CLIP STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
+            print(f'CLIP STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}')
 
             start = time.time()
             # perform discordant step:
             print("Discordant reads step...")
             get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd)
             curr_time = time.time() - start
-            print(f"DISC STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
+            print(f'DISC STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}')
 
             start = time.time()
             # perform filter based on consensus seq:
             print("Consensus filter step...")
             filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd)
             curr_time = time.time() - start
-            print(f"CNS STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
+            print(f'CNS STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}')
             start = time.time()
 
             #perform transduction step:
             print("Transduction step...")
             get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
             curr_time = time.time() - start
-            print(f"TRANS STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
+            print(f'TRANS STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}')
             start = time.time()
 
             #sibling
             print("Sibling step...")
             get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
             curr_time = time.time() - start
-            print(f"SIB STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
+            print(f'SIB STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}')
             start = time.time()
 
             #filter ( WHY DOES THIS HAPPEN 2x??? )
@@ -200,7 +200,7 @@ if __name__ == '__main__':
             filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
             # filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
             curr_time = time.time() - start
-            print(f"FILTER STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
+            print(f'FILTER STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}')
             start = time.time()
 
             #annotate
