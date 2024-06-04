@@ -7,6 +7,7 @@
 from pathlib import Path
 import configargparse
 from xtea.locate_insertions import get_clip_sites,get_disc_sites,filter_csn,get_transduction,get_sibling,filter_sites_post,annotate_genes,call_genotypes, generate_VCF
+import time
 
 
 ## run_xtea -c config.toml -i bam_list (or file) -o output_dir
@@ -141,6 +142,10 @@ def setup_output_dir(out_dir,tmp_dir,sample_name,repeat):
 #   - fflank file not used at all
 
 if __name__ == '__main__':
+
+
+    start = time.time()
+
     options = parse_toml_args()
 
     germline = True
@@ -158,28 +163,45 @@ if __name__ == '__main__':
             #perform clipped step:
             print("Clipped reads step...")
             rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir)
+            curr_time = time.time() - start
+            print(f"CLIP STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
 
+            start = time.time()
             # perform discordant step:
             print("Discordant reads step...")
             get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd)
+            curr_time = time.time() - start
+            print(f"DISC STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
 
+            start = time.time()
             # perform filter based on consensus seq:
             print("Consensus filter step...")
             filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd)
+            curr_time = time.time() - start
+            print(f"CNS STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
+            start = time.time()
 
             #perform transduction step:
             print("Transduction step...")
             get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
+            curr_time = time.time() - start
+            print(f"TRANS STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
+            start = time.time()
 
             #sibling
             print("Sibling step...")
             get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
-            
+            curr_time = time.time() - start
+            print(f"SIB STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
+            start = time.time()
+
             #filter ( WHY DOES THIS HAPPEN 2x??? )
             print("Filter step...")
             filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
             # filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
-
+            curr_time = time.time() - start
+            print(f"FILTER STEP FINISHED:,{time.strftime("%Hh%Mm%Ss", curr_time)}")
+            start = time.time()
 
             #annotate
             # time python ${XTEA_PATH}"x_TEA_main.py" --gene -a ${GENE} 
