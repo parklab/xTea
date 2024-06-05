@@ -164,7 +164,7 @@ if __name__ == '__main__':
             print("Clipped reads step...")
             rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir)
             curr_time = time.time() - start
-            t = time.strftime("%Hh%Mm%Ss", curr_time)
+            t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
             print(f"CLIP STEP FINISHED:,{t}")
             start = time.time()
 
@@ -173,7 +173,7 @@ if __name__ == '__main__':
             print("Discordant reads step...")
             get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd)
             curr_time = time.time() - start
-            t = time.strftime("%Hh%Mm%Ss", curr_time)
+            t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
             print(f"DISC STEP FINISHED:,{t}")
             start = time.time()
             
@@ -181,7 +181,7 @@ if __name__ == '__main__':
             print("Consensus filter step...")
             filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd)
             curr_time = time.time() - start
-            t = time.strftime("%Hh%Mm%Ss", curr_time)
+            t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
             print(f"CNS STEP FINISHED:,{t}")
             start = time.time()
 
@@ -189,7 +189,7 @@ if __name__ == '__main__':
             print("Transduction step...")
             get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
             curr_time = time.time() - start
-            t = time.strftime("%Hh%Mm%Ss", curr_time)
+            t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
             print(f"TRANSD STEP FINISHED:,{t}")
             start = time.time()
 
@@ -197,7 +197,7 @@ if __name__ == '__main__':
             print("Sibling step...")
             get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
             curr_time = time.time() - start
-            t = time.strftime("%Hh%Mm%Ss", curr_time)
+            t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
             print(f"SIB STEP FINISHED:,{t}")
             start = time.time()
 
@@ -206,7 +206,7 @@ if __name__ == '__main__':
             filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
             # filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
             curr_time = time.time() - start
-            t = time.strftime("%Hh%Mm%Ss", curr_time)
+            t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
             print(f"FILTER STEP FINISHED:,{t}")
             start = time.time()
 
