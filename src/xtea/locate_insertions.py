@@ -99,12 +99,12 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
     if cutoff_clip_mate_in_rep is None: 
         cutoff_clip_mate_in_rep=rcd[2]
     else:
-        rcd[2] = cutoff_clip_mate_in_rep # set to user preset
+        rcd = (rcd[0],rcd[1],cutoff_clip_mate_in_rep) # set to user preset
     if cutoff_left_clip is None:
         cutoff_left_clip=rcd[0]
         cutoff_right_clip=rcd[0]
     else:
-        rcd[0] = cutoff_left_clip # set to user preset
+        rcd = (cutoff_left_clip, rcd[1],rcd[2]) # set to user preset
 
 
     if b_resume is False or os.path.isfile(sf_out) is False:
@@ -173,7 +173,7 @@ def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd):
         n_disc_cutoff = options.nd
         if n_disc_cutoff is None:
             n_disc_cutoff = rcd[1]
-            rcd[1] = n_disc_cutoff
+            rcd = (rcd[0],n_disc_cutoff,rcd[2])
             
         sf_tmp = s_working_folder + "/disc_tmp.list"
         sf_raw_disc=sf_disc_out + xtea.global_values.RAW_DISC_TMP_SUFFIX #save the left and right raw disc for each site
