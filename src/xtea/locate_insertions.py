@@ -378,54 +378,10 @@ def get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
     # sf_black_list = options.blacklist
     sf_black_list = 'NULL' # NOT USED YET??
 
-    if os.path.isfile(sf_flank) == True:  #for Alu and many others, there is no transduction
-        ave_cov = basic_rcd[0]  # ave coverage
-        rlth = basic_rcd[1]  # read length
-        mean_is = basic_rcd[2]  # mean insert size
-        std_var = basic_rcd[3]  # standard derivation
-        print("Mean insert size is: {0}\n".format(mean_is))
-        print("Standard derivation is: {0}\n".format(std_var))
-        max_is = int(mean_is + 3 * std_var)
+    b_resume=options.resume
 
-        i_concord_dist = 550
-        if i_concord_dist < max_is:  # correct the bias
-            i_concord_dist = max_is
-        xtea.global_values.set_read_length(rlth)
-        xtea.global_values.set_insert_size(mean_is) #here set mean inset size
-        xtea.global_values.set_average_cov(ave_cov)
-
-        n_clip_cutoff = rcd[0]
-        n_disc_cutoff = rcd[1]
-
-        xorphan = XOrphanTransduction(s_working_folder, n_jobs, sf_reference)
-        i_min_copy_len = 225
-        xorphan.set_boundary_extend(mean_is)
-        xannotation = xorphan.prep_annotation_interval_tree(sf_rmsk, i_min_copy_len)
-        # 2. Call orphan "sibling" transdcution from non_existing list
-        # sf_sibling_TD2 = sf_output + ".novel_sibling_transduction"
-        b_with_original = False
-        sf_tmp_slct2 = sf_raw_disc + ".slct2"
-        sf_output_tmp = sf_pre_step_out + xtea.global_values.TD_NON_SIBLING_SUFFIX
-        # select the sites to exclude the already called out sites, and filter out sites fall in black_list
-        xorphan.re_slct_with_clip_raw_disc_sites(sf_raw_disc, sf_output_tmp, n_disc_cutoff, xannotation,
-                                                i_rep_type, b_tumor, sf_tmp_slct2, b_with_original)
-
-        #re-select transduction candidates based on disc-clip consistency (clip position encompass disc ones?)
-        m_failed_ori_td=xorphan.distinguish_source_from_insertion_for_td(sf_pre_step_out, sf_bam_list, i_concord_dist,
-                                                                        n_clip_cutoff, n_disc_cutoff, sf_black_list,
-                                                                        sf_rmsk)
-        sf_sibling_TD=sf_output
-        if os.path.isfile(sf_black_list)==False:
-            print("Blacklist file {0} does not exist!".format(sf_black_list))
-        xorphan.call_novel_sibling_TD_from_raw_list(sf_tmp_slct2, sf_bam_list, i_concord_dist, n_clip_cutoff,
-                                                    n_disc_cutoff, sf_black_list, sf_rmsk, sf_sibling_TD)
-
-        ####append the newly called events to existing list
-        xorphan.append_to_existing_list(sf_sibling_TD, sf_pre_step_out, m_failed_ori_td)
-        xorphan.append_to_existing_list(sf_sibling_TD, sf_pre_step_out+xtea.global_values.HIGH_CONFIDENT_SUFFIX,
-                                        m_failed_ori_td)
-    else:
-        if os.path.isfile(sf_pre_step_out)==True:#do td filtering only
+    if b_resume == False or os.path.isfile(sf_output) == False:
+        if os.path.isfile(sf_flank) == True:  #for Alu and many others, there is no transduction
             ave_cov = basic_rcd[0]  # ave coverage
             rlth = basic_rcd[1]  # read length
             mean_is = basic_rcd[2]  # mean insert size
@@ -438,17 +394,64 @@ def get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
             if i_concord_dist < max_is:  # correct the bias
                 i_concord_dist = max_is
             xtea.global_values.set_read_length(rlth)
-            xtea.global_values.set_insert_size(mean_is)  # here set mean inset size
+            xtea.global_values.set_insert_size(mean_is) #here set mean inset size
             xtea.global_values.set_average_cov(ave_cov)
-            
+
             n_clip_cutoff = rcd[0]
             n_disc_cutoff = rcd[1]
+
             xorphan = XOrphanTransduction(s_working_folder, n_jobs, sf_reference)
-            # re-select transduction candidates based on disc-clip consistency (clip position encompass disc ones?)
-            m_failed_ori_td = xorphan.distinguish_source_from_insertion_for_td(sf_pre_step_out, sf_bam_list,
-                                                                                i_concord_dist, n_clip_cutoff,
-                                                                                n_disc_cutoff, sf_black_list, sf_rmsk)
-            xorphan.update_existing_list_only(sf_pre_step_out, m_failed_ori_td)
+            i_min_copy_len = 225
+            xorphan.set_boundary_extend(mean_is)
+            xannotation = xorphan.prep_annotation_interval_tree(sf_rmsk, i_min_copy_len)
+            # 2. Call orphan "sibling" transdcution from non_existing list
+            # sf_sibling_TD2 = sf_output + ".novel_sibling_transduction"
+            b_with_original = False
+            sf_tmp_slct2 = sf_raw_disc + ".slct2"
+            sf_output_tmp = sf_pre_step_out + xtea.global_values.TD_NON_SIBLING_SUFFIX
+            # select the sites to exclude the already called out sites, and filter out sites fall in black_list
+            xorphan.re_slct_with_clip_raw_disc_sites(sf_raw_disc, sf_output_tmp, n_disc_cutoff, xannotation,
+                                                    i_rep_type, b_tumor, sf_tmp_slct2, b_with_original)
+
+            #re-select transduction candidates based on disc-clip consistency (clip position encompass disc ones?)
+            m_failed_ori_td=xorphan.distinguish_source_from_insertion_for_td(sf_pre_step_out, sf_bam_list, i_concord_dist,
+                                                                            n_clip_cutoff, n_disc_cutoff, sf_black_list,
+                                                                            sf_rmsk)
+            sf_sibling_TD=sf_output
+            if os.path.isfile(sf_black_list)==False:
+                print("Blacklist file {0} does not exist!".format(sf_black_list))
+            xorphan.call_novel_sibling_TD_from_raw_list(sf_tmp_slct2, sf_bam_list, i_concord_dist, n_clip_cutoff,
+                                                        n_disc_cutoff, sf_black_list, sf_rmsk, sf_sibling_TD)
+
+            ####append the newly called events to existing list
+            xorphan.append_to_existing_list(sf_sibling_TD, sf_pre_step_out, m_failed_ori_td)
+            xorphan.append_to_existing_list(sf_sibling_TD, sf_pre_step_out+xtea.global_values.HIGH_CONFIDENT_SUFFIX,
+                                            m_failed_ori_td)
+        else:
+            if os.path.isfile(sf_pre_step_out)==True:#do td filtering only
+                ave_cov = basic_rcd[0]  # ave coverage
+                rlth = basic_rcd[1]  # read length
+                mean_is = basic_rcd[2]  # mean insert size
+                std_var = basic_rcd[3]  # standard derivation
+                print("Mean insert size is: {0}\n".format(mean_is))
+                print("Standard derivation is: {0}\n".format(std_var))
+                max_is = int(mean_is + 3 * std_var)
+
+                i_concord_dist = 550
+                if i_concord_dist < max_is:  # correct the bias
+                    i_concord_dist = max_is
+                xtea.global_values.set_read_length(rlth)
+                xtea.global_values.set_insert_size(mean_is)  # here set mean inset size
+                xtea.global_values.set_average_cov(ave_cov)
+                
+                n_clip_cutoff = rcd[0]
+                n_disc_cutoff = rcd[1]
+                xorphan = XOrphanTransduction(s_working_folder, n_jobs, sf_reference)
+                # re-select transduction candidates based on disc-clip consistency (clip position encompass disc ones?)
+                m_failed_ori_td = xorphan.distinguish_source_from_insertion_for_td(sf_pre_step_out, sf_bam_list,
+                                                                                    i_concord_dist, n_clip_cutoff,
+                                                                                    n_disc_cutoff, sf_black_list, sf_rmsk)
+                xorphan.update_existing_list_only(sf_pre_step_out, m_failed_ori_td)
 
 def filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd,round):  
     
@@ -484,7 +487,6 @@ def filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd,round):
             #here sf_black_list is the centromere + duplication region
             xpost_filter.run_post_filtering(sf_xtea_rslt, sf_rmsk, i_min_copy_len, i_rep_type, f_cov, sf_black_list,
                                             sf_new_out, b_tumor)
-
 
 def annotate_genes(options,output_dir):
 

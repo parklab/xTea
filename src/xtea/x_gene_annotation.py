@@ -56,7 +56,7 @@ class GFF3():
     # gene_type=protein_coding;gene_name=TP53;
     # level=2;tag=overlapping_locus;havana_gene=OTTHUMG00000162125.10
     def load_gene_annotation_with_extnd(self, iextnd):
-        if self.sf_gff3[-2:] == '.gz':
+        if self.sf_gff3[-3:] == '.gz':
             fin_gene = gzip.open(self.sf_gff3)
         else:
             fin_gene = open(self.sf_gff3)
@@ -70,6 +70,7 @@ class GFF3():
             if fields[0][0]=="#":
                 continue
 
+            print(line)
             tmp_chrm = fields[0]
             chrm = self._process_chrm_name2(tmp_chrm)
             ori_start_pos=int(fields[3])
