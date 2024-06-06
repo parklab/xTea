@@ -450,7 +450,7 @@ def get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
                                                                                 n_disc_cutoff, sf_black_list, sf_rmsk)
             xorphan.update_existing_list_only(sf_pre_step_out, m_failed_ori_td)
 
-def filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd):  
+def filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd,round):  
     
     b_tumor=options.tumor #whether this is tumor sample
     n_jobs = int(options.cores)
@@ -460,19 +460,19 @@ def filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd):
     s_working_folder = output_dir
     i_rep_type = r
 
-    sf_new_out = f"{s_working_folder}/candidate_disc_filtered_cns_post_filtering.txt"
-    sf_xtea_rslt = f"{s_working_folder}/candidate_disc_filtered_cns2.txt"
+    if round == 1:
+        sf_new_out = f"{s_working_folder}/candidate_disc_filtered_cns_post_filtering.txt"
+        sf_xtea_rslt = f"{s_working_folder}/candidate_disc_filtered_cns2.txt"
+    else:
+        sf_new_out = f"{s_working_folder}/candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt"
+        sf_xtea_rslt = f"{s_working_folder}/candidate_disc_filtered_cns2.txt.high_confident"
 
     # sf_black_list = options.blacklist
     sf_black_list = 'NULL' # NOT USED YET?? TODO
 
-    if options.mode == 'mosaic':
-        b_pf_mosaic=True #this is for mosaic calling from normal tissue
-    else:
-        b_pf_mosaic=False
     i_min_copy_len=225 #when check whether fall in repeat region, require the minimum copy length
     
-    if b_pf_mosaic is True:#for mosaic events
+    if options.mode == 'mosaic':#for mosaic events
         xpf_mosic = MosaicCaller(s_working_folder, n_jobs)
         xpf_mosic.run_call_mosaic(sf_xtea_rslt, sf_rmsk, i_min_copy_len, i_rep_type, sf_black_list, sf_new_out)
     else:

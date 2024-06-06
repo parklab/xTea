@@ -196,19 +196,22 @@ if __name__ == '__main__':
             print(f"SIB STEP FINISHED:,{t}")
             start = time.time()
 
-            #filter ( WHY DOES THIS HAPPEN 2x??? )
+            #filter
             print("Filter step...")
-            filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
-            # filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd)
+            filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd,1)
+            filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd,2)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
             print(f"FILTER STEP FINISHED:,{t}")
             start = time.time()
 
             #annotate
-            # time python ${XTEA_PATH}"x_TEA_main.py" --gene -a ${GENE} 
-            # -i ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt"  -n 8 
-            # -o ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt"
+            print("Annotate step...")
+            annotate_genes(options,output_dir)
+            curr_time = time.time() - start
+            t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
+            print(f"ANNOTATION STEP FINISHED:,{t}")
+            start = time.time()
 
             # time python ${XTEA_PATH}"x_TEA_main.py" --gntp_classify 
             # -i ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt"  
