@@ -52,6 +52,10 @@ def parse_toml_args():
           help="Tumor purity")
     p.add('--single', default=False,
           help="Call clip positions from single-end reads")
+    
+    # annotation parameters
+    p.add('--extend',default = 1500,
+          help="Number of bp to extend gff annotation for annotations")
 
     # annotation directories:
     p.add("--rep_lib_annot_dir",required = True, help = 'Path to rep_lib_annotation/ directory')
