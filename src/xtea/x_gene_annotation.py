@@ -70,7 +70,6 @@ class GFF3():
             if fields[0][0]=="#":
                 continue
 
-            print(line)
             tmp_chrm = fields[0]
             chrm = self._process_chrm_name2(tmp_chrm)
             ori_start_pos=int(fields[3])
