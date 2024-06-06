@@ -487,8 +487,115 @@ class XTEARsltParser():
                 l_rcd.append(tmp_rcd)
         return l_rcd
 
+####
+    def get_ins_sub_type(self, rcd):
+        s_type = rcd[32]
+        if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" in s_type):
+            return self._two_side
+        elif "one_side" in s_type:#
+            return self._one_side
+        elif ("one_half" in s_type) or ("one-half" in s_type):
+            return self._one_half_side
+        else:
+            return self._other
 
+####
+    def replace_ins_length(self, old_rcd, icns_lth):
+        # note: the last field of each old_rcd is the whole record in string format
+        rcd=[]
+        for field in old_rcd[:-2]:
+            rcd.append(field)
+        new_ins_len=self.estimate_insertion_length(rcd, icns_lth)
+        rcd.append(new_ins_len)
+        #add the new string line to the end
+        s_rcd=str(rcd[0])
+        for tmp_field in rcd[1:]:
+            s_rcd+=("\t"+str(tmp_field))
+        rcd.append(s_rcd)
+        return rcd
+    
+    ####
+    ####estimate the insertion size
+    def estimate_insertion_length(self, rcd, icns_lth):
+        i_tei_len = 0
+        s_lclip_cluster=rcd[19]
+        s_rclip_cluster=rcd[20]
+        s_ldisc_cluster=rcd[21]
+        s_rdisc_cluster=rcd[22]
+        ####
+        l_tmp=s_lclip_cluster.split(":")
+        i_lclip_start=int(float(l_tmp[0]))
+        i_lclip_end=int(float(l_tmp[1]))
+        l_tmp2=s_rclip_cluster.split(":")
+        i_rclip_start=int(float(l_tmp2[0]))
+        i_rclip_end=int(float(l_tmp2[1]))
+        l_tmp3=s_ldisc_cluster.split(":")
+        i_ldisc_start=int(float(l_tmp3[0]))
+        i_ldisc_end=int(float(l_tmp3[1]))
+        l_tmp4=s_rdisc_cluster.split(":")
+        i_rdisc_start=int(float(l_tmp4[0]))
+        i_rdisc_end=int(float(l_tmp4[1]))
 
+        if self.is_transduction(rcd)==False:#not transduction
+            if i_lclip_start>0 and i_rclip_start>0:#both clip exist
+                i_tei_len=i_rclip_end-i_lclip_start
+                if i_tei_len<0:
+                    i_tei_len=i_lclip_end-i_rclip_start
+            elif i_ldisc_start>0 and i_rdisc_start>0:#both disc exist
+                i_tei_len=i_rdisc_end-i_ldisc_start
+                if i_tei_len<0:
+                    i_tei_len=i_ldisc_end-i_rdisc_start
+            elif i_lclip_start>0 and i_ldisc_start>0:#left-clip and left-disc
+                i_tei_len=i_ldisc_end-i_lclip_start
+                if i_tei_len<0:
+                    i_tei_len=i_lclip_end-i_ldisc_start
+            elif i_rclip_start>0 and i_rdisc_start>0:#right-clip and right_disc
+                i_tei_len=i_rdisc_end-i_rclip_start
+                if i_tei_len<0:
+                    i_tei_len=i_rclip_end-i_rdisc_start
+        else:#transduction
+            if i_rdisc_start>0 and i_ldisc_start>0:
+                if i_rdisc_start<i_ldisc_start:
+                    i_tei_len = icns_lth - i_rdisc_start
+                else:
+                    i_tei_len = icns_lth - i_ldisc_start
+            elif i_rdisc_start<0 and i_ldisc_start>0:
+                i_tei_len=icns_lth-i_ldisc_start
+            elif i_rdisc_start>0 and i_ldisc_start<0:
+                i_tei_len = icns_lth - i_rdisc_start
+            else:
+                i_tei_len=0
+
+        return abs(i_tei_len)
+
+    ####return both-end/both-side or return one-side
+    def get_ins_sub_type_alu(self, rcd):
+        n_ef_lclip = int(rcd[5])
+        n_ef_rclip = int(rcd[6])
+        s_type = rcd[32]
+        if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" in s_type):
+            return self._two_side
+        elif "one_side" in s_type:
+            return self._one_side
+        elif ("one_half" in s_type) or ("one-half" in s_type):
+            if n_ef_lclip>0 and n_ef_rclip>0:
+                return self._two_side
+            return self._one_half_side
+        else:
+            return self._other
+
+    ####
+    def get_ins_sub_type_sva(self, rcd):
+        s_type = rcd[32]
+        if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" in s_type):
+            return self._two_side
+        elif "one_side" in s_type:#
+            return self._one_side
+        elif ("one_half" in s_type) or ("one-half" in s_type):
+            return self._one_half_side
+        else:
+            return self._other
+        
     #check all the one side events for sibling TD related events
     def is_sibling_transduction_related_ins(self, rcd):
         s_type = rcd[32]
@@ -979,53 +1086,53 @@ class AFConflictFilter():
 #         return b_pass
 
 #     ####
-#     def is_qualified_mosaic_rcd(self, s_line, m_cutoff):
-#         fields = s_line.split()
-#         n_lpolyA = int(fields[9])
-#         n_rpolyA = int(fields[10])
+    def is_qualified_mosaic_rcd(self, s_line, m_cutoff):
+        fields = s_line.split()
+        n_lpolyA = int(fields[9])
+        n_rpolyA = int(fields[10])
 
-#         n_ef_clip = int(fields[5]) + int(fields[6])
-#         n_ef_disc = int(fields[7]) + int(fields[8])
-#         n_clip = int(fields[35])
-#         n_full_map = int(fields[36])
-#         n_disc = int(fields[39])
-#         n_concod = int(fields[40])
+        n_ef_clip = int(fields[5]) + int(fields[6])
+        n_ef_disc = int(fields[7]) + int(fields[8])
+        n_clip = int(fields[35])
+        n_full_map = int(fields[36])
+        n_disc = int(fields[39])
+        n_concod = int(fields[40])
 
-#         f_ef_clip = 0.0
-#         if n_clip != 0:
-#             f_ef_clip = float(n_ef_clip) / float(n_clip)
-#         f_ef_disc = 0.0
-#         if n_disc != 0:
-#             f_ef_disc = float(n_ef_disc) / float(n_disc)
-#         f_clip_full_map = 0.0
-#         if (n_clip + n_full_map) != 0:
-#             f_clip_full_map = float(n_clip) / float(n_clip + n_full_map)
-#         f_disc_concod = 0.0
-#         if (n_disc + n_concod) != 0:
-#             f_disc_concod = float(n_disc) / float(n_disc + n_concod)
+        f_ef_clip = 0.0
+        if n_clip != 0:
+            f_ef_clip = float(n_ef_clip) / float(n_clip)
+        f_ef_disc = 0.0
+        if n_disc != 0:
+            f_ef_disc = float(n_ef_disc) / float(n_disc)
+        f_clip_full_map = 0.0
+        if (n_clip + n_full_map) != 0:
+            f_clip_full_map = float(n_clip) / float(n_clip + n_full_map)
+        f_disc_concod = 0.0
+        if (n_disc + n_concod) != 0:
+            f_disc_concod = float(n_disc) / float(n_disc + n_concod)
 
-#         s_type_ins = fields[32]
-#         b_pass = self.is_ins_pass_mosaic_cutoff(m_cutoff, s_type_ins, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod)
-#         #print n_ef_clip, n_ef_disc, n_clip, n_full_map, n_disc, n_concod, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod, b_pass
-#         return b_pass
+        s_type_ins = fields[32]
+        b_pass = self.is_ins_pass_mosaic_cutoff(m_cutoff, s_type_ins, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod)
+        #print n_ef_clip, n_ef_disc, n_clip, n_full_map, n_disc, n_concod, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod, b_pass
+        return b_pass
 # ####
 #     ####
-#     def is_ins_pass_mosaic_cutoff(self, m_cutoff, s_type, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod):
-#         # (f_ef_clip_cutoff, f_ef_disc_cutoff, f_clip_full_cutoff, f_disc_concod_cutoff) = m_cutoff[s_type]
-#         # b_ef_clip = (f_ef_clip > f_ef_clip_cutoff)
-#         # b_ef_disc = f_ef_disc > f_ef_disc_cutoff
-#         # b_clip_full = f_clip_full_map > f_clip_full_cutoff
-#         # b_disc_concd = f_disc_concod > f_disc_concod_cutoff
-#         #b_pass = b_ef_clip and b_ef_disc and b_clip_full and b_disc_concd
-#         (f_upper_af, f_lower_af) = m_cutoff[s_type]
-#         b_clip_af_qualified=False
-#         if f_clip_full_map>=f_lower_af and f_clip_full_map<=f_upper_af:
-#             b_clip_af_qualified = True
-#         b_disc_concd = True
-#         if f_disc_concod>f_upper_af:
-#             b_disc_concd=False
-#         b_pass=(b_clip_af_qualified and b_disc_concd)
-#         return b_pass
+    def is_ins_pass_mosaic_cutoff(self, m_cutoff, s_type, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod):
+        # (f_ef_clip_cutoff, f_ef_disc_cutoff, f_clip_full_cutoff, f_disc_concod_cutoff) = m_cutoff[s_type]
+        # b_ef_clip = (f_ef_clip > f_ef_clip_cutoff)
+        # b_ef_disc = f_ef_disc > f_ef_disc_cutoff
+        # b_clip_full = f_clip_full_map > f_clip_full_cutoff
+        # b_disc_concd = f_disc_concod > f_disc_concod_cutoff
+        #b_pass = b_ef_clip and b_ef_disc and b_clip_full and b_disc_concd
+        (f_upper_af, f_lower_af) = m_cutoff[s_type]
+        b_clip_af_qualified=False
+        if f_clip_full_map>=f_lower_af and f_clip_full_map<=f_upper_af:
+            b_clip_af_qualified = True
+        b_disc_concd = True
+        if f_disc_concod>f_upper_af:
+            b_disc_concd=False
+        b_pass=(b_clip_af_qualified and b_disc_concd)
+        return b_pass
 
 #     ####
 #     def filter_by_af_conflict(self, sf_hc, n_clip_cutoff, n_disc_cutoff):

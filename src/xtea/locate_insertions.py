@@ -47,7 +47,7 @@ def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_f
 
 def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
 
-# OPTIONS STILL MISSING
+    # OPTIONS STILL MISSING
     # if options.mit: #if this to call mitochondrial insertion, then will not filter out chrM in "x_intermediate_sites.py"
     #     xtea.global_values.turn_on_mit()
     # if options.dna:
@@ -63,7 +63,11 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
     b_tumor=options.tumor #whether this is tumor sample
     f_purity=options.purity #tumor purity, by default 0.45
     b_se = options.single  ##single end reads or not, default is not
-    b_mosaic=options.mosaic #this is for mosaic calling from normal tissue
+    
+    if options.mode == 'mosaic':
+        b_mosaic=True #this is for mosaic calling from normal tissue
+    else:
+        b_mosaic=False
 
     # NOT SURE THIS IS USED
     # site_clip_cutoff=options.siteclip #this is the cutoff for the exact position, use larger value for 10X
@@ -107,33 +111,46 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
         rcd = (cutoff_left_clip, rcd[1],rcd[2]) # set to user preset
 
 
+    #by default, if number of clipped reads is larger than this value, then discard
+    # max_cov_cutoff=int(15*basic_rcd[0])   # ORIGINALLY WAS A CL PARAMETER (cov) set to 40 by default
+    max_cov_cutoff=600
+
     if b_resume is False or os.path.isfile(sf_out) is False:
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
-
-        #by default, if number of clipped reads is larger than this value, then discard
-        # max_cov_cutoff=int(15*basic_rcd[0])   # ORIGINALLY WAS A CL PARAMETER (cov) set to 40 by default
-        max_cov_cutoff=600
 
         ##Hard code inside:
         # 1. call_TEI_candidate_sites_from_clip_reads_v2 --> run_cnt_clip_part_aligned_to_rep_by_chrm_sort_version
         # here if half of the seq is mapped, then consider it as aligned work.
         ##2. require >=2 clip reads, whose clipped part is aligned to repeat copies
         print("\tCalling insertion sites.")
-        tem_locator.call_TEI_candidate_sites_from_multiple_alignmts(sf_annotation, sf_rep_cns, sf_rep, b_se,
-                                                                    cutoff_left_clip, cutoff_right_clip,
-                                                                    cutoff_clip_mate_in_rep, b_mosaic,
-                                                                    wfolder_pub_clip, b_force, max_cov_cutoff, sf_out)
+        if not b_mosaic:
+            tem_locator.call_TEI_candidate_sites_from_multiple_alignmts(sf_annotation, sf_rep_cns, sf_rep, b_se,
+                                                                        cutoff_left_clip, cutoff_right_clip,
+                                                                        cutoff_clip_mate_in_rep, b_mosaic,
+                                                                        wfolder_pub_clip, b_force, max_cov_cutoff, sf_out)
         
+        else:
+            cutoff_polyA=1
+            tem_locator.call_TEI_candidate_sites_from_multiple_alignmts_mosaic(sf_annotation, sf_rep_cns, sf_rep, b_se,
+                                                                        cutoff_left_clip,
+                                                                        cutoff_right_clip, cutoff_clip_mate_in_rep,
+                                                                        cutoff_polyA, wfolder_pub_clip,
+                                                                        b_force, max_cov_cutoff, sf_out)
+
     return (rcd,basic_rcd)
 
-    
 def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd):
 
     print("Working on \"discordant reads\" step!")
 
     b_tumor=options.tumor #whether this is tumor sample
-    b_mosaic=options.mosaic #this is for mosaic calling from normal tissue
+    if options.mode == 'mosaic':
+        b_mosaic=True #this is for mosaic calling from normal tissue
+    else:
+        b_mosaic=False
 
+
+        
     sf_bam_list = options.input_bams
     n_jobs = int(options.cores)
     b_resume=options.resume #resume the running, which will skip the step if output file already exists
@@ -449,7 +466,10 @@ def filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd):
     # sf_black_list = options.blacklist
     sf_black_list = 'NULL' # NOT USED YET?? TODO
 
-    b_pf_mosaic=options.mosaic #this is for mosaic calling from normal tissue
+    if options.mode == 'mosaic':
+        b_pf_mosaic=True #this is for mosaic calling from normal tissue
+    else:
+        b_pf_mosaic=False
     i_min_copy_len=225 #when check whether fall in repeat region, require the minimum copy length
     
     if b_pf_mosaic is True:#for mosaic events

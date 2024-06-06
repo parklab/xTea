@@ -52,8 +52,6 @@ def parse_toml_args():
           help="Tumor purity")
     p.add('--single', default=False,
           help="Call clip positions from single-end reads")
-    p.add('--mosaic', default=False,
-          help="Call mosaic events")
 
     # annotation directories:
     p.add("--rep_lib_annot_dir",required = True, help = 'Path to rep_lib_annotation/ directory')
@@ -147,19 +145,15 @@ if __name__ == '__main__':
     start = time.time()
 
     options = parse_toml_args()
-
-    germline = True
-
     repeats = options.repeat_type
+    output_dir, sample_public_dir = setup_output_dir(options.output_dir,options.tmp_dir,options.sample_name,r)
 
-    if germline:
+    if options.mode == 'germline' or options.mode == 'mosaic':
         for r in repeats:
-            output_dir, sample_public_dir = setup_output_dir(options.output_dir,options.tmp_dir,options.sample_name,r)
-
-            annot_path_dict = setup_annotation_paths(r,options.rep_lib_annot_dir,
-                                                     options.genome_reference,
-                                                     options.genome)
             
+            annot_path_dict = setup_annotation_paths(r,options.rep_lib_annot_dir,
+                                            options.genome_reference,
+                                            options.genome)
             #perform clipped step:
             print("Clipped reads step...")
             rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir)
@@ -225,9 +219,7 @@ if __name__ == '__main__':
             # time python ${XTEA_PATH}"x_TEA_main.py" --gVCF 
             # -i ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene_gntp.txt"  
             # -o ${PREFIX} -b ${BAM_LIST} --ref ${REF} --rtype 2
-
-    # elif 'mosaic':
-
+    
     # elif 'case-control':
 
     # elif 'de-novo':
