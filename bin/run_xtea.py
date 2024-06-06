@@ -146,7 +146,6 @@ if __name__ == '__main__':
 
     options = parse_toml_args()
     repeats = options.repeat_type
-    output_dir, sample_public_dir = setup_output_dir(options.output_dir,options.tmp_dir,options.sample_name,r)
 
     if options.mode == 'germline' or options.mode == 'mosaic':
         for r in repeats:
@@ -154,6 +153,8 @@ if __name__ == '__main__':
             annot_path_dict = setup_annotation_paths(r,options.rep_lib_annot_dir,
                                             options.genome_reference,
                                             options.genome)
+            output_dir, sample_public_dir = setup_output_dir(options.output_dir,options.tmp_dir,options.sample_name,r)
+
             #perform clipped step:
             print("Clipped reads step...")
             rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir)
