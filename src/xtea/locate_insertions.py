@@ -490,15 +490,18 @@ def annotate_genes(options,output_dir):
     sf_output=f"{s_working_folder}/candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt"
 
     sf_gene_annotation=options.genome_gff3
-
-    gff=GFF3(sf_gene_annotation)
-    iextnd=xtea.global_values.UP_DOWN_GENE
-    i_user_extnd = options.extend
-    if i_user_extnd>iextnd:
-        iextnd=i_user_extnd
-    gff.load_gene_annotation_with_extnd(iextnd)
-    gff.index_gene_annotation_interval_tree()
-    gff.annotate_results(sf_input, sf_output)
+    b_resume=options.resume
+    
+    if b_resume == False or os.path.isfile(sf_output) == False:
+        
+        gff=GFF3(sf_gene_annotation)
+        iextnd=xtea.global_values.UP_DOWN_GENE
+        i_user_extnd = options.extend
+        if i_user_extnd>iextnd:
+            iextnd=i_user_extnd
+        gff.load_gene_annotation_with_extnd(iextnd)
+        gff.index_gene_annotation_interval_tree()
+        gff.annotate_results(sf_input, sf_output)
 
 
 def call_genotypes(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
