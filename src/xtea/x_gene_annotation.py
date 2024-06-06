@@ -57,7 +57,7 @@ class GFF3():
     # level=2;tag=overlapping_locus;havana_gene=OTTHUMG00000162125.10
     def load_gene_annotation_with_extnd(self, iextnd):
         if self.sf_gff3[-3:] == '.gz':
-            fin_gene = gzip.open(self.sf_gff3)
+            fin_gene = gzip.open(self.sf_gff3,'rt')
         else:
             fin_gene = open(self.sf_gff3)
         for line in fin_gene:
