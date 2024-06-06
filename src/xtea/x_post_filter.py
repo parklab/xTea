@@ -657,334 +657,334 @@ class XTPRTFilter():
         self.f_side_polyA_cutoff=xtea.global_values.ONE_SIDE_POLYA_CUTOFF
         ####
 
-# ####n_clip is clip reads cutoff
-#     ####both side are polyA, even though are two-side-tprt-both
-#     ####Will NOT filter out those left and right clipped reads form different cluster
-#     def is_polyA_dominant_two_side(self, rcd):
-#         f_cutoff = self.f_side_polyA_cutoff
-#         n_lpolyA = int(rcd[9])
-#         n_rpolyA = int(rcd[10])
-#         n_ef_lclip=int(rcd[5])
-#         n_ef_rclip=int(rcd[6])
-#         s_type = rcd[32]
-#         #n_ef_clip = n_ef_lclip + n_ef_rclip
-#         if n_ef_lclip <= 0 or n_ef_rclip<=0:
-#             return False
+####n_clip is clip reads cutoff
+    ####both side are polyA, even though are two-side-tprt-both
+    ####Will NOT filter out those left and right clipped reads form different cluster
+    def is_polyA_dominant_two_side(self, rcd):
+        f_cutoff = self.f_side_polyA_cutoff
+        n_lpolyA = int(rcd[9])
+        n_rpolyA = int(rcd[10])
+        n_ef_lclip=int(rcd[5])
+        n_ef_rclip=int(rcd[6])
+        s_type = rcd[32]
+        #n_ef_clip = n_ef_lclip + n_ef_rclip
+        if n_ef_lclip <= 0 or n_ef_rclip<=0:
+            return False
 
-#         if self._is_two_clip_form_different_cluster(rcd)==True:
-#             return False
+        if self._is_two_clip_form_different_cluster(rcd)==True:
+            return False
 
-#         if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type) and (self._is_two_disc_form_different_cluster(rcd)==True):
-#             return False
+        if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type) and (self._is_two_disc_form_different_cluster(rcd)==True):
+            return False
 
-#         b_lpolyA= ((float(n_lpolyA) / float(n_ef_lclip)) > f_cutoff)
-#         b_rpolyA = ((float(n_rpolyA) / float(n_ef_rclip)) > f_cutoff)
-#         if b_lpolyA and b_rpolyA:
-#             return True
-#         return False
+        b_lpolyA= ((float(n_lpolyA) / float(n_ef_lclip)) > f_cutoff)
+        b_rpolyA = ((float(n_rpolyA) / float(n_ef_rclip)) > f_cutoff)
+        if b_lpolyA and b_rpolyA:
+            return True
+        return False
 
-#     #if both sides of the clipped reads are of the same direction (both polyA, or both polyT), then return True
-#     def is_two_side_polyA_same_orientation(self, rcd):
-#         b_same_ori=True
-#         n_lpolyA_seqa=int(rcd[17])
-#         n_rpolyA_seqa = int(rcd[18])
-#         if (n_lpolyA_seqa*n_rpolyA_seqa)>0:#same orientation
-#             return b_same_ori
-#         return False
+    #if both sides of the clipped reads are of the same direction (both polyA, or both polyT), then return True
+    def is_two_side_polyA_same_orientation(self, rcd):
+        b_same_ori=True
+        n_lpolyA_seqa=int(rcd[17])
+        n_rpolyA_seqa = int(rcd[18])
+        if (n_lpolyA_seqa*n_rpolyA_seqa)>0:#same orientation
+            return b_same_ori
+        return False
 
-#     #for trandsduction filtering
-#     def is_polyA_dominant_td(self, rcd):
-#         f_cutoff = xtea.global_values.MAX_POLYA_RATIO
-#         n_lpolyA = int(rcd[9])
-#         n_rpolyA = int(rcd[10])
-#         n_ef_lclip=int(rcd[5])
-#         n_ef_rclip=int(rcd[6])
-#         s_type = rcd[32]
-#         if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type):
-#             return False
+    #for trandsduction filtering
+    def is_polyA_dominant_td(self, rcd):
+        f_cutoff = xtea.global_values.MAX_POLYA_RATIO
+        n_lpolyA = int(rcd[9])
+        n_rpolyA = int(rcd[10])
+        n_ef_lclip=int(rcd[5])
+        n_ef_rclip=int(rcd[6])
+        s_type = rcd[32]
+        if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type):
+            return False
 
-#         b_lpolyA=True
-#         if n_ef_lclip!=0:
-#             b_lpolyA= ((float(n_lpolyA) / float(n_ef_lclip)) > f_cutoff)
-#         b_rpolyA=True
-#         if n_ef_rclip!=0:
-#             b_rpolyA = ((float(n_rpolyA) / float(n_ef_rclip)) > f_cutoff)
-#         if b_lpolyA and b_rpolyA:
-#             return True
-#         return False
+        b_lpolyA=True
+        if n_ef_lclip!=0:
+            b_lpolyA= ((float(n_lpolyA) / float(n_ef_lclip)) > f_cutoff)
+        b_rpolyA=True
+        if n_ef_rclip!=0:
+            b_rpolyA = ((float(n_rpolyA) / float(n_ef_rclip)) > f_cutoff)
+        if b_lpolyA and b_rpolyA:
+            return True
+        return False
 
-#     ###add this filtering, because within L1, there are polyA like regions. It has two-side-polyA signal from algnmt.
-#     # We need to exclude these insertions
-#     def is_two_side_consist_with_enough_ins_size(self, rcd, min_ins_len):
-#         s_consist=rcd[33]
-#         s_lclip_cluster = rcd[19]
-#         s_rclip_cluster = rcd[20]
-#         ll_fields = s_lclip_cluster.split(":")
-#         i_lstart = int(float(ll_fields[0]))
-#         i_lend = int(float(ll_fields[1]))
-#         lr_fields = s_rclip_cluster.split(":")
-#         i_rstart = int(float(lr_fields[0]))
-#         i_rend = int(float(lr_fields[1]))
-#         if s_consist==xtea.global_values.BOTH_END_CONSISTNT \
-#                 and (abs(i_lstart-i_rend)>min_ins_len or abs(i_rstart-i_lend)>min_ins_len):
-#             return True
-#         return False
+    ###add this filtering, because within L1, there are polyA like regions. It has two-side-polyA signal from algnmt.
+    # We need to exclude these insertions
+    def is_two_side_consist_with_enough_ins_size(self, rcd, min_ins_len):
+        s_consist=rcd[33]
+        s_lclip_cluster = rcd[19]
+        s_rclip_cluster = rcd[20]
+        ll_fields = s_lclip_cluster.split(":")
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
+        lr_fields = s_rclip_cluster.split(":")
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
+        if s_consist==xtea.global_values.BOTH_END_CONSISTNT \
+                and (abs(i_lstart-i_rend)>min_ins_len or abs(i_rstart-i_lend)>min_ins_len):
+            return True
+        return False
 
-#     def is_two_side_tprt_both_and_both_consistent(self, rcd, i_cns_tail=5950, min_ins_len=100):
-#         s_type = rcd[32]
-#         s_consist = rcd[33]
+    def is_two_side_tprt_both_and_both_consistent(self, rcd, i_cns_tail=5950, min_ins_len=100):
+        s_type = rcd[32]
+        s_consist = rcd[33]
 
-#         #left, right clip cluster
-#         s_lclip_cluster = rcd[19]
-#         s_rclip_cluster = rcd[20]
-#         ll_fields = s_lclip_cluster.split(":")
-#         i_lstart = int(float(ll_fields[0]))
-#         i_lend = int(float(ll_fields[1]))
-#         lr_fields = s_rclip_cluster.split(":")
-#         i_rstart = int(float(lr_fields[0]))
-#         i_rend = int(float(lr_fields[1]))
+        #left, right clip cluster
+        s_lclip_cluster = rcd[19]
+        s_rclip_cluster = rcd[20]
+        ll_fields = s_lclip_cluster.split(":")
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
+        lr_fields = s_rclip_cluster.split(":")
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
 
-#         #left, right discordant cluster
-#         s_ldisc_cluster = rcd[21]
-#         s_rdisc_cluster = rcd[22]
-#         lld_fields = s_ldisc_cluster.split(":")
-#         i_ldstart = int(float(lld_fields[0]))
-#         i_ldend = int(float(lld_fields[1]))
-#         lrd_fields = s_rdisc_cluster.split(":")
-#         i_rdstart = int(float(lrd_fields[0]))
-#         i_rdend = int(float(lrd_fields[1]))
+        #left, right discordant cluster
+        s_ldisc_cluster = rcd[21]
+        s_rdisc_cluster = rcd[22]
+        lld_fields = s_ldisc_cluster.split(":")
+        i_ldstart = int(float(lld_fields[0]))
+        i_ldend = int(float(lld_fields[1]))
+        lrd_fields = s_rdisc_cluster.split(":")
+        i_rdstart = int(float(lrd_fields[0]))
+        i_rdend = int(float(lrd_fields[1]))
 
-#         #both should hit the end, otherwise return False
-#         if (i_lend<i_cns_tail and i_rend<i_cns_tail) or (i_ldend<i_cns_tail and i_rdend<i_cns_tail):
-#             return False
-#         if(abs(i_lstart - i_rend) < min_ins_len and abs(i_rstart - i_lend) < min_ins_len):
-#             return False
+        #both should hit the end, otherwise return False
+        if (i_lend<i_cns_tail and i_rend<i_cns_tail) or (i_ldend<i_cns_tail and i_rdend<i_cns_tail):
+            return False
+        if(abs(i_lstart - i_rend) < min_ins_len and abs(i_rstart - i_lend) < min_ins_len):
+            return False
 
-#         if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type) and (s_consist==xtea.global_values.BOTH_END_CONSISTNT):
-#             return True
-#         return False
+        if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type) and (s_consist==xtea.global_values.BOTH_END_CONSISTNT):
+            return True
+        return False
 
-#     ####n_clip is clip reads cutoff
-#     ####both side are polyA, even though are two-side-tprt-both
-#     def is_polyA_dominant_two_side_sva(self, rcd, i_pos_head):
-#         f_cutoff = self.f_side_polyA_cutoff
-#         n_lpolyA = int(rcd[9])
-#         n_rpolyA = int(rcd[10])
-#         n_ef_lclip = int(rcd[5])
-#         n_ef_rclip = int(rcd[6])
-#         s_type = rcd[32]
-#         # n_ef_clip = n_ef_lclip + n_ef_rclip
-#         if n_ef_lclip <= 0 or n_ef_rclip <= 0:
-#             return False
+    ####n_clip is clip reads cutoff
+    ####both side are polyA, even though are two-side-tprt-both
+    def is_polyA_dominant_two_side_sva(self, rcd, i_pos_head):
+        f_cutoff = self.f_side_polyA_cutoff
+        n_lpolyA = int(rcd[9])
+        n_rpolyA = int(rcd[10])
+        n_ef_lclip = int(rcd[5])
+        n_ef_rclip = int(rcd[6])
+        s_type = rcd[32]
+        # n_ef_clip = n_ef_lclip + n_ef_rclip
+        if n_ef_lclip <= 0 or n_ef_rclip <= 0:
+            return False
 
-#         if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type) and (self._disc_cluster_hit_cns_head(rcd, i_pos_head)==True):
-#             return False
+        if (xtea.global_values.TWO_SIDE_TPRT_BOTH in s_type) and (self._disc_cluster_hit_cns_head(rcd, i_pos_head)==True):
+            return False
 
-#         b_lpolyA = ((float(n_lpolyA) / float(n_ef_lclip)) > f_cutoff)
-#         b_rpolyA = ((float(n_rpolyA) / float(n_ef_rclip)) > f_cutoff)
-#         if b_lpolyA and b_rpolyA:
-#             return True
-#         return False
+        b_lpolyA = ((float(n_lpolyA) / float(n_ef_lclip)) > f_cutoff)
+        b_rpolyA = ((float(n_rpolyA) / float(n_ef_rclip)) > f_cutoff)
+        if b_lpolyA and b_rpolyA:
+            return True
+        return False
 
 
-#     ####two side clip, and both hit the end of the tail (polyA started region)
-#     def is_two_side_clip_both_polyA_sva(self, rcd, i_cns_tail):
-#         s_lclip_cluster = rcd[19]
-#         s_rclip_cluster = rcd[20]
-#         if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
-#             return False
-#         ll_fields = s_lclip_cluster.split(":")
-#         i_lstart = int(float(ll_fields[0]))
-#         i_lend = int(float(ll_fields[1]))
-#         lr_fields = s_rclip_cluster.split(":")
-#         i_rstart = int(float(lr_fields[0]))
-#         i_rend = int(float(lr_fields[1]))
-#         if i_lstart>=i_cns_tail and i_rstart>=i_cns_tail:
-#             return True
-#         return False
+    ####two side clip, and both hit the end of the tail (polyA started region)
+    def is_two_side_clip_both_polyA_sva(self, rcd, i_cns_tail):
+        s_lclip_cluster = rcd[19]
+        s_rclip_cluster = rcd[20]
+        if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
+            return False
+        ll_fields = s_lclip_cluster.split(":")
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
+        lr_fields = s_rclip_cluster.split(":")
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
+        if i_lstart>=i_cns_tail and i_rstart>=i_cns_tail:
+            return True
+        return False
 
-#     ####
-#     def is_two_side_clip_both_non_polyA_sva(self, rcd, i_cns_tail):
-#         s_lclip_cluster = rcd[19]
-#         s_rclip_cluster = rcd[20]
-#         if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
-#             return False
-#         ll_fields = s_lclip_cluster.split(":")
-#         i_lstart = int(float(ll_fields[0]))
-#         i_lend = int(float(ll_fields[1]))
-#         lr_fields = s_rclip_cluster.split(":")
-#         i_rstart = int(float(lr_fields[0]))
-#         i_rend = int(float(lr_fields[1]))
-#         if i_lstart<i_cns_tail and i_rstart<i_cns_tail:
-#             return True
-#         return False
+    ####
+    def is_two_side_clip_both_non_polyA_sva(self, rcd, i_cns_tail):
+        s_lclip_cluster = rcd[19]
+        s_rclip_cluster = rcd[20]
+        if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
+            return False
+        ll_fields = s_lclip_cluster.split(":")
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
+        lr_fields = s_rclip_cluster.split(":")
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
+        if i_lstart<i_cns_tail and i_rstart<i_cns_tail:
+            return True
+        return False
 
-#     ####if both left and right clipped reads form effective clusters
-#     ####two clusters are quite far from each other, then return True
-#     ####If one side is -1:-1, also return True
-#     def _is_two_clip_form_different_cluster(self, rcd):
-#         s_lclip_cluster=rcd[19]
-#         s_rclip_cluster=rcd[20]
-#         if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
-#             return True
-#         ll_fields=s_lclip_cluster.split(":")
-#         i_lstart=int(float(ll_fields[0]))
-#         i_lend=int(float(ll_fields[1]))
-#         lr_fields=s_rclip_cluster.split(":")
-#         i_rstart=int(float(lr_fields[0]))
-#         i_rend=int(float(lr_fields[1]))
-#         if abs(i_lend-i_rstart)<xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF \
-#                 or abs(i_rend-i_lstart)<xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF:
-#             return False
-#         return True
+    ####if both left and right clipped reads form effective clusters
+    ####two clusters are quite far from each other, then return True
+    ####If one side is -1:-1, also return True
+    def _is_two_clip_form_different_cluster(self, rcd):
+        s_lclip_cluster=rcd[19]
+        s_rclip_cluster=rcd[20]
+        if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
+            return True
+        ll_fields=s_lclip_cluster.split(":")
+        i_lstart=int(float(ll_fields[0]))
+        i_lend=int(float(ll_fields[1]))
+        lr_fields=s_rclip_cluster.split(":")
+        i_rstart=int(float(lr_fields[0]))
+        i_rend=int(float(lr_fields[1]))
+        if abs(i_lend-i_rstart)<xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF \
+                or abs(i_rend-i_lstart)<xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF:
+            return False
+        return True
 
-#     def _is_two_disc_form_different_cluster(self, rcd):
-#         s_ldisc_cluster = rcd[21]
-#         s_rdisc_cluster = rcd[22]
-#         if ("-1" in s_ldisc_cluster) or ("-1" in s_rdisc_cluster):
-#             return True
-#         ll_fields = s_ldisc_cluster.split(":")
-#         i_lstart = int(float(ll_fields[0]))
-#         i_lend = int(float(ll_fields[1]))
-#         lr_fields = s_rdisc_cluster.split(":")
-#         i_rstart = int(float(lr_fields[0]))
-#         i_rend = int(float(lr_fields[1]))
-#         if abs(i_lend - i_rstart) < xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF \
-#                 or abs(i_rend - i_lstart) < xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF:
-#             return False
-#         return True
+    def _is_two_disc_form_different_cluster(self, rcd):
+        s_ldisc_cluster = rcd[21]
+        s_rdisc_cluster = rcd[22]
+        if ("-1" in s_ldisc_cluster) or ("-1" in s_rdisc_cluster):
+            return True
+        ll_fields = s_ldisc_cluster.split(":")
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
+        lr_fields = s_rdisc_cluster.split(":")
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
+        if abs(i_lend - i_rstart) < xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF \
+                or abs(i_rend - i_lstart) < xtea.global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF:
+            return False
+        return True
 
-#     def _disc_cluster_hit_cns_head(self, rcd, i_pos_head):
-#         s_ldisc_cluster = rcd[21]
-#         s_rdisc_cluster = rcd[22]
-#         if ("-1" in s_ldisc_cluster) or ("-1" in s_rdisc_cluster):
-#             return False
-#         ll_fields = s_ldisc_cluster.split(":")
-#         i_lstart = int(float(ll_fields[0]))
-#         i_lend = int(float(ll_fields[1]))
-#         lr_fields = s_rdisc_cluster.split(":")
-#         i_rstart = int(float(lr_fields[0]))
-#         i_rend = int(float(lr_fields[1]))
-#         if i_lstart<i_pos_head or i_rstart<i_pos_head:
-#             return True
-#         return False
+    def _disc_cluster_hit_cns_head(self, rcd, i_pos_head):
+        s_ldisc_cluster = rcd[21]
+        s_rdisc_cluster = rcd[22]
+        if ("-1" in s_ldisc_cluster) or ("-1" in s_rdisc_cluster):
+            return False
+        ll_fields = s_ldisc_cluster.split(":")
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
+        lr_fields = s_rdisc_cluster.split(":")
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
+        if i_lstart<i_pos_head or i_rstart<i_pos_head:
+            return True
+        return False
 
-#     def has_polyA_signal(self, rcd):
-#         n_lpolyA = int(rcd[9])
-#         n_rpolyA = int(rcd[10])
-#         if n_lpolyA<=0 and n_rpolyA<=0:
-#             return False
-#         return True
+    def has_polyA_signal(self, rcd):
+        n_lpolyA = int(rcd[9])
+        n_rpolyA = int(rcd[10])
+        if n_lpolyA<=0 and n_rpolyA<=0:
+            return False
+        return True
 
-# ####
-#     ####if one side is purly polyA, and the other side has raw clipped reads, but none aligned
-#     ####then this is viewed as a polyA dominant one
-#     def is_polyA_dominant_one_side(self, rcd, nclip_half_cutoff):
-#         f_cutoff = self.f_side_polyA_cutoff
-#         n_lpolyA = int(rcd[9])
-#         n_rpolyA = int(rcd[10])
-#         n_ef_lclip = int(rcd[5])
-#         n_ef_rclip = int(rcd[6])
-#         n_lr_clip = int(rcd[35])  # all qualified clipped reads
+####
+    ####if one side is purly polyA, and the other side has raw clipped reads, but none aligned
+    ####then this is viewed as a polyA dominant one
+    def is_polyA_dominant_one_side(self, rcd, nclip_half_cutoff):
+        f_cutoff = self.f_side_polyA_cutoff
+        n_lpolyA = int(rcd[9])
+        n_rpolyA = int(rcd[10])
+        n_ef_lclip = int(rcd[5])
+        n_ef_rclip = int(rcd[6])
+        n_lr_clip = int(rcd[35])  # all qualified clipped reads
 
-#         if n_ef_lclip<=0 and n_ef_rclip<=0:#no effective clipped reads on both sides, then skip
-#             return True
+        if n_ef_lclip<=0 and n_ef_rclip<=0:#no effective clipped reads on both sides, then skip
+            return True
 
-#         b_l_no_signal=False
-#         if n_ef_lclip<=0:#
-#             b_l_no_signal=True
-#         b_r_no_signal = False
-#         if n_ef_rclip <= 0:#
-#             b_r_no_signal = True
-# ####Potential bug here: if one side has large number of clipped reads, but small number ef clipped reads,
-# ####then, it's still possible the other side have no or little clipped reads
+        b_l_no_signal=False
+        if n_ef_lclip<=0:#
+            b_l_no_signal=True
+        b_r_no_signal = False
+        if n_ef_rclip <= 0:#
+            b_r_no_signal = True
+####Potential bug here: if one side has large number of clipped reads, but small number ef clipped reads,
+####then, it's still possible the other side have no or little clipped reads
 
-#         if b_l_no_signal is True:#left no signal
-#             b_rpolyA = ((float(n_rpolyA) / float(n_ef_rclip)) > f_cutoff)
-#             if (b_rpolyA is True) and ((n_lr_clip-n_ef_rclip)>=nclip_half_cutoff):
-#                 return True
-#         if b_r_no_signal is True:
-#             b_lpolyA = ((float(n_lpolyA) / float(n_ef_lclip)) > f_cutoff)
-#             if (b_lpolyA is True) and ((n_lr_clip-n_ef_lclip)>=nclip_half_cutoff):
-#                 return True
-#         return False
-# ####
+        if b_l_no_signal is True:#left no signal
+            b_rpolyA = ((float(n_rpolyA) / float(n_ef_rclip)) > f_cutoff)
+            if (b_rpolyA is True) and ((n_lr_clip-n_ef_rclip)>=nclip_half_cutoff):
+                return True
+        if b_r_no_signal is True:
+            b_lpolyA = ((float(n_lpolyA) / float(n_ef_lclip)) > f_cutoff)
+            if (b_lpolyA is True) and ((n_lr_clip-n_ef_lclip)>=nclip_half_cutoff):
+                return True
+        return False
+####
 
-#     def is_two_side_tprt_and_with_polyA(self, rcd, i_cns_end):####
-#         s_type = rcd[32]
-#         if xtea.global_values.TWO_SIDE_TPRT in s_type:
-#             s_lclip_cluster = rcd[19]
-#             s_rclip_cluster = rcd[20]
-#             if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
-#                 return False
-#             ll_fields = s_lclip_cluster.split(":")
-#             i_lstart = int(float(ll_fields[0]))
-#             i_lend = int(float(ll_fields[1]))
-#             lr_fields = s_rclip_cluster.split(":")
-#             i_rstart = int(float(lr_fields[0]))
-#             i_rend = int(float(lr_fields[1]))
-#             if i_lend>i_cns_end or i_rend>i_cns_end:
-#                 return True
-#         return False
+    def is_two_side_tprt_and_with_polyA(self, rcd, i_cns_end):####
+        s_type = rcd[32]
+        if xtea.global_values.TWO_SIDE_TPRT in s_type:
+            s_lclip_cluster = rcd[19]
+            s_rclip_cluster = rcd[20]
+            if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
+                return False
+            ll_fields = s_lclip_cluster.split(":")
+            i_lstart = int(float(ll_fields[0]))
+            i_lend = int(float(ll_fields[1]))
+            lr_fields = s_rclip_cluster.split(":")
+            i_rstart = int(float(lr_fields[0]))
+            i_rend = int(float(lr_fields[1]))
+            if i_lend>i_cns_end or i_rend>i_cns_end:
+                return True
+        return False
 
-#     ####
-#     def is_two_side_clip_and_both_hit_end(self, rcd, i_cns_end):
-#         s_lclip_cluster = rcd[19]
-#         s_rclip_cluster = rcd[20]
-#         if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
-#             return False
-#         ll_fields = s_lclip_cluster.split(":")
-#         i_lstart = int(float(ll_fields[0]))
-#         i_lend = int(float(ll_fields[1]))
-#         lr_fields = s_rclip_cluster.split(":")
-#         i_rstart = int(float(lr_fields[0]))
-#         i_rend = int(float(lr_fields[1]))
-#         if i_lstart>i_cns_end and i_rstart>i_cns_end:
-#             return True
-#         return False
+    ####
+    def is_two_side_clip_and_both_hit_end(self, rcd, i_cns_end):
+        s_lclip_cluster = rcd[19]
+        s_rclip_cluster = rcd[20]
+        if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
+            return False
+        ll_fields = s_lclip_cluster.split(":")
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
+        lr_fields = s_rclip_cluster.split(":")
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
+        if i_lstart>i_cns_end and i_rstart>i_cns_end:
+            return True
+        return False
 
-#     def hit_consensus_tail(self, rcd, i_cns_end):
-#         s_lclip_cluster = rcd[19]
-#         s_rclip_cluster = rcd[20]
-#         if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
-#             return True
-#         ll_fields = s_lclip_cluster.split(":")
-#         i_lstart = int(float(ll_fields[0]))
-#         i_lend = int(float(ll_fields[1]))
-#         lr_fields = s_rclip_cluster.split(":")
-#         i_rstart = int(float(lr_fields[0]))
-#         i_rend = int(float(lr_fields[1]))
-#         if i_lend>=i_cns_end or i_rend>=i_cns_end:
-#             return True
-#         return False
-# ####
-#     def hit_end_of_cns(self, rcd):
-#         s_hit_end=rcd[34]
-#         if xtea.global_values.HIT_END_OF_CNS == s_hit_end:
-#             return True
-#         else:
-#             return False
-# ####
-#     def has_enough_indel_reads(self, rcd, ncutoff):
-#         n_indel_reads=int(rcd[41])
-#         if n_indel_reads > ncutoff:
-#             return True
-#         else:
-#             return False
+    def hit_consensus_tail(self, rcd, i_cns_end):
+        s_lclip_cluster = rcd[19]
+        s_rclip_cluster = rcd[20]
+        if ("-1" in s_lclip_cluster) or ("-1" in s_rclip_cluster):
+            return True
+        ll_fields = s_lclip_cluster.split(":")
+        i_lstart = int(float(ll_fields[0]))
+        i_lend = int(float(ll_fields[1]))
+        lr_fields = s_rclip_cluster.split(":")
+        i_rstart = int(float(lr_fields[0]))
+        i_rend = int(float(lr_fields[1]))
+        if i_lend>=i_cns_end or i_rend>=i_cns_end:
+            return True
+        return False
+####
+    def hit_end_of_cns(self, rcd):
+        s_hit_end=rcd[34]
+        if xtea.global_values.HIT_END_OF_CNS == s_hit_end:
+            return True
+        else:
+            return False
+####
+    def has_enough_indel_reads(self, rcd, ncutoff):
+        n_indel_reads=int(rcd[41])
+        if n_indel_reads > ncutoff:
+            return True
+        else:
+            return False
 
-#     #coverage is abnormal
-#     def cov_is_abnormal(self, rcd, f_cutoff):
-#         f_lcov=float(rcd[11])
-#         f_rcov=float(rcd[12])
-#         if f_lcov>f_cutoff or f_rcov>f_cutoff:
-#             return True
-#         return False
+    #coverage is abnormal
+    def cov_is_abnormal(self, rcd, f_cutoff):
+        f_lcov=float(rcd[11])
+        f_rcov=float(rcd[12])
+        if f_lcov>f_cutoff or f_rcov>f_cutoff:
+            return True
+        return False
 
-#     def fall_in_or_close_repetitive_region(self, rcd):
-#         s_rep=rcd[48]
-#         if "not" in s_rep:
-#             return False
-#         return True
+    def fall_in_or_close_repetitive_region(self, rcd):
+        s_rep=rcd[48]
+        if "not" in s_rep:
+            return False
+        return True
 
 # ####
 class AFConflictFilter():
@@ -1035,55 +1035,55 @@ class AFConflictFilter():
                 m_cutoff[s_type] = (0.075, 0.075, 0.075, 0.075)
         return m_cutoff
 
-#     def is_qualified_td(self, rcd):
-#         n_disc = int(rcd[39])
-#         n_concod = int(rcd[40])
-#         f_disc_concod = 0.0
-#         if (n_disc + n_concod) != 0:
-#             f_disc_concod = float(n_disc) / float(n_disc + n_concod)
-#         if f_disc_concod<0.08:
-#             return False
-#         return True
+    def is_qualified_td(self, rcd):
+        n_disc = int(rcd[39])
+        n_concod = int(rcd[40])
+        f_disc_concod = 0.0
+        if (n_disc + n_concod) != 0:
+            f_disc_concod = float(n_disc) / float(n_disc + n_concod)
+        if f_disc_concod<0.08:
+            return False
+        return True
 
-#     def is_qualified_rcd(self, s_line, m_cutoff):
-#         fields = s_line.split()
-#         n_lpolyA = int(fields[9])
-#         n_rpolyA = int(fields[10])
+    def is_qualified_rcd(self, s_line, m_cutoff):
+        fields = s_line.split()
+        n_lpolyA = int(fields[9])
+        n_rpolyA = int(fields[10])
 
-#         n_ef_clip = int(fields[5]) + int(fields[6])
-#         n_ef_disc = int(fields[7]) + int(fields[8])
-#         n_clip = int(fields[35])
-#         n_full_map = int(fields[36])
-#         n_disc = int(fields[39])
-#         n_concod = int(fields[40])
+        n_ef_clip = int(fields[5]) + int(fields[6])
+        n_ef_disc = int(fields[7]) + int(fields[8])
+        n_clip = int(fields[35])
+        n_full_map = int(fields[36])
+        n_disc = int(fields[39])
+        n_concod = int(fields[40])
 
-#         f_ef_clip = 0.0
-#         if n_clip != 0:
-#             f_ef_clip = float(n_ef_clip) / float(n_clip)
-#         f_ef_disc = 0.0
-#         if n_disc != 0:
-#             f_ef_disc = float(n_ef_disc) / float(n_disc)
-#         f_clip_full_map = 0.0
-#         if (n_clip + n_full_map) != 0:
-#             f_clip_full_map = float(n_clip) / float(n_clip + n_full_map)
-#         f_disc_concod = 0.0
-#         if (n_disc + n_concod) != 0:
-#             f_disc_concod = float(n_disc) / float(n_disc + n_concod)
+        f_ef_clip = 0.0
+        if n_clip != 0:
+            f_ef_clip = float(n_ef_clip) / float(n_clip)
+        f_ef_disc = 0.0
+        if n_disc != 0:
+            f_ef_disc = float(n_ef_disc) / float(n_disc)
+        f_clip_full_map = 0.0
+        if (n_clip + n_full_map) != 0:
+            f_clip_full_map = float(n_clip) / float(n_clip + n_full_map)
+        f_disc_concod = 0.0
+        if (n_disc + n_concod) != 0:
+            f_disc_concod = float(n_disc) / float(n_disc + n_concod)
 
-#         s_type_ins = fields[32]
-#         b_pass = self.is_ins_pass_cutoff(m_cutoff, s_type_ins, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod)
-#         return b_pass
-# ####
+        s_type_ins = fields[32]
+        b_pass = self.is_ins_pass_cutoff(m_cutoff, s_type_ins, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod)
+        return b_pass
+####
 
-#     ####
-#     def is_ins_pass_cutoff(self, m_cutoff, s_type, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod):
-#         (f_ef_clip_cutoff, f_ef_disc_cutoff, f_clip_full_cutoff, f_disc_concod_cutoff) = m_cutoff[s_type]
-#         b_ef_clip = (f_ef_clip > f_ef_clip_cutoff)
-#         b_ef_disc = f_ef_disc > f_ef_disc_cutoff
-#         b_clip_full = f_clip_full_map > f_clip_full_cutoff
-#         b_disc_concd = f_disc_concod > f_disc_concod_cutoff
-#         b_pass = b_ef_clip and b_ef_disc and b_clip_full and b_disc_concd
-#         return b_pass
+    ####
+    def is_ins_pass_cutoff(self, m_cutoff, s_type, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod):
+        (f_ef_clip_cutoff, f_ef_disc_cutoff, f_clip_full_cutoff, f_disc_concod_cutoff) = m_cutoff[s_type]
+        b_ef_clip = (f_ef_clip > f_ef_clip_cutoff)
+        b_ef_disc = f_ef_disc > f_ef_disc_cutoff
+        b_clip_full = f_clip_full_map > f_clip_full_cutoff
+        b_disc_concd = f_disc_concod > f_disc_concod_cutoff
+        b_pass = b_ef_clip and b_ef_disc and b_clip_full and b_disc_concd
+        return b_pass
 
 #     ####
     def is_qualified_mosaic_rcd(self, s_line, m_cutoff):
@@ -1135,64 +1135,64 @@ class AFConflictFilter():
         return b_pass
 
 #     ####
-#     def filter_by_af_conflict(self, sf_hc, n_clip_cutoff, n_disc_cutoff):
-#         l_types = self.get_rep_type()
-#         m_cutoff = self.get_cutoff_by_type(l_types)
-#         self.calc_ratio(m_cutoff, n_clip_cutoff, n_disc_cutoff, sf_hc)
+    def filter_by_af_conflict(self, sf_hc, n_clip_cutoff, n_disc_cutoff):
+        l_types = self.get_rep_type()
+        m_cutoff = self.get_cutoff_by_type(l_types)
+        self.calc_ratio(m_cutoff, n_clip_cutoff, n_disc_cutoff, sf_hc)
 
-#     ####
-#     def calc_ratio(self, m_cutoff, n_clip_cutoff, n_disc_cutoff, sf_in):
-#         sf_out = sf_in + ".after_filter"
-#         with open(sf_in) as fin_in, open(sf_out, "w") as fout_af_filter:
-#             n_total = 0
-#             n_hard_pass = 0
-#             n_pass = 0
-#             for line in fin_in:
-#                 fields = line.split()
-#                 n_lpolyA = int(fields[9])
-#                 n_rpolyA = int(fields[10])
+    ####
+    def calc_ratio(self, m_cutoff, n_clip_cutoff, n_disc_cutoff, sf_in):
+        sf_out = sf_in + ".after_filter"
+        with open(sf_in) as fin_in, open(sf_out, "w") as fout_af_filter:
+            n_total = 0
+            n_hard_pass = 0
+            n_pass = 0
+            for line in fin_in:
+                fields = line.split()
+                n_lpolyA = int(fields[9])
+                n_rpolyA = int(fields[10])
 
-#                 n_ef_clip = int(fields[5]) + int(fields[6])
-#                 n_ef_disc = int(fields[7]) + int(fields[8])
-#                 n_clip = int(fields[35])
-#                 n_full_map = int(fields[36])
-#                 n_disc = int(fields[39])
-#                 n_concod = int(fields[40])
-#                 n_total += 1
+                n_ef_clip = int(fields[5]) + int(fields[6])
+                n_ef_disc = int(fields[7]) + int(fields[8])
+                n_clip = int(fields[35])
+                n_full_map = int(fields[36])
+                n_disc = int(fields[39])
+                n_concod = int(fields[40])
+                n_total += 1
 
-#                 if n_ef_clip < n_clip_cutoff:
-#                     print("ef_clip", line)
-#                     continue
-#                 if n_ef_disc < n_disc_cutoff:
-#                     print("ef_disc", line)
-#                     continue
-#                 if n_lpolyA + n_rpolyA < 1:
-#                     print("no polyA", line)
-#                     continue
+                if n_ef_clip < n_clip_cutoff:
+                    print("ef_clip", line)
+                    continue
+                if n_ef_disc < n_disc_cutoff:
+                    print("ef_disc", line)
+                    continue
+                if n_lpolyA + n_rpolyA < 1:
+                    print("no polyA", line)
+                    continue
 
-#                 n_hard_pass += 1
+                n_hard_pass += 1
 
-#                 f_ef_clip = 0.0
-#                 if n_clip != 0:
-#                     f_ef_clip = float(n_ef_clip) / float(n_clip)
-#                 f_ef_disc = 0.0
-#                 if n_disc != 0:
-#                     f_ef_disc = float(n_ef_disc) / float(n_disc)
-#                 f_clip_full_map = 0.0
-#                 if (n_clip + n_full_map) != 0:
-#                     f_clip_full_map = float(n_clip) / float(n_clip + n_full_map)
-#                 f_disc_concod = 0.0
-#                 if (n_disc + n_concod) != 0:
-#                     f_disc_concod = float(n_disc) / float(n_disc + n_concod)
+                f_ef_clip = 0.0
+                if n_clip != 0:
+                    f_ef_clip = float(n_ef_clip) / float(n_clip)
+                f_ef_disc = 0.0
+                if n_disc != 0:
+                    f_ef_disc = float(n_ef_disc) / float(n_disc)
+                f_clip_full_map = 0.0
+                if (n_clip + n_full_map) != 0:
+                    f_clip_full_map = float(n_clip) / float(n_clip + n_full_map)
+                f_disc_concod = 0.0
+                if (n_disc + n_concod) != 0:
+                    f_disc_concod = float(n_disc) / float(n_disc + n_concod)
 
-#                 s_type_ins = fields[32]
-#                 b_pass = self.is_ins_pass_cutoff(m_cutoff, s_type_ins, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod)
+                s_type_ins = fields[32]
+                b_pass = self.is_ins_pass_cutoff(m_cutoff, s_type_ins, f_ef_clip, f_ef_disc, f_clip_full_map, f_disc_concod)
 
-#                 if b_pass is True:
-#                     n_pass += 1
-#                     fout_af_filter.write(line)
-#                 else:
-#                     s = 1
-#                     print(line.rstrip())
-#             print(n_hard_pass, n_pass, n_total)
-# ####
+                if b_pass is True:
+                    n_pass += 1
+                    fout_af_filter.write(line)
+                else:
+                    s = 1
+                    print(line.rstrip())
+            print(n_hard_pass, n_pass, n_total)
+####
