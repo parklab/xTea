@@ -10,6 +10,7 @@
 
 import xtea.global_values
 from xtea.intervaltree import IntervalTree
+import gzip
 
 class GFF3():
     def __init__(self, sf_gff3):
@@ -55,73 +56,77 @@ class GFF3():
     # gene_type=protein_coding;gene_name=TP53;
     # level=2;tag=overlapping_locus;havana_gene=OTTHUMG00000162125.10
     def load_gene_annotation_with_extnd(self, iextnd):
-        with open(self.sf_gff3) as fin_gene:
-            for line in fin_gene:
-                if len(line.rstrip())<1:
-                    continue
-                fields = line.split()
+        if self.sf_gff3[-2:] == '.gz':
+            fin_gene = gzip.open(self.sf_gff3)
+        else:
+            fin_gene = open(self.sf_gff3)
+        for line in fin_gene:
+            if len(line.rstrip())<1:
+                continue
+            fields = line.split()
 
-                if len(fields)<9:
-                    continue
-                if fields[0][0]=="#":
-                    continue
+            if len(fields)<9:
+                continue
+            if fields[0][0]=="#":
+                continue
 
-                tmp_chrm = fields[0]
-                chrm = self._process_chrm_name2(tmp_chrm)
-                ori_start_pos=int(fields[3])
-                ori_end_pos=int(fields[4])
-                start_pos = ori_start_pos - iextnd
-                end_pos = ori_end_pos + iextnd
+            tmp_chrm = fields[0]
+            chrm = self._process_chrm_name2(tmp_chrm)
+            ori_start_pos=int(fields[3])
+            ori_end_pos=int(fields[4])
+            start_pos = ori_start_pos - iextnd
+            end_pos = ori_end_pos + iextnd
 
-                region_type=fields[2]#gene, transcript, exon, UTR5, UTR3, downstream, upstream ...
-                if region_type=="transcript":#skip transcript
-                    continue
-                b_rc = False
-                if fields[6] == "-":
-                    b_rc = True
+            region_type=fields[2]#gene, transcript, exon, UTR5, UTR3, downstream, upstream ...
+            if region_type=="transcript":#skip transcript
+                continue
+            b_rc = False
+            if fields[6] == "-":
+                b_rc = True
 
-                sinfo=fields[8]
-                sinfo_fields=sinfo.split(";")
-                gene_id=""
-                gene_type=""
-                region_id=""
-                gene_name=""
-                for tmp_field in sinfo_fields:
-                    tt_fields=tmp_field.split("=")
-                    if tt_fields[0] == "ID":
-                        region_id=tt_fields[1]
-                    if tt_fields[0]=="gene_id":
-                        gene_id=tt_fields[1]
-                    if tt_fields[0]=="gene_type":
-                        gene_type=tt_fields[1]
-                    if tt_fields[0] == "gene_name":
-                        gene_name=tt_fields[1]
+            sinfo=fields[8]
+            sinfo_fields=sinfo.split(";")
+            gene_id=""
+            gene_type=""
+            region_id=""
+            gene_name=""
+            for tmp_field in sinfo_fields:
+                tt_fields=tmp_field.split("=")
+                if tt_fields[0] == "ID":
+                    region_id=tt_fields[1]
+                if tt_fields[0]=="gene_id":
+                    gene_id=tt_fields[1]
+                if tt_fields[0]=="gene_type":
+                    gene_type=tt_fields[1]
+                if tt_fields[0] == "gene_name":
+                    gene_name=tt_fields[1]
 
-                if region_type=="gene":
-                    ####save the gene information
-                    if chrm not in self.m_gene_annotation:
-                        self.m_gene_annotation[chrm] = {}
-                    if start_pos in self.m_gene_annotation[chrm]:
-                        ##Here change the start position a little bit, as sometimes some genes have same start position
-                        start_pos=start_pos-1
-                        while start_pos in self.m_gene_annotation[chrm]:
-                            start_pos = start_pos - 1
-                        #print "Position {0}:{1} has more than  1 annotation, change a little bit!".format(chrm, start_pos)
+            if region_type=="gene":
+                ####save the gene information
+                if chrm not in self.m_gene_annotation:
+                    self.m_gene_annotation[chrm] = {}
+                if start_pos in self.m_gene_annotation[chrm]:
+                    ##Here change the start position a little bit, as sometimes some genes have same start position
+                    start_pos=start_pos-1
+                    while start_pos in self.m_gene_annotation[chrm]:
+                        start_pos = start_pos - 1
+                    #print "Position {0}:{1} has more than  1 annotation, change a little bit!".format(chrm, start_pos)
 
-                    extd_start_pos = start_pos  ###here extend the left boundary a little bit
-                    if extd_start_pos not in self.m_gene_annotation[chrm]:
-                        self.m_gene_annotation[chrm][extd_start_pos] = []
-                    self.m_gene_annotation[chrm][extd_start_pos].append((end_pos, b_rc, gene_id, gene_type, gene_name)) #
-                    ####Also save to the region dictionary
-                    self.m_region_info[gene_id]={}#here we create two types of region: upstream_1k, downstream_1k
-                    s_up_id=xtea.global_values.UP_STREAM_REGION+":"+gene_id
-                    self.m_region_info[gene_id][s_up_id]=(start_pos, ori_start_pos)
-                    s_down_id=xtea.global_values.DOWN_STREAM_REGION+":"+gene_id
-                    self.m_region_info[gene_id][s_down_id] = (ori_end_pos, end_pos)
-                else:
-                    if gene_id not in self.m_region_info:
-                        self.m_region_info[gene_id]={}
-                    self.m_region_info[gene_id][region_id]=(ori_start_pos, ori_end_pos)
+                extd_start_pos = start_pos  ###here extend the left boundary a little bit
+                if extd_start_pos not in self.m_gene_annotation[chrm]:
+                    self.m_gene_annotation[chrm][extd_start_pos] = []
+                self.m_gene_annotation[chrm][extd_start_pos].append((end_pos, b_rc, gene_id, gene_type, gene_name)) #
+                ####Also save to the region dictionary
+                self.m_region_info[gene_id]={}#here we create two types of region: upstream_1k, downstream_1k
+                s_up_id=xtea.global_values.UP_STREAM_REGION+":"+gene_id
+                self.m_region_info[gene_id][s_up_id]=(start_pos, ori_start_pos)
+                s_down_id=xtea.global_values.DOWN_STREAM_REGION+":"+gene_id
+                self.m_region_info[gene_id][s_down_id] = (ori_end_pos, end_pos)
+            else:
+                if gene_id not in self.m_region_info:
+                    self.m_region_info[gene_id]={}
+                self.m_region_info[gene_id][region_id]=(ori_start_pos, ori_end_pos)
+        fin_gene.close()
 ####
 
     # ##For each chrom, sort according to the start position of each region
