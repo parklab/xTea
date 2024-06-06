@@ -472,15 +472,18 @@ def filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd,round):
 
     i_min_copy_len=225 #when check whether fall in repeat region, require the minimum copy length
     
-    if options.mode == 'mosaic':#for mosaic events
-        xpf_mosic = MosaicCaller(s_working_folder, n_jobs)
-        xpf_mosic.run_call_mosaic(sf_xtea_rslt, sf_rmsk, i_min_copy_len, i_rep_type, sf_black_list, sf_new_out)
-    else:
-        f_cov = basic_rcd[0] # CS EDIT
-        xpost_filter = XPostFilter(s_working_folder, n_jobs)
-        #here sf_black_list is the centromere + duplication region
-        xpost_filter.run_post_filtering(sf_xtea_rslt, sf_rmsk, i_min_copy_len, i_rep_type, f_cov, sf_black_list,
-                                        sf_new_out, b_tumor)
+    b_resume=options.resume
+    
+    if b_resume == False or os.path.isfile(sf_new_out) == False:
+        if options.mode == 'mosaic':#for mosaic events
+            xpf_mosic = MosaicCaller(s_working_folder, n_jobs)
+            xpf_mosic.run_call_mosaic(sf_xtea_rslt, sf_rmsk, i_min_copy_len, i_rep_type, sf_black_list, sf_new_out)
+        else:
+            f_cov = basic_rcd[0] # CS EDIT
+            xpost_filter = XPostFilter(s_working_folder, n_jobs)
+            #here sf_black_list is the centromere + duplication region
+            xpost_filter.run_post_filtering(sf_xtea_rslt, sf_rmsk, i_min_copy_len, i_rep_type, f_cov, sf_black_list,
+                                            sf_new_out, b_tumor)
 
 
 def annotate_genes(options,output_dir):
@@ -491,7 +494,7 @@ def annotate_genes(options,output_dir):
 
     sf_gene_annotation=options.genome_gff3
     b_resume=options.resume
-    
+
     if b_resume == False or os.path.isfile(sf_output) == False:
         
         gff=GFF3(sf_gene_annotation)
