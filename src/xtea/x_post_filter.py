@@ -997,6 +997,7 @@ class AFConflictFilter():
     ####
     def get_rep_type(self):
         l_types = []
+        l_types.append(xtea.global_values.ORPHAN_TRANSDUCTION)
         l_types.append(xtea.global_values.ONE_SIDE_FLANKING)
         l_types.append(xtea.global_values.TWO_SIDE)
         l_types.append(xtea.global_values.TWO_SIDE_TPRT_BOTH)

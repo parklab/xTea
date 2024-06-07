@@ -166,7 +166,7 @@ class GntpClassifier_sklearn():
     def predict_for_site_onnx(self, file_model, sf_xTEA, sf_new):
         sf_arff = sf_xTEA + ".arff"
 
-        options = ort.SessionOptions()
+        options = rt.SessionOptions()
         options.intra_op_num_threads = 1
         options.inter_op_num_threads = 1
 
