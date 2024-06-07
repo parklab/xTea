@@ -96,13 +96,13 @@ class GntpClassifier_sklearn():
         # clf = svm.SVC(kernel='linear')
         # clf=svm.SVC(kernel='rbf') #Gaussian Kernel
         clf.fit(X_train, y_train)
-        onx = to_onnx(clf, , X_train.to_numpy()[:1].astype(numpy.float32))
+        onx = to_onnx(clf, X_train.to_numpy()[:1].astype(numpy.float32))
         with open("genotype_model_6_7_2024.onnx", "wb") as f:
             f.write(onx.SerializeToString())
 
-		options = ort.SessionOptions()
-		options.intra_op_num_threads = 1
-		options.inter_op_num_threads = 1
+        options = ort.SessionOptions()
+        options.intra_op_num_threads = 1
+        options.inter_op_num_threads = 1
 
         #with open(sf_model, 'wb') as file:
         #    pickle.dump(clf, file)
@@ -161,14 +161,14 @@ class GntpClassifier_sklearn():
         # X_train, X_test, y_train, y_test = train_test_split(xVar, yVar, test_size=0.999999)
         # return X_test
         return xVar
-		
+        
     ####clf is the trained model
     def predict_for_site_onnx(self, file_model, sf_xTEA, sf_new):
         sf_arff = sf_xTEA + ".arff"
 
-		options = ort.SessionOptions()
-		options.intra_op_num_threads = 1
-		options.inter_op_num_threads = 1
+        options = ort.SessionOptions()
+        options.intra_op_num_threads = 1
+        options.inter_op_num_threads = 1
 
         sess = rt.InferenceSession(file_model, providers=["CPUExecutionProvider"])
         input_name = sess.get_inputs()[0].name
@@ -178,7 +178,7 @@ class GntpClassifier_sklearn():
         preds=None
 
         if len(site_features)>0:
-			preds = sess.run([label_name], {input_name: site_features.to_numpy().astype(numpy.float32)})[0]
+            preds = sess.run([label_name], {input_name: site_features.to_numpy().astype(numpy.float32)})[0]
 
         with open(sf_xTEA) as fin_xTEA, open(sf_new, "w") as fout_new:
             if None is preds:
