@@ -512,13 +512,13 @@ def annotate_genes(options,output_dir):
 
 def call_genotypes(options,output_dir):
     
-    sf_model = options.pkl_model_file
+    sf_model = options.onnx_model_file
     s_working_folder = output_dir
 
     sf_xTEA = f"{s_working_folder}/candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt" #input raw results before calling genotype
     sf_new = f"{s_working_folder}/candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene_gntp.txt"
     gc = GntpClassifier_sklearn()
-    gc.predict_for_site(sf_model, sf_xTEA, sf_new)
+    gc.predict_for_site_onnx(sf_model, sf_xTEA, sf_new)
 
 def generate_VCF(r,options,annot_path_dict,output_dir):
 

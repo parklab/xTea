@@ -22,7 +22,8 @@ dependencies = [
     "sortedcontainers",
     "numpy",
     "pandas",
-    "pyranges"
+    "pyranges",
+	"configargparse"
 ]
 
 [tool.pytest.ini_options]

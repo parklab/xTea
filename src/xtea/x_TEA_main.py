@@ -831,15 +831,18 @@ if __name__ == '__main__':
         b_train = options.train_gntp
         sf_model=options.model
         if b_train==True:#train a new model
-            sf_00_list = "/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/genotyping/training_set_SSC/Genotyping/rslt_list/all_00.list"
-            sf_01_list = "/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/genotyping/training_set_SSC/Genotyping/rslt_list/all_01.list"
-            sf_11_list = "/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/genotyping/training_set_SSC/Genotyping/rslt_list/all_11.list"
+            sf_00_list = "all_00.list"
+            sf_01_list = "all_01.list"
+            sf_11_list = "all_11.list"
+
             #sf_arff = "/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/genotyping/training_set_SSC/Genotyping/merged_all_0_1_2.arff"
             #sf_arff="/n/data1/hms/dbmi/park/simon_chu/projects/XTEA/genotyping/training_set_SSC/Genotyping/merged_all_two_category.arff"
-            sf_arff=options.input
+            #sf_arff = "/n/data1/hms/dbmi/park/simon_chu/xTea_related//training_set_SSC/Genotyping/merged_all_two_category.arff"
+            sf_arff = "test.arff"
+            #sf_arff=options.input
             gc = GntpClassifier_sklearn()
             b_balance=False
-            gc.gnrt_training_arff_from_xTEA_output(sf_00_list, sf_01_list, sf_11_list, sf_arff, b_balance)
+            #gc.gnrt_training_arff_from_xTEA_output(sf_00_list, sf_01_list, sf_11_list, sf_arff, b_balance)
             #pkl_filename = "./genotyping/trained_model_ssc_py2_random_forest_two_category.pkl"
             gc.train_model(sf_arff, sf_model, f_ratio=0.01)
         else:#predict the genotype

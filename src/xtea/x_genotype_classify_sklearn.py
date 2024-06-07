@@ -13,7 +13,13 @@ from sklearn.model_selection import train_test_split
 from scipy.io import arff
 import pandas as pd
 import pickle
+import numpy
 from sklearn.metrics import accuracy_score
+
+from skl2onnx import to_onnx
+import onnxruntime as rt
+from skl2onnx.common.data_types import FloatTensorType
+
 
 #from sklearn import svm ####
 
@@ -90,11 +96,26 @@ class GntpClassifier_sklearn():
         # clf = svm.SVC(kernel='linear')
         # clf=svm.SVC(kernel='rbf') #Gaussian Kernel
         clf.fit(X_train, y_train)
-        with open(sf_model, 'wb') as file:
-            pickle.dump(clf, file)
+        onx = to_onnx(clf, , X_train.to_numpy()[:1].astype(numpy.float32))
+        with open("genotype_model_6_7_2024.onnx", "wb") as f:
+            f.write(onx.SerializeToString())
+
+		options = ort.SessionOptions()
+		options.intra_op_num_threads = 1
+		options.inter_op_num_threads = 1
+
+        #with open(sf_model, 'wb') as file:
+        #    pickle.dump(clf, file)
         preds = clf.predict(X_test)
+        sess = rt.InferenceSession("genotype_model_6_7_2024.onnx", providers=["CPUExecutionProvider"])
+        input_name = sess.get_inputs()[0].name
+        label_name = sess.get_outputs()[0].name
+        pred_onx = sess.run([label_name], {input_name: X_test.to_numpy().astype(numpy.float32)})[0]
+
         accuracy = accuracy_score(y_test, preds)
-        print('Mean accuracy score: {0}'.format(round(accuracy)))
+        accuracy_0 = accuracy_score(y_test, pred_onx)
+        print('Mean accuracy score: {0}'.format(accuracy))
+        print('Mean accuracy score ONX: {0}'.format(accuracy_0))
         tab = pd.crosstab(y_test, preds, rownames=['Actual Result'], colnames=['Predicted Result'])
         print(tab)
 
@@ -140,7 +161,42 @@ class GntpClassifier_sklearn():
         # X_train, X_test, y_train, y_test = train_test_split(xVar, yVar, test_size=0.999999)
         # return X_test
         return xVar
-####
+		
+    ####clf is the trained model
+    def predict_for_site_onnx(self, file_model, sf_xTEA, sf_new):
+        sf_arff = sf_xTEA + ".arff"
+
+		options = ort.SessionOptions()
+		options.intra_op_num_threads = 1
+		options.inter_op_num_threads = 1
+
+        sess = rt.InferenceSession(file_model, providers=["CPUExecutionProvider"])
+        input_name = sess.get_inputs()[0].name
+        label_name = sess.get_outputs()[0].name
+            
+        site_features = self.prepare_arff_from_xTEA_output(sf_xTEA, sf_arff)
+        preds=None
+
+        if len(site_features)>0:
+			preds = sess.run([label_name], {input_name: site_features.to_numpy().astype(numpy.float32)})[0]
+
+        with open(sf_xTEA) as fin_xTEA, open(sf_new, "w") as fout_new:
+            if None is preds:
+                return
+            i_idx = 0
+            for line in fin_xTEA:
+                sinfo = line.rstrip()
+                s_gntp = "0/0"
+                if preds[i_idx] == 1:
+                    s_gntp = "0/1"
+                elif preds[i_idx] == 2:
+                    s_gntp = "1/1"
+                sinfo += ("\t" + s_gntp + "\n")
+                fout_new.write(sinfo)
+                i_idx += 1
+
+
+###
 
     ####clf is the trained model
     def predict_for_site(self, file_model, sf_xTEA, sf_new):

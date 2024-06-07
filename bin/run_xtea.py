@@ -59,7 +59,7 @@ def parse_toml_args():
 
     # annotation directories:
     p.add("--rep_lib_annot_dir",required = True, help = 'Path to rep_lib_annotation/ directory')
-    p.add("--pkl_model_file",required = True, help = 'Path to .pkl model file')
+    p.add("--onnx_model_file",required = True, help = 'Path to .onnx model file')
     p.add("--genome_reference",required = True, help = 'Path to genome fasta file')
     p.add("--genome_gff3",required = True, help = 'Path to genome annotation file (.gff3 format)')
 
