@@ -143,10 +143,13 @@ class GntpClassifier_sklearn():
 ####
 
     ####clf is the trained model
-    def predict_for_site(self, rf_model, sf_xTEA, sf_new):
+    def predict_for_site(self, file_model, sf_xTEA, sf_new):
         sf_arff = sf_xTEA + ".arff"
         # site_features=self.prepare_arff_from_xTEA_output_two_category(sf_xTEA, sf_arff)
 
+        with open(file_model, "rb") as f:
+            rf_model = pickle.load(f)
+            
         site_features = self.prepare_arff_from_xTEA_output(sf_xTEA, sf_arff)
         preds=None
         if len(site_features)>0:
