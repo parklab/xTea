@@ -22,6 +22,7 @@ from xtea.x_mosaic_calling import MosaicCaller
 from xtea.x_post_filter import XPostFilter
 from xtea.x_gvcf import gVCF
 from xtea.x_gene_annotation import GFF3
+from xtea.x_genotype_classify_sklearn import GntpClassifier_sklearn
 
 
 
@@ -509,8 +510,15 @@ def annotate_genes(options,output_dir):
         gff.annotate_results(sf_input, sf_output)
 
 
-def call_genotypes(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
-    return
+def call_genotypes(options,output_dir):
+    
+    sf_model = options.pkl_model_file
+    s_working_folder = output_dir
+
+    sf_xTEA = f"{s_working_folder}/candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt" #input raw results before calling genotype
+    sf_new = f"{s_working_folder}/candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene_gntp.txt"
+    gc = GntpClassifier_sklearn()
+    gc.predict_for_site(sf_model, sf_xTEA, sf_new)
 
 def generate_VCF(r,options,annot_path_dict,output_dir):
 

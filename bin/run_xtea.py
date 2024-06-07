@@ -59,6 +59,7 @@ def parse_toml_args():
 
     # annotation directories:
     p.add("--rep_lib_annot_dir",required = True, help = 'Path to rep_lib_annotation/ directory')
+    p.add("--pkl_model_file",required = True, help = 'Path to .pkl model file')
     p.add("--genome_reference",required = True, help = 'Path to genome fasta file')
     p.add("--genome_gff3",required = True, help = 'Path to genome annotation file (.gff3 format)')
 
@@ -217,17 +218,23 @@ if __name__ == '__main__':
             print(f"ANNOTATION STEP FINISHED:,{t}")
             start = time.time()
 
-            # time python ${XTEA_PATH}"x_TEA_main.py" --gntp_classify 
-            # -i ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt"  
-            # -n 1 --model ${XTEA_PATH}"genotyping/DF21_model_1_2"  
-            # -o ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene_gntp.txt"
+            # genotype
+            print("Genotype prediction step...")
+            call_genotypes(options,output_dir)
+            curr_time = time.time() - start
+            t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
+            print(f"GENOTYPING STEP FINISHED:,{t}")
+            start = time.time()
             
-            
-            #output
-            # time python ${XTEA_PATH}"x_TEA_main.py" --gVCF 
-            # -i ${PREFIX}"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene_gntp.txt"  
-            # -o ${PREFIX} -b ${BAM_LIST} --ref ${REF} --rtype 2
-    
+            # make vcf
+            print("Generate VCF step...")
+            generate_VCF(r,options,annot_path_dict,output_dir)
+            curr_time = time.time() - start
+            t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
+            print(f"GENOTYPING STEP FINISHED:,{t}")
+            start = time.time()
+
+
     # elif 'case-control':
 
     # elif 'de-novo':
