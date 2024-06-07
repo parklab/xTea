@@ -59,7 +59,7 @@ class RepType():
         if i_rep_type & 64 != 0:
             m_types[self.PSUDOGENE] = 1
         return m_types
-####
+
     def get_rep_vcf_alt_type(self, i_rep_type):
         if i_rep_type & 1 != 0:
             return self.REP_TYPE_L1_vcf

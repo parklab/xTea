@@ -162,7 +162,6 @@ class gVCF():
             s_rep_type = rep_type.get_HERV_str()
 
 
-        s_rep_type=rep_type.get_rep_vcf_alt_type(i_rep_type)
         #get the TSD sequences
         xTSD=XTSD()
         l_sTSD=xTSD.get_TSD_seqs(sf_ref, l_sites)
