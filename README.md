@@ -111,6 +111,7 @@ xtea -c params/default_params.toml \
 	-s sample1 \
 	-n 8
 ```
+>>>>>>> 86812ebbf0cc3d5a037057c06f8b652a694d6c1c
 
 			
 **Output**

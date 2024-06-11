@@ -22,6 +22,7 @@ dependencies = [
     "sortedcontainers",
     "numpy",
     "pandas",
+    "pyranges",
     "configargparse",
     "onnxruntime==1.16.3"
 ]

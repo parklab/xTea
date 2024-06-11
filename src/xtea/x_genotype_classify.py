@@ -1,7 +1,7 @@
 import os
 import sys
 import pandas as pd
-from deepforest import CascadeForestClassifier
+#from deepforest import CascadeForestClassifier
 from scipy.io import arff
 
 class GntpClassifier_DF21():
