@@ -1,6 +1,6 @@
 ### cli branch
 
-$${\color{red}This branch of xTea is currently in development. Results are not guaranteed to match the xTea-master branch. Use with caution.}$$
+**This branch of xTea is currently in development. Results are not guaranteed to match the xTea-master branch. Use with caution.**
 
 This branch of xTea refactors installation of xTea as well as the command line interface. It currently does not support case-control running or 10X barcoded reads.
 
