@@ -11,7 +11,6 @@ import os
 from subprocess import *
 from optparse import OptionParser
 import ntpath
-#import global_values
 
 ILLUMINA="illumina"
 X10="10X"
@@ -214,9 +213,12 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
                             "-o ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\"\n" \
             .format(i_rep_type, ncores, s_tumor)
 
+# sf_sr_asm = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --sr_asm -b ${{BAM_LIST}} -p ${{TMP_CNS}}\"asm\" " \
+#            " -n {0} -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\" " \
+#            " --ref ${{REF}} -o ${{PREFIX}}\"assembled_ins_sequence.fa\" \n".format(ncores)
     sf_sr_asm = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --sr_asm -b ${{BAM_LIST}} -p ${{TMP_CNS}}\"asm\" " \
-               " -n {0} -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\" " \
-               " --ref ${{REF}} -o ${{PREFIX}}\"assembled_ins_sequence.fa\" \n".format(ncores)
+                " -n {0} -i ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering_denovo.txt\" " \
+                " --ref ${{REF}} -o ${{PREFIX}}\"assembled_ins_sequence.fa\" \n".format(ncores)
     if b_tumor==True:
         sf_sr_asm = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --sr_asm -b ${{BAM_LIST}} -p ${{TMP_CNS}}\"asm\" " \
                     " -n {0} -i ${{PREFIX}}\"candidate_disc_filtered_cns_high_confident_post_filtering_somatic.txt\" " \
@@ -238,7 +240,7 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
     # ####
     # s_igv="python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv -p ${{PREFIX}}\"tmp/igv\" -b ${{BAM_LIST}} " \
     #                  "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
-    #                  " --ref \"hg38\" -e 500 " \
+    #                  " --ref \"chm13\" -e 500 " \
     #                  "-o ${{PREFIX}}\"tmp/igv/igv_screenshot.txt\"\n" \
     #     .format(ncores, iflt_clip, iflt_disc)
     ######
@@ -355,11 +357,11 @@ def gnrt_calling_command_somatic_case_control(iflt_clip, iflt_disc, ncores, sf_c
     ####
     s_igv="python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
                      "-i ${{PREFIX}}\"candidate_disc_filtered_cns2.txt\" " \
-                     " --ref \"hg38\" -e 500 " \
+                     " --ref \"chm13\" -e 500 " \
                      "-o ${{PREFIX}}\"tmp/igv/igv_screenshot.txt\"\n".format(sf_case_control_bam_list)
     s_igv_hc = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
             "-i ${{PREFIX}}\"candidate_disc_filtered_cns_high_confident_post_filtering_somatic.txt\" " \
-            " --ref \"hg38\" -e 500 " \
+            " --ref \"chm13\" -e 500 " \
             "-o ${{PREFIX}}\"tmp/igv/igv_screenshot_somatic.txt\"\n".format(sf_case_control_bam_list)
 
     ####BamSnap
@@ -776,57 +778,57 @@ def gnrt_lib_config(l_rep_type, sf_folder_rep, sf_ref, sf_gene, sf_black_list, s
     sf_xtea = "XTEA_PATH " + sf_folder_xtea + "\n"
     sf_gene_anno="GENE " + sf_gene + "\n"
     sf_black_list = "BLACK_LIST " + sf_black_list + "\n"
-    for s_rep_type in l_rep_type:
+    for s_rep_type in l_rep_type:#
         if s_rep_type=="L1":# for L1
             sf_config_L1 = sf_config_prefix + "L1.config"
-            sf_anno = "ANNOTATION " + sf_folder_rep + "LINE/hg38/hg38_L1_larger_500_with_all_L1HS.out\n"
-            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "LINE/hg38/hg38_L1.fa.out\n"
-            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "LINE/hg38/hg38_L1HS_copies_larger_5K_with_flank.fa\n"
-            sf_flank = "SF_FLANK " + sf_folder_rep + "LINE/hg38/hg38_FL_L1_flanks_3k.fa\n"
+            sf_anno = "ANNOTATION " + sf_folder_rep + "LINE/chm13/chm13_L1_larger_500_with_all_L1HS.out\n"####
+            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "LINE/chm13/chm13_L1.fa.out\n"
+            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "LINE/chm13/chm13_L1HS_copies_larger_5K_with_flank.fa\n"
+            sf_flank = "SF_FLANK " + sf_folder_rep + "LINE/chm13/chm13_FL_L1_flanks_3k.fa\n"
             sf_cns = "L1_CNS " + sf_folder_rep + "consensus/LINE1.fa\n"
             write_to_config(sf_anno, sf_anno1, sf_ref, sf_gene_anno, sf_black_list, sf_copy_with_flank, sf_flank,
                             sf_cns, sf_xtea, s_bl, s_bam1, s_bc_bam, s_tmp, s_tmp_clip, s_tmp_cns, sf_config_L1)
         elif s_rep_type=="Alu":#
             sf_config_Alu = sf_config_prefix + "Alu.config"
-            sf_anno = "ANNOTATION " + sf_folder_rep + "Alu/hg38/hg38_Alu.out\n"
-            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Alu/hg38/hg38_Alu.out\n"
-            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "Alu/hg38/hg38_AluJabc_copies_with_flank.fa\n"
+            sf_anno = "ANNOTATION " + sf_folder_rep + "Alu/chm13/chm13_Alu.out\n"
+            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Alu/chm13/chm13_Alu.out\n"
+            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "Alu/chm13/chm13_AluJabc_copies_with_flank.fa\n"
             sf_flank = "SF_FLANK null\n"
             sf_cns = "L1_CNS " + sf_folder_rep + "consensus/ALU.fa\n"
             write_to_config(sf_anno, sf_anno1, sf_ref, sf_gene_anno, sf_black_list, sf_copy_with_flank, sf_flank,
                             sf_cns, sf_xtea, s_bl, s_bam1, s_bc_bam, s_tmp, s_tmp_clip, s_tmp_cns, sf_config_Alu)
-        elif s_rep_type=="SVA":####for SVA
+        elif s_rep_type=="SVA":####
             sf_config_SVA = sf_config_prefix + "SVA.config"
-            sf_anno = "ANNOTATION " + sf_folder_rep + "SVA/hg38/hg38_SVA.out\n"
-            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "SVA/hg38/hg38_SVA.out\n"
-            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "SVA/hg38/hg38_SVA_copies_with_flank.fa\n"
-            sf_flank = "SF_FLANK " + sf_folder_rep + "SVA/hg38/hg38_FL_SVA_flanks_3k.fa\n"
+            sf_anno = "ANNOTATION " + sf_folder_rep + "SVA/chm13/chm13_SVA.out\n"
+            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "SVA/chm13/chm13_SVA.out\n"
+            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "SVA/chm13/chm13_SVA_copies_with_flank.fa\n"
+            sf_flank = "SF_FLANK " + sf_folder_rep + "SVA/chm13/chm13_FL_SVA_flanks_3k.fa\n"
             sf_cns = "L1_CNS " + sf_folder_rep + "consensus/SVA.fa\n"
             write_to_config(sf_anno, sf_anno1, sf_ref, sf_gene_anno, sf_black_list, sf_copy_with_flank, sf_flank,
                             sf_cns, sf_xtea, s_bl, s_bam1, s_bc_bam, s_tmp, s_tmp_clip, s_tmp_cns, sf_config_SVA)
         elif s_rep_type=="HERV":####HERV
             sf_config_HERV = sf_config_prefix + "HERV.config"
-            sf_anno = "ANNOTATION " + sf_folder_rep + "HERV/hg38/hg38_HERV.out\n"
-            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "HERV/hg38/hg38_HERV.out\n"
-            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "HERV/hg38/hg38_HERV_copies_with_flank.fa\n"
+            sf_anno = "ANNOTATION " + sf_folder_rep + "HERV/chm13/chm13_HERV.out\n"
+            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "HERV/chm13/chm13_HERV.out\n" ####
+            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "HERV/chm13/chm13_HERV_copies_with_flank.fa\n"
             sf_flank = "SF_FLANK null\n"
             sf_cns = "L1_CNS " + sf_folder_rep + "consensus/HERV.fa\n"
             write_to_config(sf_anno, sf_ref, sf_anno1, sf_gene_anno, sf_black_list, sf_copy_with_flank, sf_flank,
                             sf_cns, sf_xtea, s_bl, s_bam1, s_bc_bam, s_tmp, s_tmp_clip, s_tmp_cns, sf_config_HERV)
         elif s_rep_type=="MSTA":####MSTA
             sf_config_MSTA = sf_config_prefix + "MSTA.config"
-            sf_anno = "ANNOTATION " + sf_folder_rep + "MSTA/hg38/hg38_MSTA.out\n"
-            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "MSTA/hg38/hg38_MSTA.out\n"
-            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "MSTA/hg38/hg38_MSTA_copies_with_flank.fa\n"
+            sf_anno = "ANNOTATION " + sf_folder_rep + "MSTA/chm13/chm13_MSTA.out\n"
+            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "MSTA/chm13/chm13_MSTA.out\n"
+            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "MSTA/chm13/chm13_MSTA_copies_with_flank.fa\n"
             sf_flank = "SF_FLANK null\n"
             sf_cns = "L1_CNS " + sf_folder_rep + "consensus/MSTA.fa\n"
             write_to_config(sf_anno, sf_anno1, sf_ref, sf_gene_anno, sf_black_list, sf_copy_with_flank, sf_flank,
                             sf_cns, sf_xtea, s_bl, s_bam1, s_bc_bam, s_tmp, s_tmp_clip, s_tmp_cns, sf_config_MSTA)
         elif s_rep_type==REP_TYPE_PSEUDOGENE:
             sf_config_pseudogene = sf_config_prefix + "Pseudogene.config"
-            sf_anno = "ANNOTATION " + sf_folder_rep + "Pseudogene/hg38/gencode_v28_GRCh38_exon_annotation.out\n"
-            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Pseudogene/hg38/gencode_v28_GRCh38_exon_annotation.out\n"
-            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "Pseudogene/hg38/gencode_v28_GRCh38_transcript_masked.fa\n"
+            sf_anno = "ANNOTATION " + sf_folder_rep + "Pseudogene/chm13/gencode_v28_GRCh38_exon_annotation.out\n"
+            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Pseudogene/chm13/gencode_v28_GRCh38_exon_annotation.out\n"
+            sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep + "Pseudogene/chm13/gencode_v28_GRCh38_transcript_masked.fa\n"
             sf_flank = "SF_FLANK null\n"
             sf_cns = "L1_CNS " + sf_folder_rep + "consensus/gencode_v28_GRCh38_transcript_masked.fa\n"#
             write_to_config(sf_anno, sf_anno1, sf_ref, sf_gene_anno, sf_black_list, sf_copy_with_flank, sf_flank,
@@ -834,10 +836,10 @@ def gnrt_lib_config(l_rep_type, sf_folder_rep, sf_ref, sf_gene, sf_black_list, s
 
         elif s_rep_type=="Mitochondrion":####for Mitochondrion
             sf_config_Mitochondrion = sf_config_prefix + "Mitochondrion.config"
-            sf_anno = "ANNOTATION " + sf_folder_rep + "Mitochondrion/hg38/hg38_numtS.out\n"
-            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Mitochondrion/hg38/hg38_numtS.out\n"
+            sf_anno = "ANNOTATION " + sf_folder_rep + "Mitochondrion/chm13/chm13_numtS.out\n"
+            sf_anno1 = "ANNOTATION1 " + sf_folder_rep + "Mitochondrion/chm13/chm13_numtS.out\n"
             sf_copy_with_flank = "L1_COPY_WITH_FLANK " + sf_folder_rep +\
-                                 "Mitochondrion/hg38/hg38_mitochondrion_copies_with_flank.fa\n"
+                                 "Mitochondrion/chm13/chm13_mitochondrion_copies_with_flank.fa\n"
             sf_flank = "SF_FLANK null\n"
             sf_cns = "L1_CNS " + sf_folder_rep + "consensus/mitochondrion.fa\n"
             write_to_config(sf_anno, sf_anno1, sf_ref, sf_gene_anno, sf_black_list, sf_copy_with_flank, sf_flank,
@@ -1052,64 +1054,64 @@ def split_bam_list(m_ids, sf_bams, sf_x10_bams, l_rep_type, s_wfolder, sf_case_c
                 with open(sf_rep_x10_bam, "w") as fout_rep_x10_bams:
                     fout_rep_x10_bams.write(sid_tmp+"\t"+m_bams_10X[sid_tmp][0]+"\t"+m_bams_10X[sid_tmp][1]+"\n")
 
-# ####run the pipelines
-# def run_pipeline(l_rep_type, sample_id, s_wfolder):
-#     for rep_type in l_rep_type:
-#         sf_sbatch_sh_rep = s_wfolder + sample_id + "/run_{0}.sh".format(rep_type)
-#         cmd="sh {0}".format(sf_sbatch_sh_rep)
-#         run_cmd(cmd)
+####run the pipelines
+def run_pipeline(l_rep_type, sample_id, s_wfolder):
+    for rep_type in l_rep_type:
+        sf_sbatch_sh_rep = s_wfolder + sample_id + "/run_{0}.sh".format(rep_type)
+        cmd="sh {0}".format(sf_sbatch_sh_rep)
+        run_cmd(cmd)
 
-# def decompress(sf_in_tar, sf_out):
-#     cmd="tar -zxvf {0} -C {1}".format(sf_in_tar, sf_out)
-#     run_cmd(cmd)
+def decompress(sf_in_tar, sf_out):
+    cmd="tar -zxvf {0} -C {1}".format(sf_in_tar, sf_out)
+    run_cmd(cmd)
 
-# def cp_compress_results(s_wfolder, l_rep_type, sample_id):
-#     # create a "results" folder
-#     sf_rslts = s_wfolder + "results/"
-#     if os.path.exists(sf_rslts)==False:
-#         cmd = "mkdir {0}".format(sf_rslts)
-#         run_cmd(cmd)
+def cp_compress_results(s_wfolder, l_rep_type, sample_id):
+    # create a "results" folder
+    sf_rslts = s_wfolder + "results/"
+    if os.path.exists(sf_rslts)==False:
+        cmd = "mkdir {0}".format(sf_rslts)
+        run_cmd(cmd)
 
-#     for rep_type in l_rep_type:
-#         sf_rslts_rep_folder=sf_rslts+rep_type+"/"
-#         if os.path.exists(sf_rslts_rep_folder)==False:
-#             cmd = "mkdir {0}".format(sf_rslts_rep_folder)
-#             run_cmd(cmd)
-#         sf_samp_folder = sf_rslts_rep_folder + sample_id + "/"
-#         if os.path.exists(sf_samp_folder)==False:
-#             cmd="mkdir {0}".format(sf_samp_folder)
-#             run_cmd(cmd)
+    for rep_type in l_rep_type:
+        sf_rslts_rep_folder=sf_rslts+rep_type+"/"
+        if os.path.exists(sf_rslts_rep_folder)==False:
+            cmd = "mkdir {0}".format(sf_rslts_rep_folder)
+            run_cmd(cmd)
+        sf_samp_folder = sf_rslts_rep_folder + sample_id + "/"
+        if os.path.exists(sf_samp_folder)==False:
+            cmd="mkdir {0}".format(sf_samp_folder)
+            run_cmd(cmd)
 
-#         sf_source_folder=s_wfolder+sample_id+"/"+rep_type+"/"
-#         sf_rslt1=sf_source_folder+"candidate_disc_filtered_cns.txt"
-#         cp_file(sf_rslt1, sf_samp_folder)
-#         sf_rslt2 = sf_source_folder + "candidate_list_from_clip.txt"
-#         cp_file(sf_rslt2, sf_samp_folder)
-#         sf_rslt2_1 = sf_source_folder + "candidate_list_from_clip.txt_tmp"
-#         cp_file(sf_rslt2_1, sf_samp_folder)
-#         sf_rslt3 = sf_source_folder + "candidate_list_from_disc.txt"
-#         cp_file(sf_rslt3, sf_samp_folder)
+        sf_source_folder=s_wfolder+sample_id+"/"+rep_type+"/"
+        sf_rslt1=sf_source_folder+"candidate_disc_filtered_cns.txt"
+        cp_file(sf_rslt1, sf_samp_folder)
+        sf_rslt2 = sf_source_folder + "candidate_list_from_clip.txt"
+        cp_file(sf_rslt2, sf_samp_folder)
+        sf_rslt2_1 = sf_source_folder + "candidate_list_from_clip.txt_tmp"
+        cp_file(sf_rslt2_1, sf_samp_folder)
+        sf_rslt3 = sf_source_folder + "candidate_list_from_disc.txt"
+        cp_file(sf_rslt3, sf_samp_folder)
 
-#         # s_tmp1=sf_source_folder+"tmp/cns/candidate_sites_all_disc.fa"
-#         # cp_file(s_tmp1, sf_samp_folder)
-#         # s_tmp2 = sf_source_folder + "tmp/cns/candidate_sites_all_clip.fq"
-#         # cp_file(s_tmp2, sf_samp_folder)
+        # s_tmp1=sf_source_folder+"tmp/cns/candidate_sites_all_disc.fa"
+        # cp_file(s_tmp1, sf_samp_folder)
+        # s_tmp2 = sf_source_folder + "tmp/cns/candidate_sites_all_clip.fq"
+        # cp_file(s_tmp2, sf_samp_folder)
 
-#         s_tmp1=sf_source_folder+"tmp/cns/temp_disc.sam"
-#         cp_file(s_tmp1, sf_samp_folder)
-#         s_tmp2 = sf_source_folder + "tmp/cns/temp_clip.sam"
-#         cp_file(s_tmp2, sf_samp_folder)
-#         s_tmp3 = sf_source_folder + "tmp/cns/all_with_polymerphic_flanks.fa"
-#         cp_file(s_tmp3, sf_samp_folder)
-#         s_tmp4 = sf_source_folder + "tmp/clip_reads_tmp0"
-#         cp_file(s_tmp4, sf_samp_folder)
-#         s_tmp5 = sf_source_folder + "tmp/discordant_reads_tmp0"
-#         cp_file(s_tmp5, sf_samp_folder)
+        s_tmp1=sf_source_folder+"tmp/cns/temp_disc.sam"
+        cp_file(s_tmp1, sf_samp_folder)
+        s_tmp2 = sf_source_folder + "tmp/cns/temp_clip.sam"
+        cp_file(s_tmp2, sf_samp_folder)
+        s_tmp3 = sf_source_folder + "tmp/cns/all_with_polymerphic_flanks.fa"
+        cp_file(s_tmp3, sf_samp_folder)
+        s_tmp4 = sf_source_folder + "tmp/clip_reads_tmp0"
+        cp_file(s_tmp4, sf_samp_folder)
+        s_tmp5 = sf_source_folder + "tmp/discordant_reads_tmp0"
+        cp_file(s_tmp5, sf_samp_folder)
 
-#     #compress the results folder to one file
-#     sf_compressed=sf_rslts+"results.tar.gz"
-#     cmd="tar -cvzf {0} -C {1} .".format(sf_compressed, sf_rslts)
-#     run_cmd(cmd)
+    #compress the results folder to one file
+    sf_compressed=sf_rslts+"results.tar.gz"
+    cmd="tar -cvzf {0} -C {1} .".format(sf_compressed, sf_rslts)
+    run_cmd(cmd)
 
 ####
 def get_flag_by_rep_type(s_type):
@@ -1249,7 +1251,7 @@ if __name__ == '__main__':
     (options, args) = parse_option()
     b_version=options.version
     if b_version==True:
-        print(("xTea %s for short and linked reads on hg38\n" % S_VERSION))
+        print(("xTea %s for short and linked reads on chm13\n" % S_VERSION))
     else:
         sf_id = options.id
         sf_bams = options.bam ###input is a bam file
@@ -1267,7 +1269,6 @@ if __name__ == '__main__':
         b_slurm=options.slurm ####
         b_resume = options.resume
         b_denovo=options.denovo
-    ####
 
         if s_wfolder[-1]!="/":
             s_wfolder+="/"
@@ -1315,13 +1316,13 @@ if __name__ == '__main__':
         if i_rep_type & 64 != 0:
             l_rep_type.append(REP_TYPE_PSEUDOGENE)
 
-        if b_case_control==False:
+        if b_case_control==False:#this is for germline
             #non-case-ctrl mode (mainly for germline)
             gnrt_running_shell(sf_id, sf_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor, f_purity, b_hard_cut,
                                s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea, spartition, stime,
                                smemory, ncores, sf_sbatch_sh, "null", b_lsf, b_slurm, b_resume)
 
-        elif b_denovo==False:
+        elif b_denovo==False:#this is for somatic
             #if in case-control mode, then need to separate to two steps
             #thus need to prepare the files separately
             sf_sprt_bams=sf_bams + CASE_LIST_SUFFIX
@@ -1331,7 +1332,7 @@ if __name__ == '__main__':
             gnrt_running_shell(sf_id, sf_sprt_bams, sf_bams_10X, l_rep_type, b_mosaic, b_user_par, b_force, b_tumor,
                                f_purity, b_hard_cut, s_wfolder, sf_folder_rep, sf_ref, sf_gene, sf_black_list, sf_folder_xtea,
                                spartition, stime, smemory, ncores, sf_sbatch_sh, sf_bams, b_lsf, b_slurm, b_resume)
-        else:
+        else:#this is for de novo
             # if in de novo mode, then need to separate to two steps
             # thus need to prepare the files separately
             sf_sprt_bams = sf_bams + CASE_LIST_SUFFIX

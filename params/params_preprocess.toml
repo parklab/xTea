@@ -1,0 +1,15 @@
+
+#Preprocess Parameters
+
+[IO_files]
+wfolder = '.'
+reference = '.'
+annotation = '.'
+output = '.'
+bed = false
+
+        
+[flank_params]        
+extend = 0
+withflank = false # if not set then no flank region
+rmsk_extnd = 100

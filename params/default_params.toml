@@ -1,0 +1,18 @@
+# Default Parameters for xTea
+
+[required_arguments]
+input_bams = ['/home/cos689/Kamihara_DFCI_WGS/thyroid_cancer/analysis_terra_2023/downloaded_cram/TP003_B.cram']
+repeat_type = ['ALU','L1','SVA']
+mode = 'germline'
+sample_name = "TP003"
+
+[insertion_detection_params]
+
+[annotation_directories]
+rep_lib_annot_dir = "/home/cos689/xTea/rep_lib_annotation/"
+genome_reference = "/n/data1/hms/dbmi/park/SOFTWARE/REFERENCE/hg38/cgap_matches/Homo_sapiens_assembly38.fa"
+genome_gff3 = "/n/data1/hms/dbmi/park/corinne/ref/gencode/gencode.v45.basic.annotation.gff3.gz"
+onnx_model_file = "/home/cos689/xTea/src/xtea/genotyping/genotype_model_6_7_2024.onnx"
+
+[output_directories]
+output_dir = "results/"

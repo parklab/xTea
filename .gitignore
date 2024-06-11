@@ -1,0 +1,9 @@
+dist/*
+*egg*/*
+build/*
+src/xtea.egg-info/*
+timings.md
+run_xtea_pipeline.sh
+.*
+settings.json
+rep_lib_annotation/*

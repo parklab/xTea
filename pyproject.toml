@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xtea"
+version = "0.1.9"
+authors = [
+    {name = "Simon (Chong) Chu", email = "chong.simon.chu@gmail.com"},
+]
+maintainers = [
+    {name = "Corinne Sexton", email = "corinne_sexton@hms.harvard.edu"}
+]
+description = "Comprehensive TE insertion identification with WGS/WES data from multiple sequencing techniques"
+
+readme = "README.md"
+requires-python = ">=3.6"
+license = {file = "LICENSE"}
+
+dependencies = [
+    "pysam",
+    "sortedcontainers",
+    "numpy",
+    "pandas",
+    "configargparse",
+    "onnxruntime==1.16.3"
+]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = [
+    "-ra -q",
+    "--import-mode=importlib",
+]
+testpaths = [
+    "tests"
+]
+
+[project.scripts]
+xtea = "xtea.run_xtea:main"
