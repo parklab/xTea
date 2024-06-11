@@ -23,7 +23,8 @@ dependencies = [
     "numpy",
     "pandas",
     "pyranges",
-	"configargparse"
+    "configargparse",
+    "onnxruntime==1.16.3"
 ]
 
 [tool.pytest.ini_options]
@@ -37,4 +38,4 @@ testpaths = [
 ]
 
 [project.scripts]
-run_xtea = "xtea.x_TEA_main:main"
+xtea = "xtea.run_xtea:main"
