@@ -279,7 +279,7 @@ class gVCF():
         n_ranchor_rc = int(l_fields[45])
         n_ranchor_nrc = int(l_fields[46])
 
-        i_ins_len=int(l_fields[47])
+        i_ins_len=int(float(l_fields[47]))
         s_fall_in_ref_copy=l_fields[48]
         s_gene_info="."
         if len(l_fields)>49:
