@@ -72,7 +72,7 @@ def parse_toml_args():
     p.add('--resume',default = True, help = "resume previous run if available")
     p.add('--save-intermediate-files',dest = "int_files",
            action='store_true', help = "Save all intermediate files")
-    p.add('-v', help='version', action='store_true')
+    # p.add('-v', help='version', action='store_true')
 
     return p.parse_args()
 
@@ -144,8 +144,8 @@ def setup_output_dir(out_dir,tmp_dir,sample_name,repeat):
 #   - NO 10x support
 #   - fflank file not used at all
 
-if __name__ == '__main__':
 
+def main():
 
     start = time.time()
 
@@ -193,7 +193,7 @@ if __name__ == '__main__':
             print(f"TRANSD STEP FINISHED:,{t}")
             start = time.time()
 
-            #sibling
+            #sibling # OUTPUT NOT USED? INTERNAL SOMEHOW?
             print("Sibling step...")
             get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
             curr_time = time.time() - start
