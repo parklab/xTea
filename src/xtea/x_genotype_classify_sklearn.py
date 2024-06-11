@@ -8,13 +8,13 @@
 #this is a stand alone module for model training/prediction
 import sys
 import os
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
+#from sklearn.ensemble import RandomForestClassifier
+#from sklearn.model_selection import train_test_split
 from scipy.io import arff
 import pandas as pd
-import pickle
+#import pickle
 import numpy
-from sklearn.metrics import accuracy_score
+#from sklearn.metrics import accuracy_score
 
 from skl2onnx import to_onnx
 import onnxruntime as rt
