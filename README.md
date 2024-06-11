@@ -105,7 +105,8 @@ values which override defaults.
 xTea utilizes a TOML parameter file for specifying run parameters. Every parameter specified in the TOML file can also be specified on the command line. Command line specifications take precedence over the TOML file. An example TOML file can be found at `xTea/params/default_params.toml`. 
 
 An example of running xTea in germline mode:
-```xtea -c params/default_params.toml \
+```
+xtea -c params/default_params.toml \
 	-i sample1.cram \
 	-s sample1 \
 	-n 8
@@ -119,6 +120,7 @@ A gVCF file will be generated with insertion calls underneath the specified `out
 
 
 **Citation and accompanying scripts**
+
 If you are using xTea for your project, please cite:
 
 ```
