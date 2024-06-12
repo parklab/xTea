@@ -462,9 +462,9 @@ class XTransduction():
 
     #only consider SVA and Alu transduction
     def is_matched_rep_type(self, i_rep_type, s_sub_family):
-        if (i_rep_type & 1==1) and (("L1" in s_sub_family) or ("LINE/L1" in s_sub_family) or "LINE1" in s_sub_family):
+        if (i_rep_type == "L1") and (("L1" in s_sub_family) or ("LINE/L1" in s_sub_family) or "LINE1" in s_sub_family):
             return True
-        elif (i_rep_type & 4==4) and ("SVA" in s_sub_family):
+        elif (i_rep_type == "SVA") and ("SVA" in s_sub_family):
             return True
         return False
 

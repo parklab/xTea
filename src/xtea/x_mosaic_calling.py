@@ -39,13 +39,13 @@ class MosaicCaller(XPostFilter):
 
         ####Hard code here !!!!!!!!
         sf_new_out_bf_black_list=sf_new_out+".before_blacklist.txt"
-        if (i_rep_type & 1) != 0:
+        if (i_rep_type == 'L1') != 0:
             self.call_mosaic_L1_from_bulk(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff,
                                           sf_new_out_bf_black_list)
-        elif (i_rep_type & 2) != 0:
+        elif (i_rep_type == 'ALU') != 0:
             self.call_mosaic_Alu_from_bulk(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff,
                                      sf_new_out_bf_black_list)
-        elif (i_rep_type & 4) != 0:
+        elif (i_rep_type == 'SVA') != 0:
             self.call_mosaic_SVA_from_bulk(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff,
                                      sf_new_out_bf_black_list)
 
