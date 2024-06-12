@@ -32,8 +32,7 @@ class TE_Multi_Locator():
                                                         sf_clip_folder, b_force, max_cov, sf_out):
         cnt = 0
         sf_ori_bam = ""
-        # with open(self.sf_list) as fin_bam_list: # CS EDIT
-        for sf_ori_bam in self.sf_list:  ###for each bam file # CS EDIT
+        for sf_ori_bam in self.sf_list:  ###for each bam file
             i_idx_bam=0 #indicates which bam this is 
             s_read_type="illumina" # BIG TODO BROKEN 10X SUPPORT!!!
             print(("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)))
@@ -68,6 +67,8 @@ class TE_Multi_Locator():
                 sf_new_pub=sf_clip_folder+"{0}/".format(i_idx_bam)
             else:
                 sf_new_pub = sf_clip_folder + "/{0}/".format(i_idx_bam)
+
+            print(f"{cutoff_hit_rep_copy},,,{b_cutoff},,,{max_cov}")
             caller.call_TEI_candidate_sites_from_clip_reads_v2(sf_annotation, sf_rep_cns, sf_ref, b_se,
                                                                 cutoff_hit_rep_copy, cutoff_hit_rep_copy, b_cutoff,
                                                                 sf_new_pub, i_idx_bam, b_force, max_cov, sf_out_tmp)
