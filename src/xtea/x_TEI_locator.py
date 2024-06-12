@@ -525,6 +525,10 @@ class TELocator():
         if b_cutoff == False: # THIS NEVER HAPPENS
             clip_info.merge_clip_positions(sf_pub_folder, sf_out)
         else:
+            print(f"cutoff_left_clip:{cutoff_left_clip}")
+            print(f"cutoff_right_clip:{cutoff_right_clip}")
+            print(f"max_cov_cutoff:{max_cov_cutoff}")
+
             clip_info.merge_clip_positions_with_cutoff(cutoff_left_clip, cutoff_right_clip, max_cov_cutoff,
                                                        sf_pub_folder, sf_out)
         if os.path.isfile(sf_algnmt)==True and not xtea.global_values.KEEP_INT_FILES:####remove the file
