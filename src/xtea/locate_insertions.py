@@ -113,8 +113,8 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
 
 
     #by default, if number of clipped reads is larger than this value, then discard
-    # max_cov_cutoff=int(15*basic_rcd[0])   # ORIGINALLY WAS A CL PARAMETER (cov) set to 40 by default
-    max_cov_cutoff=600
+    # max_cov_cutoff=int(15*basic_rcd[0])   # ORIGINALLY WAS A CL PARAMETER (cov) set to 30 by default
+    max_cov_cutoff=450
 
     if b_resume is False or os.path.isfile(sf_out) is False:
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
