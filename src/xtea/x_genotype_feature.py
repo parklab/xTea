@@ -131,6 +131,9 @@ class XGenotyper():
     #return info:
     ####chrm pos n_af_clip n_full_map n_l_raw_clip n_r_raw_clip n_disc_pairs n_concd_pairs n_disc_large_indel s_clip_lens
     def collect_features_one_site(self, record):
+
+        tsd_cutoff = 100
+
         chrm = record[0][0]  ##this is the chrm style in candidate list
         ins_pos = record[0][1]
         extnd = record[0][2]
@@ -216,9 +219,9 @@ class XGenotyper():
             if b_fully_mapped==True:
                 if ins_pos>=i_map_start and ins_pos<=i_map_end:
                     n_full_map+=1
-                    if abs(i_map_start-ins_pos)<xtea.global_values.BWA_HALF_READ_MIN_SCORE:
+                    if abs(i_map_start-ins_pos)<45:
                         n_r_full_map += 1
-                    elif abs(i_map_end-ins_pos)<xtea.global_values.BWA_HALF_READ_MIN_SCORE:
+                    elif abs(i_map_end-ins_pos)<45:
                         n_l_full_map += 1
 
             s_clip_seq_ck = ""
@@ -229,7 +232,7 @@ class XGenotyper():
                 # if map_pos in m_pos:
                 clipped_seq = query_seq[:l_cigar[0][1]]
                 len_clip_seq=len(clipped_seq)
-                if abs(map_pos-ins_pos)<xtea.global_values.TSD_CUTOFF:
+                if abs(map_pos-ins_pos)< tsd_cutoff:
                     n_l_raw_clip+=1
                     m_clip_qname[query_name] = 1
                 if abs(map_pos - ins_pos) < xtea.global_values.CK_POLYA_CLIP_WIN:
@@ -244,7 +247,7 @@ class XGenotyper():
                         else:
                             s_clip_seq_ck = clipped_seq
 
-                if abs(map_pos-ins_pos)<xtea.global_values.CLIP_EXACT_CLIP_SLACK:
+                if abs(map_pos-ins_pos)< 3:
                     n_l_af_clip+=1
                     l_lclip_lens.append(str(len_clip_seq))
 
@@ -263,7 +266,7 @@ class XGenotyper():
                 clipped_seq = query_seq[start_pos:]
                 len_clip_seq = len(clipped_seq)
 
-                if abs(map_pos - ins_pos) < xtea.global_values.TSD_CUTOFF:
+                if abs(map_pos - ins_pos) < tsd_cutoff:
                     n_r_raw_clip += 1
                     m_clip_qname[query_name] = 1
                 if abs(map_pos - ins_pos) <  xtea.global_values.CK_POLYA_CLIP_WIN:
@@ -278,7 +281,7 @@ class XGenotyper():
                         else:
                             s_clip_seq_ck = clipped_seq
 
-                if abs(map_pos - ins_pos) < xtea.global_values.CLIP_EXACT_CLIP_SLACK:
+                if abs(map_pos - ins_pos) < 3:
                     n_r_af_clip += 1
                     l_rclip_lens.append(str(len_clip_seq))
 
@@ -294,7 +297,7 @@ class XGenotyper():
 ####
             m_mate_chrms[mate_chrm]=1
             ## here only collect the read names for discordant reads, later will re-align the discordant reads
-            if self.is_discordant(chrm_in_bam, map_pos, mate_chrm, mate_pos, xtea.global_values.DISC_THRESHOLD) == True:
+            if self.is_discordant(chrm_in_bam, map_pos, mate_chrm, mate_pos) == True:
                 # check where the mate is mapped, if within a repeat copy, then get the position on consensus
                 # f_disc_names.write(query_name + "\n")
                 # check whether have indels within the read
@@ -347,7 +350,7 @@ class XGenotyper():
 ####
     def _has_large_indel_in_read(self, l_cigar):
         for (type, lenth) in l_cigar[:-1]:
-            if (type==1 or type==2) and (lenth>=xtea.global_values.LARGE_INDEL_IN_READ):
+            if (type==1 or type==2) and (lenth>= 3):
                 return True
         return False
 
@@ -373,7 +376,7 @@ class XGenotyper():
 ####Need to be merged later~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ####This is drectly copies from x_clip_disc_filter.py
     ##whether a pair of read is discordant (for TEI only) or not
-    def is_discordant(self, chrm, map_pos, mate_chrm, mate_pos, is_threshold):
+    def is_discordant(self, chrm, map_pos, mate_chrm, mate_pos, is_threshold = 2000):
         if chrm != mate_chrm:  ###of different chroms
             return True
         else:

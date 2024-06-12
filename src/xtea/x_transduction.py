@@ -33,6 +33,7 @@ class XTransduction():
         self.b_rslt_with_chr = True  #####if rslt has "chr" while rmsk doesn't (vice versa), then it will be a problem
         self._boundary_extnd = 450  # for rmsk copy extend length
         self.same_sites_extnd=75  # if td-sites and original sites are close, then view as same
+        self.nearby_clip = 50
         self.max_indel_ratio=0.2 #max large indel disc reads
         self.f_min_uniq_ratio=0.5 #min unique ratio for disc reads aligned to the same source
 
@@ -684,12 +685,10 @@ class XTransduction():
             ori_clip_flag = read_info_fields[2]
             ori_insertion_pos = int(read_info_fields[4])
 
-            if abs(ref_mpos - ori_insertion_pos) > xtea.global_values.NEARBY_CLIP:  # only focus on the clipped reads nearby
+            if abs(ref_mpos - ori_insertion_pos) > self.nearby_clip:  # only focus on the clipped reads nearby
                 continue
             if algnmt.is_unmapped == True:  ####skip the unmapped reads
                 continue
-            # if algnmt.mapping_quality <= xtea.global_values.TRANSDCT_UNIQ_MAPQ:#this is only for transduction only
-            #     continue
             hit_flank_id = algnmt.reference_name  # e.g. chrY~3443451~3449565~L1HS~0L
 
             ####Skip those aligned to transduction decoy sequence
@@ -751,7 +750,6 @@ class XTransduction():
 
             ##if it is mapped to the left flank regions
             # here make sure it is not poly-A
-            # b_polya = self.contain_poly_A_T(clipped_seq, N_MIN_A_T)  # by default, at least 5A or 5T
             b_polya = self.is_consecutive_polyA(s_clip_seq_ck)
             b_polyt = self.is_consecutive_polyT(s_clip_seq_ck)
             if b_polya == True and b_polyt==False:
@@ -1019,7 +1017,7 @@ class XTransduction():
                 continue
             s_source = "{0}:{1}-{2}~{3}".format(chrm_fl_L1, source_start, source_end, sourc_rc)
 
-            if algnmt.mapping_quality <= xtea.global_values.TRANSDCT_UNIQ_MAPQ:#this is only for transduction only
+            if algnmt.mapping_quality <= 50: #this is only for transduction only
                 if ins_chrm not in m_raw_td_src: #save the non unique disc counts
                     m_raw_td_src[ins_chrm] = {}
                 if ins_pos not in m_raw_td_src[ins_chrm]:

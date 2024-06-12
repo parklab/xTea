@@ -108,14 +108,6 @@ def turn_on_sva():
 SVA_ANNOTATION_EXTND=200
 
 ####
-DISC_THRESHOLD = 2000
-TSD_CUTOFF = 100
-TRANSDCT_UNIQ_MAPQ=50
-MINIMAL_TRANSDUCT_MAPQ = 10
-N_MIN_A_T = 5  # minimu number of consecutive "A" or "T"
-NEARBY_CLIP = 50
-CLIP_SEARCH_WINDOW = 15
-CLIP_CONSISTENT_RATIO=0.4
 MAX_COV_TIMES=3 #if the coverage is larger than ave_cov*MAX_COV_TIMES, then view as abnormal
 COV_SEARCH_WINDOW=1000
 COV_ISD_CHK_WIN=900 #check coverage island within this window
@@ -285,10 +277,6 @@ def set_average_cov(icov):
     AVE_COVERAGE=icov
 ####
 ####x_genotype.py#############################################################
-#MINIMUM_GNTP_MAPQ=0
-BWA_HALF_READ_MIN_SCORE=45 #This is half of read length (maybe a little bit smaller than that)
-CLIP_EXACT_CLIP_SLACK=3#check number of exact clip
-LARGE_INDEL_IN_READ=3#if have 3D or 3I or larger indels within the read, then view as with large indels
 DFT_IS=550
 def set_insert_size(i_is):#
     global DFT_IS
@@ -303,54 +291,17 @@ def set_read_length(rlth):
 BASIC_INFO_FILE="basic_cov_is_rlth_info.txt"
 MAX_NORMAL_INSERT_SIZE = 2000
 
-####originally used in x_insert_size.py#######################################
-ISIZE_MEAN_SUFFIX = ".mean_temp_is"
-####
-####originally used in x_tprt_filter.py#######################################
-ONE_SIDE_POLYA_CUTOFF=0.75
-
-####initially used at l_alignmt_breakpoints.py
-LRD_MIN_MAPQ=20 #minimum mapping quality for long reads
-LRD_MIN_MAP_LEN=1000 #minimum mapped length for long reads
-LRD_MIN_FOCUS_INS_LEN=50
 ####initially used at x_intermediate_sites.py
 LRD_BRKPNT_FOCAL_REGIN=75 #search breakpoints in [-/+] of this range, and if 85% of breakpoints or > cutoff breakpoints then pass
 LRD_BRKPNT_FOCAL_CLIP_RATIO=1
 LRD_BRKPNT_MAXIMUM_STD=250
 ####
-####initially used at l_ghost_TE.py
-LRD_POLYMORPHIC_MIN_CLIP_LEN=1500
-LRD_POLYM_BRK_CHK_WIN=250
-def set_polymorphic_brk_chk_win(i_val):
-    global LRD_POLYM_BRK_CHK_WIN
-    LRD_POLYM_BRK_CHK_WIN=i_val
-LRD_PRI_SUP_MAX_OVRLAP=100
-LRD_PRI_SUP_MAX_GAP_IN_SEQ=75
-LRD_PRI_SUP_DOMINANT_POLYA_RATIO=0.45#the gap between the two segenemnts is dominant by AAAAA, if the ratio is larger
-LRD_PRI_SUP_MAX_GAP_MAP_RATIO=0.25
-LRD_PRI_SUP_MAX_CLIP=45#if the clip region is smaller than this one, than view it as fully map
-#LRD_PRI_MAX_CLIP=75 #if the clip region is smaller than this one, than view it as fully map
-####
-LRD_MIN_INTERNAL_DEL=50 #if gap is longer than 50, then view as a deletion
-LRD_TRSDCT_MIN_MAP_RATION=0.8
-LRD_MAX_TSD_LEN=80
-LRD_MIN_TSD_LEN=4
-LRD_MIN_TSD_MATCH_RATIO=0.85 ####at least 85% matched, then view as matched
-####
-LRD_PSEUDOGENE_INPUT_SUF=".for_pseudogene.fa"#
-####
+
 #originally used in x_post_filter.py
 TWO_CLIP_CLUSTER_DIFF_CUTOFF=300
 def set_two_clip_cluster_diff_cutoff(i_cutoff):
     global TWO_CLIP_CLUSTER_DIFF_CUTOFF
     TWO_CLIP_CLUSTER_DIFF_CUTOFF=i_cutoff
 ####
-REP_DIVERGENT_CUTOFF=15#at least divergent rate is 15%
-REP_LOW_DIVERGENT_CUTOFF=7 #if lower than 7%, then directly filter out (by default for L1)
-####
-TD_REP_DIVERGENT_CUTOFF=5#at least divergent rate is 5%, as this is transduction region, tolerate the wrong discordant reads from repeats
-####
-#originally defined in l_ghost_TE.py
-ALPHA_SAT_RMSK="ALR/Alpha"
-HSATII_SAT_RMSK="HSATII"
-####
+REP_DIVERGENT_CUTOFF=15 #at least divergent rate is 15%
+TD_REP_DIVERGENT_CUTOFF=5 #at least divergent rate is 5%, as this is transduction region, tolerate the wrong discordant reads from repeats
