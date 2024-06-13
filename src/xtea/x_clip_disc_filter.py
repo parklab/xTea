@@ -237,7 +237,7 @@ class XClipDisc():####
             if algnmt.mate_is_reverse == True:  #mate is reverse complementary
                 is_mate_rc = 1
             ## here only collect the read names for discordant reads, later will re-align the discordant reads
-            if self.is_discordant(chrm_in_bam, map_pos, mate_chrm, mate_pos, xtea.global_values.DISC_THRESHOLD) == True:
+            if self.is_discordant(chrm_in_bam, map_pos, mate_chrm, mate_pos) == True:
                 # check where the mate is mapped, if within a repeat copy, then get the position on consensus
                 # f_disc_names.write(query_name + "\n")
                 s_mate_first = 1  # whether the mate read is the "first read" in a pair
@@ -265,7 +265,7 @@ class XClipDisc():####
         return b_two_clip
     ####
     ##whether a pair of read is discordant (for TEI only) or not
-    def is_discordant(self, chrm, map_pos, mate_chrm, mate_pos, is_threshold):
+    def is_discordant(self, chrm, map_pos, mate_chrm, mate_pos, is_threshold = 2000):
         # b_disc=False
         if chrm != mate_chrm:  ###of different chroms
             return True
