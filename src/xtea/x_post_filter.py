@@ -654,7 +654,7 @@ class XTPRTFilter():
             self.swfolder += "/"
         self.n_jobs = n_jobs
 ########Hard code here!!!!!!!!!!!!!!!!!!!
-        self.f_side_polyA_cutoff=xtea.global_values.ONE_SIDE_POLYA_CUTOFF
+        self.f_side_polyA_cutoff=0.75
         ####
 
 ####n_clip is clip reads cutoff

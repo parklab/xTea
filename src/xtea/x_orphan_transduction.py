@@ -28,6 +28,7 @@ def unwrap_check_features_for_one_site(arg, **kwarg):
 class XOrphanTransduction(XTransduction):
     def __init__(self, working_folder, n_jobs, sf_reference):
         XTransduction.__init__(self, working_folder, n_jobs, sf_reference)
+        
 
     ####
     ####"sibling transduction: Because the source insertion (with TD) is absent from the reference genome,
@@ -368,6 +369,7 @@ class XOrphanTransduction(XTransduction):
     # 3) if discordant reads positions are within the range of clip reads positions,
     #   then it is the source duplicate region, view as FP
     def parse_td_sibling_by_site_novel_sites(self, record):
+
         chrm = record[0][0]  ##this is the chrm style in candidate list
         extnd = record[0][1]
         sf_sites=record[0][2]
@@ -468,13 +470,12 @@ class XOrphanTransduction(XTransduction):
                 # anchor_map_pos=algnmt.reference_start##original mapping position ####
 
                 if l_cigar[0][0] == 4:  # left clipped, here ignore the hard clip
-                    if abs(map_pos-insertion_pos)<xtea.global_values.NEARBY_CLIP:
+                    if abs(map_pos-insertion_pos)< self.nearby_clip:
                         n_lclip+=1
                         clipped_seq = query_seq[:l_cigar[0][1]]
                         s_polyA_chk=clipped_seq
                         if len(clipped_seq)>xtea.global_values.CK_POLYA_SEQ_MAX:
                             s_polyA_chk=clipped_seq[-1*xtea.global_values.CK_POLYA_SEQ_MAX:]
-                        #b_polya = xpolyA.contain_poly_A_T(s_polyA_chk, xtea.global_values.N_MIN_A_T)
                         b_polyAT, b_polya=xpolyA.is_consecutive_polyA_T_with_ori(s_polyA_chk)
                         if b_polyAT==True:
                             if b_polya==True:
@@ -491,7 +492,7 @@ class XOrphanTransduction(XTransduction):
                             continue
                         else:
                             clip_pos += lenth
-                    if abs(clip_pos-insertion_pos)<xtea.global_values.NEARBY_CLIP:#by default 50bp
+                    if abs(clip_pos-insertion_pos)< self.nearby_clip:#by default 50bp
                         n_rclip+=1
                         clipped_seq = query_seq[-1*l_cigar[-1][1]:]
                         s_polyA_chk = clipped_seq
@@ -835,13 +836,12 @@ class XOrphanTransduction(XTransduction):
                 # anchor_map_pos=algnmt.reference_start##original mapping position ####
 
                 if l_cigar[0][0] == 4:  # left clipped, here ignore the hard clip
-                    if abs(map_pos - insertion_pos) < xtea.global_values.NEARBY_CLIP:
+                    if abs(map_pos - insertion_pos) < self.nearby_clip:
                         n_lclip += 1
                         clipped_seq = query_seq[:l_cigar[0][1]]
                         s_polyA_chk = clipped_seq
                         if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
                             s_polyA_chk = clipped_seq[-1 * xtea.global_values.CK_POLYA_SEQ_MAX:]
-                        # b_polya = xpolyA.contain_poly_A_T(s_polyA_chk, xtea.global_values.N_MIN_A_T)
                         b_polyAT, b_polya = xpolyA.is_consecutive_polyA_T_with_ori(s_polyA_chk)
                         if b_polyAT == True:
                             if b_polya == True:
@@ -858,7 +858,7 @@ class XOrphanTransduction(XTransduction):
                             continue
                         else:
                             clip_pos += lenth
-                    if abs(clip_pos - insertion_pos) < xtea.global_values.NEARBY_CLIP:  # by default 50bp
+                    if abs(clip_pos - insertion_pos) < self.nearby_clip:  # by default 50bp
                         n_rclip += 1
                         clipped_seq = query_seq[-1 * l_cigar[-1][1]:]
                         s_polyA_chk = clipped_seq
@@ -1311,13 +1311,12 @@ class XOrphanTransduction(XTransduction):
             # anchor_map_pos=algnmt.reference_start##original mapping position ####
 
             if l_cigar[0][0] == 4:  # left clipped, here ignore the hard clip
-                if abs(map_pos - insertion_pos) < xtea.global_values.NEARBY_CLIP:
+                if abs(map_pos - insertion_pos) < self.nearby_clip:
                     n_lclip += 1
                     clipped_seq = query_seq[:l_cigar[0][1]]
                     s_polyA_chk = clipped_seq
                     if len(clipped_seq) > xtea.global_values.CK_POLYA_SEQ_MAX:
                         s_polyA_chk = clipped_seq[-1 * xtea.global_values.CK_POLYA_SEQ_MAX:]
-                    # b_polya = xpolyA.contain_poly_A_T(s_polyA_chk, xtea.global_values.N_MIN_A_T)
                     b_polyAT, b_polya = xpolyA.is_consecutive_polyA_T_with_ori(s_polyA_chk)
                     if b_polyAT == True:
                         if b_polya == True:
@@ -1334,7 +1333,7 @@ class XOrphanTransduction(XTransduction):
                         continue
                     else:
                         clip_pos += lenth
-                if abs(clip_pos - insertion_pos) < xtea.global_values.NEARBY_CLIP:
+                if abs(clip_pos - insertion_pos) < self.nearby_clip:
                     n_rclip += 1
                     clipped_seq = query_seq[-1 * l_cigar[0][1]:]
                     s_polyA_chk = clipped_seq

@@ -462,7 +462,7 @@ class XClipDiscFilter():
             print("Error in cnt clip step, {0}:{1} not in the dict!!!".format(ins_chrm, ins_pos))
             return nclip
         for tmp_pos in m_clip_pos[ins_chrm][ins_pos]:
-            if abs(tmp_pos - peak_clip_pos) <= xtea.global_values.CLIP_SEARCH_WINDOW:
+            if abs(tmp_pos - peak_clip_pos) <= 15:
                 nclip += len(m_clip_pos[ins_chrm][ins_pos][tmp_pos])
         return nclip
 
@@ -1191,9 +1191,9 @@ class XClipDiscFilter():
         m_ins_lpos, m_ins_rpos, m_cns_lpos, m_cns_rpos, m_clip_sample, m_polyA = \
             self.parse_clip_realignment_consensus(sf_clip_algnmt, bmapped_cutoff)
 
-        idist = xtea.global_values.CLIP_SEARCH_WINDOW  # count number of clipped reads within this range (default 15)
+        idist = 15  # count number of clipped reads within this range (default 15)
         # at lease "ratio" percent of the clipped reads are clipped within the region
-        ratio = xtea.global_values.CLIP_CONSISTENT_RATIO
+        ratio = 0.4
         # Each returned record in format: (l_peak_pos, r_peak_pos, cns_peak_start, cns_peak_end)
         EXD_BIN_SIZE = idist
         # 1. check clip consistency
@@ -1305,9 +1305,9 @@ class XClipDiscFilter():
         m_ins_lpos, m_ins_rpos, m_cns_lpos, m_cns_rpos, m_clip_sample, m_polyA = \
             self.parse_clip_realignment_consensus(sf_clip_algnmt, bmapped_cutoff)####
 
-        idist = xtea.global_values.CLIP_SEARCH_WINDOW  # count number of clipped reads within this range (default 15)
+        idist = 15  # count number of clipped reads within this range (default 15)
         # at lease "ratio" percent of the clipped reads are clipped within the region
-        ratio = xtea.global_values.CLIP_CONSISTENT_RATIO
+        ratio = 0.4
         # Each returned record in format: (l_peak_pos, r_peak_pos, cns_peak_start, cns_peak_end)
         EXD_BIN_SIZE = idist
 ####
@@ -1389,10 +1389,6 @@ class XClipDiscFilter():
         rd = ReadDepth(self.working_folder, self.n_jobs, self.sf_reference)
 
         i_total_cov = xtea.global_values.AVE_COVERAGE
-        # if xtea.global_values.GLOBAL_USER_SPECIFIC==True:
-        #     i_search_win=500
-        #     m_sample_cov=rd.calc_coverage_samples(self.sf_bam_list, self.sf_reference, i_search_win)
-        #     i_total_cov=rd.get_total_cov(m_sample_cov)
 
         xlog.append_to_file(f_log, "[Filtering:calc_coverage_samples:Finished with estimated coverage:"
                                    "{0}]\n".format(i_total_cov))
@@ -1463,6 +1459,9 @@ class XClipDiscFilter():
     ####
     # classify to: 2-side supported, 1-side supported categories
     def _first_stage_classify(self, l_candidates, m_hcov):
+
+        tsd_cutoff = 100
+
         m_ins_categories={}#use dict, thus we can check later
         #for two side
         m_ins_categories[xtea.global_values.TWO_SIDE]={}#as long as have the four clusters
@@ -1522,9 +1521,9 @@ class XClipDiscFilter():
 
             if b_lc_hit and b_rc_hit and b_ld_hit and b_rd_hit:
                 m_ins_categories[xtea.global_values.TWO_SIDE][s_id]=1
-                if (n_total_rpolyA+n_total_lpolyA)>0 and (TSD>0 and TSD<xtea.global_values.TSD_CUTOFF):
+                if (n_total_rpolyA+n_total_lpolyA)>0 and (TSD>0 and TSD< tsd_cutoff):
                     m_ins_categories[xtea.global_values.TWO_SIDE_TPRT_BOTH][s_id] = 1
-                elif (n_total_rpolyA+n_total_lpolyA)>0 or (TSD>0 and TSD<xtea.global_values.TSD_CUTOFF):
+                elif (n_total_rpolyA+n_total_lpolyA)>0 or (TSD>0 and TSD< tsd_cutoff):
                     m_ins_categories[xtea.global_values.TWO_SIDE_TPRT][s_id] = 1
             elif (b_lc_hit and b_rd_hit) and (b_rc_hit==False and b_ld_hit==False):
                 m_ins_categories[xtea.global_values.ONE_SIDE][s_id]=1
@@ -1532,15 +1531,15 @@ class XClipDiscFilter():
                 m_ins_categories[xtea.global_values.ONE_SIDE][s_id] = 1
             elif (b_lc_hit and b_rd_hit) and (b_rc_hit or b_ld_hit):#left-side:full feature, right-side: half feature
                 m_ins_categories[xtea.global_values.ONE_HALF_SIDE][s_id] = 1
-                if (n_total_rpolyA + n_total_lpolyA) > 0 and (TSD > 0 and TSD < xtea.global_values.TSD_CUTOFF):
+                if (n_total_rpolyA + n_total_lpolyA) > 0 and (TSD > 0 and TSD < tsd_cutoff):
                     m_ins_categories[xtea.global_values.ONE_HALF_SIDE_TRPT_BOTH][s_id] = 1
-                elif (n_total_rpolyA + n_total_lpolyA) > 0 or (TSD > 0 and TSD < xtea.global_values.TSD_CUTOFF):
+                elif (n_total_rpolyA + n_total_lpolyA) > 0 or (TSD > 0 and TSD < tsd_cutoff):
                     m_ins_categories[xtea.global_values.ONE_HALF_SIDE_TRPT][s_id] = 1
             elif (b_rc_hit and b_ld_hit) and (b_lc_hit or b_rd_hit):#right-side:full feature, left-side: half feature
                 m_ins_categories[xtea.global_values.ONE_HALF_SIDE][s_id] = 1
-                if (n_total_rpolyA + n_total_lpolyA) > 0 and (TSD > 0 and TSD < xtea.global_values.TSD_CUTOFF):
+                if (n_total_rpolyA + n_total_lpolyA) > 0 and (TSD > 0 and TSD < tsd_cutoff):
                     m_ins_categories[xtea.global_values.ONE_HALF_SIDE_TRPT_BOTH][s_id] = 1
-                elif (n_total_rpolyA + n_total_lpolyA) > 0 or (TSD > 0 and TSD < xtea.global_values.TSD_CUTOFF):
+                elif (n_total_rpolyA + n_total_lpolyA) > 0 or (TSD > 0 and TSD < tsd_cutoff):
                     m_ins_categories[xtea.global_values.ONE_HALF_SIDE_TRPT][s_id] = 1
             else:
                 m_ins_categories[xtea.global_values.OTHER_TYPE][s_id] = 1
@@ -1869,7 +1868,7 @@ class XClipDiscFilter():
                     #Otherwise, if the read is fully mapped, then is the left-most position mappable position
                     b_lclip_disc=False #left clip and also discordant
                     b_rclip_disc=False #right clip and also discordant
-                    if abs(anchor_pos-clip_pos)<xtea.global_values.NEARBY_CLIP:#
+                    if abs(anchor_pos-clip_pos)< 50:#
                         if is_anchor_lclip==True and is_anchor_rclip==False:
                             b_lclip_disc=True
                         if is_anchor_rclip==True and is_anchor_lclip==False:
@@ -2029,7 +2028,7 @@ class XClipDiscFilter():
             sample_id = read_info_fields[6]  ####sample id
 
             #####Hard code here#######################################################################################
-            if abs(ref_mpos - ori_insertion_pos) > xtea.global_values.NEARBY_CLIP:  # only focus on the nearby clipped reads
+            if abs(ref_mpos - ori_insertion_pos) > 50:  # only focus on the nearby clipped reads
                 continue
 
             b_left = True  # left clip
@@ -2074,17 +2073,6 @@ class XClipDiscFilter():
                     else:
                         s_clip_seq_ck = clipped_seq
 
-            ##if it is mapped to the left flank regions
-            # here make sure it is not poly-A
-            # b_polya = self.contain_poly_A_T(clipped_seq, xtea.global_values.N_MIN_A_T)  # by default, at least 5A or 5T
-            # b_polya = xpolyA.is_consecutive_polyA_T(s_clip_seq_ck)
-            #b_polya = xpolyA.contain_enough_A_T(s_clip_seq_ck, int(len(s_clip_seq_ck) * xtea.global_values.POLYA_RATIO))
-
-
-            ##if it is mapped to the left flank regions
-            # here make sure it is not poly-A
-            #b_polya = self.contain_poly_A_T(clipped_seq, xtea.global_values.N_MIN_A_T)  # by default, at least 5A or 5T
-##!!!!!!!!!!!!!!!!!!!!!!!
 ####Note that: as this is aligned to consensus, only have AAAAA, but no TTTTTT
             b_polya = xpolyA.is_consecutive_polyA(s_clip_seq_ck)
             if b_polya == True:
