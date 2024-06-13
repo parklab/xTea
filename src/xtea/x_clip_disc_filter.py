@@ -2343,7 +2343,7 @@ class XClipDiscFilter():
                     n_cnt = 0
                     for line in fin_tmp_fa:
                         if n_cnt % 2 == 0:
-                            line = line.rstrip() + global_values.SEPERATOR + str(sample_cnt) + "\n"  ###here add the sample id
+                            line = line.rstrip() + xtea.global_values.SEPERATOR + str(sample_cnt) + "\n"  ###here add the sample id
                         fout_disc_fa.write(line)
                         n_cnt += 1
                 sample_cnt += 1
