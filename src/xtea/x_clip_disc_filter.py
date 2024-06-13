@@ -1268,6 +1268,17 @@ class XClipDiscFilter():
     # 6. check the background clipped reads (reads clipped at the location, but with low mapping quality)
     def call_MEIs_consensus(self, sf_candidate_list, extnd, bin_size, sf_rep_cns,
                             bmapped_cutoff, i_concord_dist, f_concord_ratio, nclip_cutoff, ndisc_cutoff, sf_final_list):
+        
+        print(f'CALL MEIS CONSENSUS PARAMS:')
+
+        print(f'extnd:::{extnd}')
+        print(f'bin_size:{bin_size}')
+        print(f'bmapped_cutoff:{bmapped_cutoff}')
+        print(f'i_concord_dist:{i_concord_dist}')
+        print(f'f_concord_ratio:{f_concord_ratio}')
+        print(f'nclip_cutoff:{nclip_cutoff}')
+        print(f'ndisc_cutoff:{ndisc_cutoff}')
+
         sf_cns_log=self.working_folder + "filtering_log.txt"
         xlog=XLog()
         f_log=xlog.open_file(sf_cns_log)
