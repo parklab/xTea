@@ -26,7 +26,7 @@ from xtea.x_genotype_classify_sklearn import GntpClassifier_sklearn
 
 
 
-def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_force=False, b_tumor=False, f_purity=0.45):
+def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,logfile, b_force=False, b_tumor=False, f_purity=0.45):
     ####1. collect the basic information
     search_win = 500
     x_basic_info = X_BasicInfo(s_working_folder, n_jobs, sf_ref)
@@ -41,12 +41,12 @@ def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, b_f
     if b_tumor is True:
         f_cov=f_cov*f_purity
     par_rcd=xpar.get_par_by_cov(f_cov) #in format (iclip, idisc, i_clip-disc)
-    print("\t\tAve coverage is {0}: automatic parameters (clip, disc, clip-disc) with value ({1}, {2} ,{3})\n"
+    logfile.write("        Average coverage is {0}\n        Automatically generated parameters (clip, disc, clip-disc) are ({1}, {2} ,{3})\n"
           .format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2]))
     return par_rcd, rcd
 
 
-def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
+def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip,logfile):
 
     # OPTIONS STILL MISSING
     # if options.mit: #if this to call mitochondrial insertion, then will not filter out chrM in "x_intermediate_sites.py"
@@ -75,7 +75,6 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
     # xtea.global_values.set_initial_min_clip_cutoff(site_clip_cutoff)
 
     ###take in the normal illumina reads (10x will be viewed as normal illumina)
-    print("Working on \"clipped reads\" step!")
 
     sf_bam_list = options.input_bams
     n_jobs = int(options.cores)
@@ -97,7 +96,7 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
     # true clipping cutoff
     cutoff_clip_mate_in_rep = options.cr
 
-    print("\tGenerating cutoff parameters based on coverage.")
+    logfile.write("    Generating cutoff parameters based on coverage.\n")
     # ALWAYS ATTEMPT TO CALCULATE BECAUSE NEEDED DOWNSTREAM
     rcd, basic_rcd=automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
                                                     b_force, b_tumor, f_purity)
@@ -123,12 +122,12 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
         # 1. call_TEI_candidate_sites_from_clip_reads_v2 --> run_cnt_clip_part_aligned_to_rep_by_chrm_sort_version
         # here if half of the seq is mapped, then consider it as aligned work.
         ##2. require >=2 clip reads, whose clipped part is aligned to repeat copies
-        print("\tCalling insertion sites.")
+        logfile.write("    Calling insertion sites.\n")
         if not b_mosaic:
             tem_locator.call_TEI_candidate_sites_from_multiple_alignmts(sf_annotation, sf_rep_cns, sf_rep, b_se,
                                                                         cutoff_left_clip, cutoff_right_clip,
                                                                         cutoff_clip_mate_in_rep, b_mosaic,
-                                                                        wfolder_pub_clip, b_force, max_cov_cutoff, sf_out)
+                                                                        wfolder_pub_clip, b_force, max_cov_cutoff, sf_out,logfile)
         
         else:
             cutoff_polyA=1
@@ -136,13 +135,12 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip):
                                                                         cutoff_left_clip,
                                                                         cutoff_right_clip, cutoff_clip_mate_in_rep,
                                                                         cutoff_polyA, wfolder_pub_clip,
-                                                                        b_force, max_cov_cutoff, sf_out)
+                                                                        b_force, max_cov_cutoff, sf_out,logfile)
 
+    logfile.flush()
     return (rcd,basic_rcd)
 
-def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd):
-
-    print("Working on \"discordant reads\" step!")
+def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd,logfile):
 
     b_tumor=options.tumor #whether this is tumor sample
     if options.mode == 'mosaic':
@@ -196,24 +194,24 @@ def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd):
         sf_tmp = s_working_folder + "/disc_tmp.list"
         sf_raw_disc=sf_disc_out + xtea.global_values.RAW_DISC_TMP_SUFFIX #save the left and right raw disc for each site
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
-        print(f"\tFiltering insertion sites based on discordant cutoff: {n_disc_cutoff}.")
-        print("DISC STEP OPTIONS:::")
-        print(f"iextend:::{iextend}")
-        print(f"i_is:::{i_is}")
-        print(f"f_dev:::{f_dev}")
-        print(f"n_disc_cutoff:::{n_disc_cutoff}")
-        print(f"sf_annotation:::{sf_annotation}")
-        print(f"b_tumor:::{b_tumor}")
+        logfile.write(f"    Filtering insertion sites based on discordant cutoff: {n_disc_cutoff}.\n")
+        logfile.write("        Discordant step options:\n")
+        logfile.write(f"            iextend:{iextend}\n")
+        logfile.write(f"            i_is:::{i_is}\n")
+        logfile.write(f"            f_dev:::{f_dev}\n")
+        logfile.write(f"            n_disc_cutoff:::{n_disc_cutoff}\n")
+        logfile.write(f"            sf_annotation:::{sf_annotation}\n")
+        logfile.write(f"            b_tumor:::{b_tumor}\n")
 
 
         tem_locator.filter_candidate_sites_by_discordant_pairs_multi_alignmts(m_sites_clip_peak, iextend, i_is,
                                                                                 f_dev, n_disc_cutoff, sf_annotation,
                                                                                 sf_tmp, sf_raw_disc, b_tumor)
         xfilter.merge_clip_disc(sf_tmp, sf_candidate_list, sf_disc_out)
+        logfile.flush()
 
 
-def filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd):
-    print("Working on \"clip-disc-filtering\" step!")
+def filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd,logfile):
 
     sf_bam_list = options.input_bams
     n_jobs = int(options.cores)
@@ -223,7 +221,6 @@ def filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd):
     sf_cns = annot_path_dict['sf_rep'] # cns ref "-r"
 
     s_working_folder = output_dir
-    print("Current working folder is: {0}\n".format(s_working_folder))
 
     sf_candidate_list = f"{s_working_folder}/candidate_list_from_disc.txt"
     sf_output = f"{s_working_folder}/candidate_disc_filtered_cns.txt"
@@ -241,8 +238,8 @@ def filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd):
         mean_is = basic_rcd[2]  # mean insert size
         std_var = basic_rcd[3]  # standard derivation
 
-        print("Mean insert size is: {0}\n".format(mean_is))
-        print("Standard derivation is: {0}\n".format(std_var))
+        logfile.write("    Mean insert size is: {0}\n".format(mean_is))
+        logfile.write("    Standard derivation is: {0}\n".format(std_var))
 
         max_is = int(mean_is + 3 * std_var)
         if iextnd < max_is: #correct the bias
@@ -254,21 +251,21 @@ def filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd):
         xtea.global_values.set_insert_size(max_is)
         xtea.global_values.set_average_cov(ave_cov)
 
-        print("Read length is: {0}\n".format(rlth))
-        print("Maximum insert size is: {0}\n".format(max_is))
-        print("Average coverage is: {0}\n".format(ave_cov))
+        logfile.write("    Read length is: {0}\n".format(rlth))
+        logfile.write("    Maximum insert size is: {0}\n".format(max_is))
+        logfile.write("    Average coverage is: {0}\n".format(ave_cov))
 
         n_clip_cutoff=rcd[0]
         n_disc_cutoff=rcd[1]
 
-        print("Filter (on cns) cutoff: {0} and {1} are used!!!".format(n_clip_cutoff, n_disc_cutoff))
+        logfile.write("    Filter (on cns) cutoff: {0} and {1} are used.\n".format(n_clip_cutoff, n_disc_cutoff))
 
         x_cd_filter = XClipDiscFilter(sf_bam_list, s_working_folder, n_jobs, sf_ref)
         x_cd_filter.call_MEIs_consensus(sf_candidate_list, iextnd, bin_size, sf_cns, bmapped_cutoff, i_concord_dist, f_concord_ratio,
-                                        n_clip_cutoff, n_disc_cutoff, sf_output)
+                                        n_clip_cutoff, n_disc_cutoff, sf_output,logfile)
         ####        
 
-def get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
+def get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd,logfile):
 
     b_tumor=options.tumor #whether this is tumor sample
 
@@ -294,7 +291,6 @@ def get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
     sf_raw_disc = f"{s_working_folder}/candidate_list_from_disc.txt.clip_sites_raw_disc.txt"  # this is the raw disc file
     sf_output = f"{s_working_folder}/candidate_disc_filtered_cns2.txt"
 
-    print("Current working folder is: {0}\n".format(s_working_folder))
 
     if b_resume == False or os.path.isfile(sf_output) == False:
         if os.path.isfile(sf_flank)==True:#for Alu and many others, there is no transduction
@@ -302,8 +298,6 @@ def get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
             rlth = basic_rcd[1]  # read length
             mean_is = basic_rcd[2]  # mean insert size
             std_var = basic_rcd[3]  # standard derivation
-            print("Mean insert size is: {0}\n".format(mean_is))
-            print("Standard derivation is: {0}\n".format(std_var))
 
             max_is = int(mean_is + 3 * std_var)
             if iextnd < max_is:  # correct the bias
@@ -359,7 +353,7 @@ def get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
             sf_new_hc=sf_output+xtea.global_values.HIGH_CONFIDENT_SUFFIX
             copyfile(sf_ori_hc, sf_new_hc)
 
-def get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
+def get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd,logfile):
     '''
     Todo: 09-29-2019: Add filtering modules:
     1. using background low mapq reads (multiple mapped reads) for filtering
@@ -396,8 +390,6 @@ def get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
             rlth = basic_rcd[1]  # read length
             mean_is = basic_rcd[2]  # mean insert size
             std_var = basic_rcd[3]  # standard derivation
-            print("Mean insert size is: {0}\n".format(mean_is))
-            print("Standard derivation is: {0}\n".format(std_var))
             max_is = int(mean_is + 3 * std_var)
 
             i_concord_dist = 550
@@ -443,8 +435,6 @@ def get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd):
                 rlth = basic_rcd[1]  # read length
                 mean_is = basic_rcd[2]  # mean insert size
                 std_var = basic_rcd[3]  # standard derivation
-                print("Mean insert size is: {0}\n".format(mean_is))
-                print("Standard derivation is: {0}\n".format(std_var))
                 max_is = int(mean_is + 3 * std_var)
 
                 i_concord_dist = 550

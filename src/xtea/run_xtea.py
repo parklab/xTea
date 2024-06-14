@@ -152,6 +152,8 @@ def main():
     options = parse_toml_args()
     repeats = options.repeat_type
 
+    logfile = open(f"{options.sample_name}_xtea.log",'w')
+
     if options.mode == 'germline' or options.mode == 'mosaic':
         for r in repeats:
             
@@ -161,77 +163,77 @@ def main():
             output_dir, sample_public_dir = setup_output_dir(options.output_dir,options.tmp_dir,options.sample_name,r)
 
             #perform clipped step:
-            print("Clipped reads step...")
-            rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir)
+            logfile.write(">Begin clipped reads step...\n")
+            rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir,logfile)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
-            print(f"CLIP STEP FINISHED:,{t}")
+            logfile.write(f">Clipped step finished. Total time: {t}\n")
             start = time.time()
 
 
             # perform discordant step:
-            print("Discordant reads step...")
-            get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd)
+            logfile.write("\n>Begin discordant reads step...\n")
+            get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd,logfile)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
-            print(f"DISC STEP FINISHED:,{t}")
+            logfile.write(f">Discordant step finished. Total time: {t}\n")
             start = time.time()
             
             # perform filter based on consensus seq:
-            print("Consensus filter step...")
-            filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd)
+            logfile.write("\n>Begin consensus filtering step...\n")
+            filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd,logfile)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
-            print(f"CNS STEP FINISHED:,{t}")
+            logfile.write(f">Consensus step finished. Total time: {t}\n")
             start = time.time()
 
             #perform transduction step:
-            print("Transduction step...")
-            get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
+            logfile.write("\n>Begin transduction step...\n")
+            get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd,logfile)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
-            print(f"TRANSD STEP FINISHED:,{t}")
+            logfile.write(f">Transduction step finished. Total time: {t}\n")
             start = time.time()
 
             #sibling # OUTPUT NOT USED? INTERNAL SOMEHOW?
-            print("Sibling step...")
-            get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd)
+            logfile.write("\n>Begin sibling step...\n")
+            get_sibling(r,options,annot_path_dict,output_dir,rcd,basic_rcd,logfile)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
-            print(f"SIB STEP FINISHED:,{t}")
+            logfile.write(f">Sibling step finished. Total time: {t}\n")
             start = time.time()
 
             #filter
-            print("Filter step...")
+            logfile.write("\n>Begin filter step...\n")
             filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd,1)
             filter_sites_post(r,options,annot_path_dict,output_dir,basic_rcd,2)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
-            print(f"FILTER STEP FINISHED:,{t}")
+            logfile.write(f">Filter step finished. Total time: {t}\n")
             start = time.time()
 
             #annotate
-            print("Annotate step...")
+            logfile.write("\n>Begin annotate step...\n")
             annotate_genes(options,output_dir)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
-            print(f"ANNOTATION STEP FINISHED:,{t}")
+            logfile.write(f">Annotate step finished. Total time: {t}\n")
             start = time.time()
 
             # genotype
-            print("Genotype prediction step...")
+            logfile.write("\n>Begin genotyping step...\n")
             call_genotypes(options,output_dir)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
-            print(f"GENOTYPING STEP FINISHED:,{t}")
+            logfile.write(f">Genotype step finished. Total time: {t}\n")
             start = time.time()
             
             # make vcf
-            print("Generate VCF step...")
+            logfile.write("\n>Begin VCF formatting step...\n")
             generate_VCF(r,options,annot_path_dict,output_dir)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
-            print(f"GENOTYPING STEP FINISHED:,{t}")
+            logfile.write(f">VCF step finished. Total time: {t}\n")
             start = time.time()
 
 

@@ -1267,17 +1267,17 @@ class XClipDiscFilter():
     # 5. max_depth: by default: 4*calc-depth
     # 6. check the background clipped reads (reads clipped at the location, but with low mapping quality)
     def call_MEIs_consensus(self, sf_candidate_list, extnd, bin_size, sf_rep_cns,
-                            bmapped_cutoff, i_concord_dist, f_concord_ratio, nclip_cutoff, ndisc_cutoff, sf_final_list):
+                            bmapped_cutoff, i_concord_dist, f_concord_ratio, nclip_cutoff, ndisc_cutoff, sf_final_list,logfile):
         
-        print(f'CALL MEIS CONSENSUS PARAMS:')
-
-        print(f'extnd:::{extnd}')
-        print(f'bin_size:{bin_size}')
-        print(f'bmapped_cutoff:{bmapped_cutoff}')
-        print(f'i_concord_dist:{i_concord_dist}')
-        print(f'f_concord_ratio:{f_concord_ratio}')
-        print(f'nclip_cutoff:{nclip_cutoff}')
-        print(f'ndisc_cutoff:{ndisc_cutoff}')
+        logfile.write(f'        call_MEIs_consensus parameters:\n')
+        logfile.write(f'            extnd:{extnd}\n')
+        logfile.write(f'            bin_size:{bin_size}\n')
+        logfile.write(f'            sf_rep_cns:{sf_rep_cns}\n')
+        logfile.write(f'            bmapped_cutoff:{bmapped_cutoff}\n')
+        logfile.write(f'            i_concord_dist:{i_concord_dist}\n')
+        logfile.write(f'            f_concord_ratio:{f_concord_ratio}\n')
+        logfile.write(f'            nclip_cutoff:{nclip_cutoff}\n')
+        logfile.write(f'            ndisc_cutoff:{ndisc_cutoff}\n')
 
         sf_cns_log=self.working_folder + "filtering_log.txt"
         xlog=XLog()
@@ -1299,14 +1299,14 @@ class XClipDiscFilter():
         sf_clip_algnmt = self.working_folder + "temp_clip.sam"
         xlog.append_to_file(f_log, "[Filtering:realign_clipped_read_with_polyA:Starts...]\n")
         bwa_align.realign_clipped_read_with_polyA(sf_rep_cns, sf_clip_fq, sf_clip_algnmt)
-        self.clean_file_by_path(sf_clip_fq)
+        # self.clean_file_by_path(sf_clip_fq)
 
         xlog.append_to_file(f_log, "[Filtering:realign_clipped_read_with_polyA:Finished]\n")
         # ##re-align the disc reads
         sf_disc_algnmt = self.working_folder + "temp_disc.sam"
         xlog.append_to_file(f_log, "[Filtering:realign_disc_reads:Starts...]\n")
         bwa_align.realign_disc_reads(sf_rep_cns, sf_disc_fa, sf_disc_algnmt)
-        self.clean_file_by_path(sf_disc_fa)
+        # self.clean_file_by_path(sf_disc_fa)
         xlog.append_to_file(f_log, "[Filtering:realign_disc_reads:Finished...]\n")
 
         ####analysis the re-aligned clipped reads, called out:
