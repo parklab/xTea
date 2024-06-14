@@ -197,6 +197,15 @@ def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd):
         sf_raw_disc=sf_disc_out + xtea.global_values.RAW_DISC_TMP_SUFFIX #save the left and right raw disc for each site
         tem_locator = TE_Multi_Locator(sf_bam_list, s_working_folder, n_jobs, sf_ref)
         print(f"\tFiltering insertion sites based on discordant cutoff: {n_disc_cutoff}.")
+        print("DISC STEP OPTIONS:::")
+        print(f"iextend:::{iextend}")
+        print(f"i_is:::{i_is}")
+        print(f"f_dev:::{f_dev}")
+        print(f"n_disc_cutoff:::{n_disc_cutoff}")
+        print(f"sf_annotation:::{sf_annotation}")
+        print(f"b_tumor:::{b_tumor}")
+
+
         tem_locator.filter_candidate_sites_by_discordant_pairs_multi_alignmts(m_sites_clip_peak, iextend, i_is,
                                                                                 f_dev, n_disc_cutoff, sf_annotation,
                                                                                 sf_tmp, sf_raw_disc, b_tumor)
