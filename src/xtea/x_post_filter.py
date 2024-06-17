@@ -226,7 +226,7 @@ class XPostFilter():
 
                 #return value: if b_in_rep is False, and div_rate>0, then this is fall in rep region, but div>cutoff
                 b_in_low_div_rep, div_rate, copy_start, copy_end = self.fall_in_low_div_same_type_rep(
-                    xannotation, ins_chrm, ins_pos, xtea.global_values.REP_LOW_DIVERGENT_CUTOFF)
+                    xannotation, ins_chrm, ins_pos, 7)
 
                 ref_copy_start=copy_start+self.L1_boundary_extnd#change back to the original start position
                 ref_copy_end=copy_end-self.L1_boundary_extnd#change back to the original end position
