@@ -141,9 +141,7 @@ def setup_output_dir(out_dir,sample_name,repeat):
 def generate_cutoffs(options,logfile):
     sf_bam_list = options.input_bams
     sf_ref = options.genome_reference #reference genome "-ref"
-
-
-    Path(f'{options.output_dir}/{options.sample_name}/').mkdir(parents=True, exist_ok=True)
+    
     s_working_folder = str(Path(f'{options.output_dir}/{options.sample_name}/').resolve()) + '/' # TODO do we even need to save this file?
     n_jobs = int(options.cores)
 
@@ -186,6 +184,7 @@ def main():
     options = parse_toml_args()
     repeats = options.repeat_type
 
+    Path(f'{options.output_dir}/{options.sample_name}/').mkdir(parents=True, exist_ok=True)
     s_working_folder = str(Path(f'{options.output_dir}/{options.sample_name}/').resolve())
     logfile = open(f"{s_working_folder}/{options.sample_name}_xtea.log",'w')
 
