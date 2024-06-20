@@ -189,11 +189,12 @@ def main():
     logfile = open(f"{s_working_folder}/{options.sample_name}_xtea.log",'w')
 
     rcd,basic_rcd = generate_cutoffs(options,logfile)
+    logfile.flush()
 
     if options.mode == 'germline' or options.mode == 'mosaic':
         for r in repeats:
 
-            logfile.write(f"\nCalling ${r} insertions in sample {options.sample_name}...\n")
+            logfile.write(f"\nCalling {r} insertions in sample {options.sample_name}...\n")
             
             annot_path_dict = setup_annotation_paths(r,options.rep_lib_annot_dir,
                                             options.genome_reference,

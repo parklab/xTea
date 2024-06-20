@@ -236,3 +236,6 @@ class BWAlign():
             os.remove(sf_unmap_fa)
             os.remove(sf_polyA_fa)
             os.remove(sf_polyA_sam)
+            os.remove(sf_sq)
+            os.remove(sf_out + '.std_out')
+

@@ -14,6 +14,7 @@ from xtea.x_intermediate_sites import *
 from xtea.bwa_align import *
 from xtea.global_values import *
 from xtea.cmd_runner import *
+import shutil
 
 class TE_Multi_Locator():
     def __init__(self, sf_list, s_working_folder, n_jobs, sf_ref):
@@ -29,19 +30,19 @@ class TE_Multi_Locator():
 
     def call_TEI_candidate_sites_from_multiple_alignmts(self, sf_annotation, sf_rep_cns, sf_ref, b_se, cutoff_left_clip,
                                                         cutoff_right_clip, cutoff_clip_mate_in_rep, b_mosaic,
-                                                        sf_clip_folder, b_force, max_cov, sf_out,logfile):
+                                                        sf_clip_folder, b_force, max_cov, sf_out, logfile):
         cnt = 0
         sf_ori_bam = ""
         for sf_ori_bam in self.sf_list:  ###for each bam file
             i_idx_bam=0 #indicates which bam this is 
             s_read_type="illumina" # BIG TODO BROKEN 10X SUPPORT!!!
-            logfile.write(("        Input bam {0} is sequenced from {1} platform.\n".format(sf_ori_bam, s_read_type)))
+            logfile.write(f"    input bam: {sf_ori_bam}\n")
             if xtea.global_values.X10 == s_read_type:###for 10X, we use a larger cutoff, as more clipped reads
                 logfile.write(("        10X bam! Set the initial cutoff as {0}\n".format(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)))
                 xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
             else:
                 if cutoff_left_clip<=2 and b_mosaic==True:#
-                    logfile.write("        Clip cutoff is small (<=2) , we are using 1 for initial cutoff\n")
+                    logfile.write("    Clip cutoff is small (<=2) , we are using 1 for initial cutoff\n")
                     xtea.global_values.set_initial_min_clip_cutoff(1)#for low coverage data, set this to 1
                 else:
                     xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
@@ -61,17 +62,18 @@ class TE_Multi_Locator():
             caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
             sf_new_pub=""
             if len(sf_clip_folder)==0 or sf_clip_folder==None:
-                logfile.write("        public folder is null!\n")
+                logfile.write("    public folder is null!\n")
                 continue
             if sf_clip_folder[-1]=="/":
                 sf_new_pub=sf_clip_folder+"{0}/".format(i_idx_bam)
             else:
                 sf_new_pub = sf_clip_folder + "/{0}/".format(i_idx_bam)
 
-            logfile.write(f"        cutoff_hit_rep_copy:{cutoff_hit_rep_copy}\n        b_cutoff:{b_cutoff}\n        max_cov:{max_cov}\n")
+            # logfile.write(f"    cutoff_hit_rep_copy:{cutoff_hit_rep_copy}\n    b_cutoff:{b_cutoff}\n    max_cov:{max_cov}\n")
             caller.call_TEI_candidate_sites_from_clip_reads_v2(sf_annotation, sf_rep_cns, sf_ref, b_se,
                                                                 cutoff_hit_rep_copy, cutoff_hit_rep_copy, b_cutoff,
-                                                                sf_new_pub, i_idx_bam, b_force, max_cov, sf_out_tmp,logfile)
+                                                                sf_new_pub, i_idx_bam, b_force, max_cov,
+                                                                sf_out_tmp, b_mosaic, logfile)
             i_idx_bam+=1
         # OUTPUT OF ABOVE IS *clip_read_tmp0
         
@@ -114,6 +116,8 @@ class TE_Multi_Locator():
                                     ###sum (left-realign, right-realign, mate_in_rep)
                                     m_sites_chrm[pos][i_value] += int(value)
                                     i_value += 1
+                    if not xtea.global_values.KEEP_INT_FILES:
+                        os.remove(sf_tmp)
 
                 # OUTPUTTING ALL SITES, NO FILTERING
                 if xtea.global_values.KEEP_INT_FILES:
@@ -129,125 +133,17 @@ class TE_Multi_Locator():
                     map(os.remove, glob(f"{self.working_folder}{xtea.global_values.CLIP_TMP}*"))
 
                 #this will use the number of clipped reads within the nearby region
-                m_sites_chrm_filtered = xfilter.parse_sites_with_clip_cutoff_for_chrm(m_sites_chrm, cutoff_left_clip,
-                                                                                      cutoff_right_clip,
-                                                                                      cutoff_clip_mate_in_rep)
-                for pos in m_sites_chrm_filtered:
-                    lth = len(m_sites_chrm_filtered[pos])
-                    fout_sites.write(chrm + "\t" + str(pos) + "\t")
-                    for i in range(lth):
-                        s_feature = str(m_sites_chrm_filtered[pos][i])
-                        fout_sites.write(s_feature + "\t")
-                    fout_sites.write("\n")
-
-
-####
-    #this version is designed for mosaic calling only, which:
-    #1. will count the polyA reads for each site
-    #2. using polyA as a cutoff to filter out sites
-    def call_TEI_candidate_sites_from_multiple_alignmts_mosaic(self, sf_annotation, sf_rep_cns, sf_ref, b_se,
-                                                        cutoff_left_clip,
-                                                        cutoff_right_clip, cutoff_clip_mate_in_rep, cutoff_polyA,
-                                                        sf_clip_folder,
-                                                        b_force, max_cov, sf_out,logfile):
-        cnt = 0
-        s_sample_bam = ""
-        b_set = False
-        for sf_ori_bam in self.sf_list:  # CS EDIT
-            s_read_type = 'illumina' # NO 10X SUPPORT TODO
-            print(("Input bam {0} is sequenced from {1} platform!".format(sf_ori_bam, s_read_type)))
-            if xtea.global_values.X10 == s_read_type:  ###for 10X, we use a larger cutoff, as more clipped reads
-                print(("10X bam! Set the initial cutoff as {0}".format(
-                    xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)))
-                xtea.global_values.set_initial_min_clip_cutoff(xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_X10)
-            else:
-                if cutoff_left_clip <= 3:#
-                    print("Clip cutoff is small (<=3), keep all the clipped reads (initial cutoff set as 1)!!!")
-                    xtea.global_values.set_initial_min_clip_cutoff(1)  # for low coverage data, set this to 1
-                else:
-                    xtea.global_values.set_initial_min_clip_cutoff(
-                        xtea.global_values.INITIAL_MIN_CLIP_CUTOFF_ILLUMINA)
-            if len(sf_ori_bam) <= 1:
-                continue
-            if not b_set:
-                s_sample_bam = sf_ori_bam
-                b_set = True
-
-            b_cutoff = True
-            cutoff_hit_rep_copy = xtea.global_values.INITIAL_MIN_CLIP_CUTOFF
-
-            # view the barcode bam as normal illumina bam
-            # for each alignment, has one output
-            sf_out_tmp = self.working_folder + xtea.global_values.CLIP_TMP + '{0}'.format(cnt)
-            cnt += 1
-
-            caller = TELocator(sf_ori_bam, sf_ori_bam, self.working_folder, self.n_jobs, self.sf_ref)
-            # s_working_folder + xtea.global_values.CLIP_FOLDER + "/"+sf_bam_name + CLIP_FQ_SUFFIX
-            sf_new_pub = ""
-            if len(sf_clip_folder) == 0 or sf_clip_folder == None:
-                print("public folder is null!!!!")
-                continue
-            if sf_clip_folder[-1] == "/":
-                sf_new_pub = sf_clip_folder + "{0}/".format(i_idx_bam)
-            else:
-                sf_new_pub = sf_clip_folder + "/{0}/".format(i_idx_bam)
-            caller.call_TEI_candidate_sites_from_clip_reads_v2_mosaic(sf_annotation, sf_rep_cns, sf_ref, b_se,
-                                                                cutoff_hit_rep_copy, cutoff_hit_rep_copy,
-                                                                b_cutoff, sf_new_pub, i_idx_bam, b_force, max_cov,
-                                                                        sf_out_tmp)
-            i_idx_bam += 1
-                ####
-        # get all the chromsomes names
-        bam_info = BamInfo(s_sample_bam, self.sf_ref)
-        b_with_chr = bam_info.is_chrm_contain_chr()
-        m_chrms = bam_info.get_all_reference_names()
-
-        xfilter = XIntermediateSites()
-        xchrom = XChromosome()
-        sf_out_merged = sf_out + "_tmp"
-        with open(sf_out_merged, "w") as fout_sites_merged, open(sf_out, "w") as fout_sites:
-            for chrm in m_chrms:  # write out chrm by chrm to save memory
-                if xchrom.is_decoy_contig_chrms(chrm) == True:  ###filter out decoy and other contigs
-                    continue
-                m_sites_chrm = {}
-                for i in range(cnt):
-                    sf_tmp = self.working_folder + xtea.global_values.CLIP_TMP + "{0}".format(i)
-                    if os.path.isfile(sf_tmp) == False:
-                        print(("Errors happen, file {0} doens't exist!".format(sf_tmp)))
-                        continue
-                    with open(sf_tmp) as fin_tmp:
-                        for line in fin_tmp:
-                            fields = line.split()
-                            tmp_chrm = bam_info.process_chrm_name(fields[0], b_with_chr)
-                            if tmp_chrm != chrm:
-                                continue
-                            pos = int(fields[1])
-
-                            if pos not in m_sites_chrm:
-                                m_sites_chrm[pos] = []
-                                for value in fields[2:]:
-                                    m_sites_chrm[pos].append(int(value))
-                            else:
-                                i_value = 0
-                                for value in fields[2:]:
-                                    ###sum (left-realign, right-realign, mate_in_rep, lpolyA, rpolyA)
-                                    m_sites_chrm[pos][i_value] += int(value)
-                                    i_value += 1
-
-                for pos in m_sites_chrm:
-                    lth = len(m_sites_chrm[pos])
-                    fout_sites_merged.write(chrm + "\t" + str(pos) + "\t")
-                    for i in range(lth):
-                        s_feature = str(m_sites_chrm[pos][i])
-                        fout_sites_merged.write(s_feature + "\t")
-                    fout_sites_merged.write("\n")
-
-                # this will use the number of clipped reads within the nearby region
-                m_sites_chrm_filtered = xfilter.parse_sites_with_clip_cutoff_for_chrm_with_polyA(m_sites_chrm,
+                if b_mosaic:
+                    cutoff_polyA = 1
+                    m_sites_chrm_filtered = xfilter.parse_sites_with_clip_cutoff_for_chrm_with_polyA(m_sites_chrm,
                                                                                       cutoff_left_clip,
                                                                                       cutoff_right_clip,
-                                                                                      cutoff_clip_mate_in_rep,
-                                                                                                 cutoff_polyA)
+                                                                                      cutoff_clip_mate_in_rep,cutoff_polyA)
+                else:
+                    m_sites_chrm_filtered = xfilter.parse_sites_with_clip_cutoff_for_chrm(m_sites_chrm, cutoff_left_clip,
+                                                                                      cutoff_right_clip,
+                                                                                      cutoff_clip_mate_in_rep)
+                
                 for pos in m_sites_chrm_filtered:
                     lth = len(m_sites_chrm_filtered[pos])
                     fout_sites.write(chrm + "\t" + str(pos) + "\t")
@@ -255,6 +151,10 @@ class TE_Multi_Locator():
                         s_feature = str(m_sites_chrm_filtered[pos][i])
                         fout_sites.write(s_feature + "\t")
                     fout_sites.write("\n")
+        if not xtea.global_values.KEEP_INT_FILES:
+            os.remove(sf_out_merged)
+
+
 ####
 
     ####This function to check a give cluster, return whether this is a qualified candidate cluster
@@ -466,7 +366,7 @@ class TELocator():
     ##So, for TEI with deletion, there will be two breakpoints, and at each breakpoint, only one type of clipped reads
     def call_TEI_candidate_sites_from_clip_reads_v2(self, sf_annotation, sf_rep_cns, sf_ref, b_se, cutoff_left_clip,
                                                     cutoff_right_clip, b_cutoff, sf_pub_folder, idx_bam,
-                                                    b_force, max_cov_cutoff, sf_out,logfile):
+                                                    b_force, max_cov_cutoff, sf_out, b_mosaic, logfile):
         # this is a public folder for different type of repeats to share the clipped reads
         if sf_pub_folder[-1]!="/":
             sf_pub_folder+="/"
@@ -489,26 +389,26 @@ class TELocator():
         sf_all_clip_fq = sf_pub_folder + sf_bam_name + CLIP_FQ_SUFFIX
         clip_info.set_working_folder(sf_clip_working_folder)
         if os.path.islink(sf_all_clip_fq)==False or b_force==True:
-            logfile.write("            Collected clipped reads file {0} doesn't exist. Generating now.\n".format(sf_all_clip_fq))
+            # logfile.write("        Collected clipped reads file {0} doesn't exist. Generating now.\n".format(sf_all_clip_fq))
             ##collect the clip positions
             initial_clip_pos_freq_cutoff = xtea.global_values.INITIAL_MIN_CLIP_CUTOFF ##########################################################################
-            logfile.write("            Initial minimum clip cutoff is {0}\n".format(initial_clip_pos_freq_cutoff))
+            logfile.write("       Initial minimum clip cutoff is {0}\n".format(initial_clip_pos_freq_cutoff))
             # done in parallel outputs  // chrm.clip_pos
             clip_info.collect_clip_positions(sf_annotation, initial_clip_pos_freq_cutoff, b_se, sf_pub_folder) ##save clip pos by chrm
-            logfile.write(f"            Output info: Collect clipped parts for file {self.sf_bam}\n")
+            # logfile.write(f"            Output info: Collect clipped parts for file {self.sf_bam}\n")
             sf_all_clip_fq_ori=sf_clip_working_folder+sf_bam_name + CLIP_FQ_SUFFIX
             # done in parallel // outputs: TP087_S.cram.clipped.fq
             clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
 ####
-            # links TP087_S.cram.clipped.fq to pub_clip/TP087_S.cram.clipped.fq
+            # mv TP087_S.cram.clipped.fq to pub_clip/TP087_S.cram.clipped.fq
             cmd=f"mv {sf_all_clip_fq_ori} {sf_all_clip_fq}"
             self.cmd_runner.run_cmd_small_output(cmd)
-        else:
-            logfile.write("            Collected clipped reads file {0} already exists\n".format(sf_all_clip_fq))
+        # else:
+        # logfile.write("            Collected clipped reads file {0} already exists\n".format(sf_all_clip_fq))
 ####
         ####align the clipped parts to repeat copies
         sf_algnmt = self.working_folder + sf_bam_name + CLIP_BAM_SUFFIX
-        logfile.write("            Re-align clipped parts for file {self.sf_bam}\n")
+        # logfile.write("            Re-align clipped parts for file {self.sf_bam}\n")
 
         # outputs TP087_S.cram.clipped.sam
         bwa_align=BWAlign(xtea.global_values.BWA_PATH, xtea.global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
@@ -516,116 +416,29 @@ class TELocator():
 
         ####cnt number of clipped reads aligned to repeat copies from the re-alignment
         # OUTPUTS .clip_realign_pos
-        clip_info.cnt_clip_part_aligned_to_rep(sf_algnmt)  ##require at least half of the seq is mapped !!!!
+        if b_mosaic:
+            clip_info.cnt_clip_part_aligned_to_rep_mosaic(sf_algnmt)
+        else:
+            clip_info.cnt_clip_part_aligned_to_rep(sf_algnmt)  ##require at least half of the seq is mapped !!!!
 
         # if b_cutoff is set, then directly return the dict
         # OUTPUTS : clip_read_tmp0
         if b_cutoff == False: # THIS NEVER HAPPENS
             clip_info.merge_clip_positions(sf_pub_folder, sf_out)
         else:
-            logfile.write(f"            cutoff_left_clip:{cutoff_left_clip}\n")
-            logfile.write(f"            cutoff_right_clip:{cutoff_right_clip}\n")
-            logfile.write(f"            max_cov_cutoff:{max_cov_cutoff}\n")
+            # logfile.write(f"        cutoff_left_clip:{cutoff_left_clip}\n")
+            # logfile.write(f"        cutoff_right_clip:{cutoff_right_clip}\n")
+            # logfile.write(f"        max_cov_cutoff:{max_cov_cutoff}\n")
 
-            clip_info.merge_clip_positions_with_cutoff(cutoff_left_clip, cutoff_right_clip, max_cov_cutoff,
-                                                       sf_pub_folder, sf_out)
-        if os.path.isfile(sf_algnmt)==True and not xtea.global_values.KEEP_INT_FILES:####remove the file
+            if b_mosaic:
+                clip_info.merge_clip_positions_with_cutoff_polyA(cutoff_left_clip, cutoff_right_clip, max_cov_cutoff,
+                                                                sf_pub_folder, sf_out)
+            else:
+                clip_info.merge_clip_positions_with_cutoff(cutoff_left_clip, cutoff_right_clip, max_cov_cutoff,
+                                                        sf_pub_folder, sf_out)
+        if not xtea.global_values.KEEP_INT_FILES:####remove the file
             os.remove(sf_algnmt)
-####
-    ###First, Use (left, right) clipped read as threshold. Also, require some of the mate read are within repeat region
-    ###Then: check the nearby small region, whether the merged number saftisfy the threshold
-    ###Then, from the candidate list, pick the peak in each window.
-
-    ###First, Use (left, right) clipped read as threshold. Also, require some of the mate read are within repeat region
-    ##Note, this version consider the insertion with deletion cases, that is common in many cases
-    ##So, for TEI with deletion, there will be two breakpoints, and at each breakpoint, only one type of clipped reads
-    def call_TEI_candidate_sites_from_clip_reads_v2_mosaic(self, sf_annotation, sf_rep_cns, sf_ref, b_se,
-                                                    cutoff_left_clip,
-                                                    cutoff_right_clip, b_cutoff, sf_pub_folder, idx_bam,
-                                                    b_force, max_cov_cutoff, sf_out):
-        # this is a public folder for different type of repeats to share the clipped reads
-        if sf_pub_folder[-1] != "/":
-            sf_pub_folder += "/"
-        if os.path.exists(sf_pub_folder) == False:
-            cmd = "mkdir -p {0}".format(sf_pub_folder)
-            # Popen(cmd, shell=True, stdout=PIPE).communicate()
-            self.cmd_runner.run_cmd_small_output(cmd)
-
-        # this is the local folder for the current read type to save the tmp files
-        sf_clip_working_folder = self.working_folder + xtea.global_values.CLIP_FOLDER + "/{0}/".format(idx_bam)
-        if os.path.exists(sf_clip_working_folder) == False:
-            cmd = "mkdir -p {0}".format(sf_clip_working_folder)
-            # Popen(cmd, shell=True, stdout=PIPE).communicate()
-            self.cmd_runner.run_cmd_small_output(cmd)
-
-        clip_info = ClipReadInfo(self.sf_bam, self.n_jobs, self.sf_reference)
-        ######1. so first, re-align the clipped parts, and count the number of supported clipped reads
-        ####gnrt the clipped parts file
-        sf_bam_name = os.path.basename(self.sf_bam)
-        sf_all_clip_fq = sf_pub_folder + sf_bam_name + CLIP_FQ_SUFFIX
-        clip_info.set_working_folder(sf_clip_working_folder)
-
-        ##collect the clip positions
-        initial_clip_pos_freq_cutoff = xtea.global_values.INITIAL_MIN_CLIP_CUTOFF  ##########################################################################
-        print(("Initial minimum clip cutoff is {0}".format(initial_clip_pos_freq_cutoff)))
-        clip_info.collect_clip_positions(sf_annotation, initial_clip_pos_freq_cutoff, b_se,
-                                         sf_pub_folder)  ##save clip pos by chrm
-        print(("Output info: Collect clipped parts for file ", self.sf_bam))
-        sf_all_clip_fq_ori = sf_clip_working_folder + sf_bam_name + CLIP_FQ_SUFFIX
-        clip_info.collect_clipped_parts(sf_all_clip_fq_ori)
-
-        # links TP087_S.cram.clipped.fq to pub_clip/TP087_S.cram.clipped.fq
-        cmd=f"mv {sf_all_clip_fq_ori} {sf_all_clip_fq}"
-        self.cmd_runner.run_cmd_small_output(cmd)
-        # Popen(cmd, shell=True, stdout=PIPE).communicate()
-        self.cmd_runner.run_cmd_small_output(cmd)
-
-####
-        ####align the clipped parts to repeat copies
-        sf_algnmt = self.working_folder + sf_bam_name + CLIP_BAM_SUFFIX
-        print(("Output info: Re-align clipped parts for file ", self.sf_bam))
-
-        bwa_align = BWAlign(xtea.global_values.BWA_PATH, xtea.global_values.BWA_REALIGN_CUTOFF, self.n_jobs)
-        bwa_align.two_stage_realign(sf_rep_cns, sf_ref, sf_all_clip_fq, sf_algnmt)
-
-        ####cnt number of clipped reads aligned to repeat copies from the re-alignment
-        clip_info.cnt_clip_part_aligned_to_rep_mosaic(sf_algnmt)  ##require at least half of the seq is mapped !!!!
-
-        # if b_cutoff is set, then directly return the dict
-        if b_cutoff == False:
-            clip_info.merge_clip_positions(sf_pub_folder, sf_out)
-        else:
-            clip_info.merge_clip_positions_with_cutoff_polyA(cutoff_left_clip, cutoff_right_clip, max_cov_cutoff,
-                                                       sf_pub_folder, sf_out)
-        if os.path.isfile(sf_algnmt) == True and not xtea.global_values.KEEP_INT_FILES:  ####remove the file
-            os.remove(sf_algnmt)
-####
-    def collect_all_clipped_reads_only(self, sf_annotation, b_se, s_working_folder, wfolder_pub_clip):
-        sf_clip_working_folder = s_working_folder + xtea.global_values.CLIP_FOLDER + "/"
-        if len(sf_clip_working_folder)>1 and sf_clip_working_folder[-1]!="/":
-            sf_clip_working_folder+="/"
-        if os.path.exists(sf_clip_working_folder) == False:
-            cmd = "mkdir {0}".format(sf_clip_working_folder)
-            #Popen(cmd, shell=True, stdout=PIPE).communicate()
-            self.cmd_runner.run_cmd_small_output(cmd)
-
-        clip_info = ClipReadInfo(self.sf_bam, self.n_jobs, self.sf_reference)
-        clip_info.set_working_folder(sf_clip_working_folder)
-
-        ##collect the clip positions
-        ##in format {chrm: {map_pos: [left_cnt, right_cnt, mate_within_rep_cnt]}}
-        print(("Output info: Collect clip positions for file ", self.sf_bam))
-        initial_clip_pos_freq_cutoff = 2  ##############################################################################
-        ##save clip pos by chrm
-        clip_info.collect_clip_positions(sf_annotation, initial_clip_pos_freq_cutoff, b_se, wfolder_pub_clip)
-
-        ######1. so first, re-align the clipped parts, and count the number of supported clipped reads
-        ####gnrt the clipped parts file
-        sf_bam_name = os.path.basename(self.sf_bam)
-        sf_all_clip_fq = sf_clip_working_folder + sf_bam_name + CLIP_FQ_SUFFIX
-        print(("Output info: Collect clipped parts for file ", self.sf_bam))
-        # if os.path.isfile(sf_all_clip_fq)==False:
-        clip_info.collect_clipped_parts(sf_all_clip_fq)
+            shutil.rmtree(sf_clip_working_folder)
 
     def run_filter_by_barcode_coverage(self, record):
         site_chrm1 = record[0]

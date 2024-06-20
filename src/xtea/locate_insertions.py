@@ -105,19 +105,10 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip,rcd,logf
         # here if half of the seq is mapped, then consider it as aligned work.
         ##2. require >=2 clip reads, whose clipped part is aligned to repeat copies
         logfile.write("    Calling insertion sites.\n")
-        if not b_mosaic:
-            tem_locator.call_TEI_candidate_sites_from_multiple_alignmts(sf_annotation, sf_rep_cns, sf_rep, b_se,
+        tem_locator.call_TEI_candidate_sites_from_multiple_alignmts(sf_annotation, sf_rep_cns, sf_rep, b_se,
                                                                         cutoff_left_clip, cutoff_right_clip,
                                                                         cutoff_clip_mate_in_rep, b_mosaic,
-                                                                        wfolder_pub_clip, b_force, max_cov_cutoff, sf_out,logfile)
-        
-        else:
-            cutoff_polyA=1
-            tem_locator.call_TEI_candidate_sites_from_multiple_alignmts_mosaic(sf_annotation, sf_rep_cns, sf_rep, b_se,
-                                                                        cutoff_left_clip,
-                                                                        cutoff_right_clip, cutoff_clip_mate_in_rep,
-                                                                        cutoff_polyA, wfolder_pub_clip,
-                                                                        b_force, max_cov_cutoff, sf_out,logfile)
+                                                                        wfolder_pub_clip, b_force, max_cov_cutoff, sf_out,b_mosaic,logfile)
     else:
         logfile.write(f"    File {sf_out} already exists. Skipping step...")
 
