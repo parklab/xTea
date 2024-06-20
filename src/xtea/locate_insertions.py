@@ -108,7 +108,7 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip,rcd,logf
         tem_locator.call_TEI_candidate_sites_from_multiple_alignmts(sf_annotation, sf_rep_cns, sf_rep, b_se,
                                                                         cutoff_left_clip, cutoff_right_clip,
                                                                         cutoff_clip_mate_in_rep, b_mosaic,
-                                                                        wfolder_pub_clip, b_force, max_cov_cutoff, sf_out,b_mosaic,logfile)
+                                                                        wfolder_pub_clip, b_force, max_cov_cutoff, sf_out,logfile)
     else:
         logfile.write(f"    File {sf_out} already exists. Skipping step...")
 
