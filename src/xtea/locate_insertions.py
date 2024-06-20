@@ -41,12 +41,12 @@ def automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,logf
     if b_tumor is True:
         f_cov=f_cov*f_purity
     par_rcd=xpar.get_par_by_cov(f_cov) #in format (iclip, idisc, i_clip-disc)
-    logfile.write("        Average coverage is {0}\n        Automatically generated parameters (clip, disc, clip-disc) are ({1}, {2} ,{3})\n"
+    logfile.write("    Average coverage is {0}\n    Automatically generated parameters (clip, disc, clip-disc) are ({1}, {2} ,{3})\n"
           .format(f_cov, par_rcd[0], par_rcd[1], par_rcd[2]))
     return par_rcd, rcd
 
 
-def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip,logfile):
+def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip,rcd,logfile):
 
     # OPTIONS STILL MISSING
     # if options.mit: #if this to call mitochondrial insertion, then will not filter out chrM in "x_intermediate_sites.py"
@@ -88,28 +88,10 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip,logfile)
 
     s_working_folder = output_dir
     sf_out = f"{s_working_folder}/candidate_list_from_clip.txt"
-    
-    # downstream USED only in (filler values for now, remove downstream later)
-    cutoff_left_clip = options.clip_cutoff
-    cutoff_right_clip = options.clip_cutoff
-    
-    # true clipping cutoff
-    cutoff_clip_mate_in_rep = options.cr
 
-    logfile.write("    Generating cutoff parameters based on coverage.\n")
-    # ALWAYS ATTEMPT TO CALCULATE BECAUSE NEEDED DOWNSTREAM
-    rcd, basic_rcd=automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs,
-                                                    b_force, b_tumor, f_purity)
-    if cutoff_clip_mate_in_rep is None: 
-        cutoff_clip_mate_in_rep=rcd[2]
-    else:
-        rcd = (rcd[0],rcd[1],cutoff_clip_mate_in_rep) # set to user preset
-    if cutoff_left_clip is None:
-        cutoff_left_clip=rcd[0]
-        cutoff_right_clip=rcd[0]
-    else:
-        rcd = (cutoff_left_clip, rcd[1],rcd[2]) # set to user preset
-
+    cutoff_left_clip = rcd[0]
+    cutoff_right_clip = rcd[0]
+    cutoff_clip_mate_in_rep = rcd[2]
 
     #by default, if number of clipped reads is larger than this value, then discard
     # max_cov_cutoff=int(15*basic_rcd[0])   # ORIGINALLY WAS A CL PARAMETER (cov) set to 30 by default
@@ -138,7 +120,6 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip,logfile)
                                                                         b_force, max_cov_cutoff, sf_out,logfile)
 
     logfile.flush()
-    return (rcd,basic_rcd)
 
 def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd,logfile):
 
@@ -184,12 +165,7 @@ def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd,logfile):
         i_is = 100000  ###set the insert size a large value, by default 100k
         f_dev = std_var
 
-        # this is the cutoff for  "left discordant" and "right discordant"
-        # Either of them is larger than this cutoff, the site will be reported
-        n_disc_cutoff = options.nd
-        if n_disc_cutoff is None:
-            n_disc_cutoff = rcd[1]
-            rcd = (rcd[0],n_disc_cutoff,rcd[2])
+        n_disc_cutoff = rcd[1]
             
         sf_tmp = s_working_folder + "/disc_tmp.list"
         sf_raw_disc=sf_disc_out + xtea.global_values.RAW_DISC_TMP_SUFFIX #save the left and right raw disc for each site

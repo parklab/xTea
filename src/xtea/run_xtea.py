@@ -6,7 +6,7 @@
 
 from pathlib import Path
 import configargparse
-from xtea.locate_insertions import get_clip_sites,get_disc_sites,filter_csn,get_transduction,get_sibling,filter_sites_post,annotate_genes,call_genotypes, generate_VCF
+from xtea.locate_insertions import get_clip_sites,get_disc_sites,filter_csn,get_transduction,get_sibling,filter_sites_post,annotate_genes,call_genotypes, generate_VCF,automatic_gnrt_parameters
 import time
 
 
@@ -126,7 +126,7 @@ def setup_annotation_paths(rep,rep_lib_annot_dir,genome_reference,genome):
 
     return annotation_paths
 
-def setup_output_dir(out_dir,tmp_dir,sample_name,repeat):
+def setup_output_dir(out_dir,sample_name,repeat):
     o_dir = f'{out_dir}/{sample_name}/{repeat}/'
     t_dir = f'{out_dir}/{sample_name}/tmp/'
 
@@ -138,7 +138,38 @@ def setup_output_dir(out_dir,tmp_dir,sample_name,repeat):
 
     return o_abs_dir, t_abs_dir
 
+def generate_cutoffs(options,logfile):
+    sf_bam_list = options.input_bams
+    sf_ref = options.genome_reference #reference genome "-ref"
+    s_working_folder = str(Path(f'{options.out_dir}/{options.sample_name}/').resolve()) + '/' # TODO do we even need to save this file?
+    n_jobs = int(options.cores)
 
+    # downstream USED only in (filler values for now, remove downstream later)
+    cutoff_left_clip = options.clip_cutoff
+    
+    # true clipping cutoff
+    cutoff_clip_mate_in_rep = options.cr
+
+    logfile.write(">Generating cutoff parameters based on coverage.\n")
+    rcd, basic_rcd=automatic_gnrt_parameters(sf_bam_list, sf_ref, s_working_folder, n_jobs, logfile,
+                                                    False, options.tumor, options.purity)
+    if cutoff_clip_mate_in_rep is None: 
+        cutoff_clip_mate_in_rep=rcd[2]
+    else:
+        rcd = (rcd[0],rcd[1],cutoff_clip_mate_in_rep) # set to user preset
+    if cutoff_left_clip is None:
+        cutoff_left_clip=rcd[0]
+    else:
+        rcd = (cutoff_left_clip, rcd[1],rcd[2]) # set to user preset
+
+    # this is the cutoff for  "left discordant" and "right discordant"
+    # Either of them is larger than this cutoff, the site will be reported
+    n_disc_cutoff = options.nd
+    if n_disc_cutoff is None:
+        n_disc_cutoff = rcd[1]
+        rcd = (rcd[0],n_disc_cutoff,rcd[2])
+
+    return rcd, basic_rcd
 
 # BIG TODOS
 #   - NO 10x support
@@ -154,17 +185,20 @@ def main():
 
     logfile = open(f"{options.sample_name}_xtea.log",'w')
 
+    rcd,basic_rcd = generate_cutoffs(options,logfile)
+
     if options.mode == 'germline' or options.mode == 'mosaic':
         for r in repeats:
             
             annot_path_dict = setup_annotation_paths(r,options.rep_lib_annot_dir,
                                             options.genome_reference,
                                             options.genome)
-            output_dir, sample_public_dir = setup_output_dir(options.output_dir,options.tmp_dir,options.sample_name,r)
+            output_dir, sample_public_dir = setup_output_dir(options.output_dir,options.sample_name,r)
+
 
             #perform clipped step:
             logfile.write(">Begin clipped reads step...\n")
-            rcd,basic_rcd = get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir,logfile)
+            get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir,rcd,logfile)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
             logfile.write(f">Clipped step finished. Total time: {t}\n")
