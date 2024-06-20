@@ -1299,14 +1299,16 @@ class XClipDiscFilter():
         sf_clip_algnmt = self.working_folder + "temp_clip.sam"
         xlog.append_to_file(f_log, "[Filtering:realign_clipped_read_with_polyA:Starts...]\n")
         bwa_align.realign_clipped_read_with_polyA(sf_rep_cns, sf_clip_fq, sf_clip_algnmt)
-        # self.clean_file_by_path(sf_clip_fq)
+        if not xtea.global_values.KEEP_INT_FILES:
+            self.clean_file_by_path(sf_clip_fq)
 
         xlog.append_to_file(f_log, "[Filtering:realign_clipped_read_with_polyA:Finished]\n")
         # ##re-align the disc reads
         sf_disc_algnmt = self.working_folder + "temp_disc.sam"
         xlog.append_to_file(f_log, "[Filtering:realign_disc_reads:Starts...]\n")
         bwa_align.realign_disc_reads(sf_rep_cns, sf_disc_fa, sf_disc_algnmt)
-        # self.clean_file_by_path(sf_disc_fa)
+        if not xtea.global_values.KEEP_INT_FILES:
+            self.clean_file_by_path(sf_disc_fa)
         xlog.append_to_file(f_log, "[Filtering:realign_disc_reads:Finished...]\n")
 
         ####analysis the re-aligned clipped reads, called out:

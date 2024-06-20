@@ -118,6 +118,8 @@ def get_clip_sites(options,annot_path_dict,output_dir, wfolder_pub_clip,rcd,logf
                                                                         cutoff_right_clip, cutoff_clip_mate_in_rep,
                                                                         cutoff_polyA, wfolder_pub_clip,
                                                                         b_force, max_cov_cutoff, sf_out,logfile)
+    else:
+        logfile.write(f"    File {sf_out} already exists. Skipping step...")
 
     logfile.flush()
 
@@ -185,6 +187,8 @@ def get_disc_sites(options,annot_path_dict,output_dir,rcd,basic_rcd,logfile):
                                                                                 sf_tmp, sf_raw_disc, b_tumor)
         xfilter.merge_clip_disc(sf_tmp, sf_candidate_list, sf_disc_out)
         logfile.flush()
+    else:
+        logfile.write(f"    File {sf_disc_out} already exists. Skipping step...")
 
 
 def filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd,logfile):
@@ -194,7 +198,7 @@ def filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd,logfile):
     b_resume=options.resume #resume the running, which will skip the step if output file already exists
     
     sf_ref = annot_path_dict['sf_ref'] # reference genome "-ref"
-    sf_cns = annot_path_dict['sf_rep'] # cns ref "-r"
+    sf_cns = annot_path_dict['sf_rep_cns'] # cns ref "-r"
 
     s_working_folder = output_dir
 
@@ -239,7 +243,8 @@ def filter_csn(options,annot_path_dict,output_dir,rcd,basic_rcd,logfile):
         x_cd_filter = XClipDiscFilter(sf_bam_list, s_working_folder, n_jobs, sf_ref)
         x_cd_filter.call_MEIs_consensus(sf_candidate_list, iextnd, bin_size, sf_cns, bmapped_cutoff, i_concord_dist, f_concord_ratio,
                                         n_clip_cutoff, n_disc_cutoff, sf_output,logfile)
-        ####        
+    else:
+        logfile.write(f"    File {sf_output} already exists. Skipping step...")     
 
 def get_transduction(r,options,annot_path_dict,output_dir,rcd,basic_rcd,logfile):
 

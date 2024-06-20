@@ -141,7 +141,7 @@ def setup_output_dir(out_dir,sample_name,repeat):
 def generate_cutoffs(options,logfile):
     sf_bam_list = options.input_bams
     sf_ref = options.genome_reference #reference genome "-ref"
-    s_working_folder = str(Path(f'{options.out_dir}/{options.sample_name}/').resolve()) + '/' # TODO do we even need to save this file?
+    s_working_folder = str(Path(f'{options.output_dir}/{options.sample_name}/').resolve()) + '/' # TODO do we even need to save this file?
     n_jobs = int(options.cores)
 
     # downstream USED only in (filler values for now, remove downstream later)
@@ -183,12 +183,15 @@ def main():
     options = parse_toml_args()
     repeats = options.repeat_type
 
-    logfile = open(f"{options.sample_name}_xtea.log",'w')
+    s_working_folder = str(Path(f'{options.output_dir}/{options.sample_name}/').resolve())
+    logfile = open(f"{s_working_folder}/{options.sample_name}_xtea.log",'w')
 
     rcd,basic_rcd = generate_cutoffs(options,logfile)
 
     if options.mode == 'germline' or options.mode == 'mosaic':
         for r in repeats:
+
+            logfile.write(f"\nCalling ${r} insertions in sample {options.sample_name}...\n")
             
             annot_path_dict = setup_annotation_paths(r,options.rep_lib_annot_dir,
                                             options.genome_reference,
@@ -197,7 +200,7 @@ def main():
 
 
             #perform clipped step:
-            logfile.write(">Begin clipped reads step...\n")
+            logfile.write("\n>Begin clipped reads step...\n")
             get_clip_sites(options,annot_path_dict,output_dir,sample_public_dir,rcd,logfile)
             curr_time = time.time() - start
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
@@ -269,6 +272,9 @@ def main():
             t = time.strftime("%Hh%Mm%Ss", time.gmtime(curr_time))
             logfile.write(f">VCF step finished. Total time: {t}\n")
             start = time.time()
+
+            logfile.write(f"\nFinished calling ${r} insertions in sample {options.sample_name}.\n")
+            logfile.write(f"\nResults can be found in {output_dir}.\n\n")
 
 
     # elif 'case-control':
