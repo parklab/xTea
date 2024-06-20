@@ -357,7 +357,7 @@ class ClipReadInfo():
             sf_pub_pos=sf_pub_folder + rcd[0] + xtea.global_values.CLIP_POS_SUFFIX
             if (os.path.islink(sf_pub_pos)==True or os.path.isfile(sf_pub_pos)==True) and not xtea.global_values.KEEP_INT_FILES:
                 os.remove(sf_pub_pos)
-            cmd="mv {0} {1}".format(sf_clip_pos, sf_pub_folder)
+            cmd="ln -s {0} {1}".format(sf_clip_pos, sf_pub_folder)
             Popen(cmd, shell=True, stdout=PIPE).communicate()
 
     ####given specific chrm, get all the related clipped reads
