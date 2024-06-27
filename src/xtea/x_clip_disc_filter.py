@@ -237,7 +237,7 @@ class XClipDisc():####
             if algnmt.mate_is_reverse == True:  #mate is reverse complementary
                 is_mate_rc = 1
             ## here only collect the read names for discordant reads, later will re-align the discordant reads
-            if self.is_discordant(chrm_in_bam, map_pos, mate_chrm, mate_pos, xtea.global_values.DISC_THRESHOLD) == True:
+            if self.is_discordant(chrm_in_bam, map_pos, mate_chrm, mate_pos) == True:
                 # check where the mate is mapped, if within a repeat copy, then get the position on consensus
                 # f_disc_names.write(query_name + "\n")
                 s_mate_first = 1  # whether the mate read is the "first read" in a pair
@@ -265,7 +265,7 @@ class XClipDisc():####
         return b_two_clip
     ####
     ##whether a pair of read is discordant (for TEI only) or not
-    def is_discordant(self, chrm, map_pos, mate_chrm, mate_pos, is_threshold):
+    def is_discordant(self, chrm, map_pos, mate_chrm, mate_pos, is_threshold = 2000):
         # b_disc=False
         if chrm != mate_chrm:  ###of different chroms
             return True
@@ -1267,7 +1267,18 @@ class XClipDiscFilter():
     # 5. max_depth: by default: 4*calc-depth
     # 6. check the background clipped reads (reads clipped at the location, but with low mapping quality)
     def call_MEIs_consensus(self, sf_candidate_list, extnd, bin_size, sf_rep_cns,
-                            bmapped_cutoff, i_concord_dist, f_concord_ratio, nclip_cutoff, ndisc_cutoff, sf_final_list):
+                            bmapped_cutoff, i_concord_dist, f_concord_ratio, nclip_cutoff, ndisc_cutoff, sf_final_list,logfile):
+        
+        logfile.write(f'        call_MEIs_consensus parameters:\n')
+        logfile.write(f'            extnd:{extnd}\n')
+        logfile.write(f'            bin_size:{bin_size}\n')
+        logfile.write(f'            sf_rep_cns:{sf_rep_cns}\n')
+        logfile.write(f'            bmapped_cutoff:{bmapped_cutoff}\n')
+        logfile.write(f'            i_concord_dist:{i_concord_dist}\n')
+        logfile.write(f'            f_concord_ratio:{f_concord_ratio}\n')
+        logfile.write(f'            nclip_cutoff:{nclip_cutoff}\n')
+        logfile.write(f'            ndisc_cutoff:{ndisc_cutoff}\n')
+
         sf_cns_log=self.working_folder + "filtering_log.txt"
         xlog=XLog()
         f_log=xlog.open_file(sf_cns_log)
@@ -1288,14 +1299,16 @@ class XClipDiscFilter():
         sf_clip_algnmt = self.working_folder + "temp_clip.sam"
         xlog.append_to_file(f_log, "[Filtering:realign_clipped_read_with_polyA:Starts...]\n")
         bwa_align.realign_clipped_read_with_polyA(sf_rep_cns, sf_clip_fq, sf_clip_algnmt)
-        self.clean_file_by_path(sf_clip_fq)
+        if not xtea.global_values.KEEP_INT_FILES:
+            self.clean_file_by_path(sf_clip_fq)
 
         xlog.append_to_file(f_log, "[Filtering:realign_clipped_read_with_polyA:Finished]\n")
         # ##re-align the disc reads
         sf_disc_algnmt = self.working_folder + "temp_disc.sam"
         xlog.append_to_file(f_log, "[Filtering:realign_disc_reads:Starts...]\n")
         bwa_align.realign_disc_reads(sf_rep_cns, sf_disc_fa, sf_disc_algnmt)
-        self.clean_file_by_path(sf_disc_fa)
+        if not xtea.global_values.KEEP_INT_FILES:
+            self.clean_file_by_path(sf_disc_fa)
         xlog.append_to_file(f_log, "[Filtering:realign_disc_reads:Finished...]\n")
 
         ####analysis the re-aligned clipped reads, called out:
@@ -2343,7 +2356,7 @@ class XClipDiscFilter():
                     n_cnt = 0
                     for line in fin_tmp_fa:
                         if n_cnt % 2 == 0:
-                            line = line.rstrip() + global_values.SEPERATOR + str(sample_cnt) + "\n"  ###here add the sample id
+                            line = line.rstrip() + xtea.global_values.SEPERATOR + str(sample_cnt) + "\n"  ###here add the sample id
                         fout_disc_fa.write(line)
                         n_cnt += 1
                 sample_cnt += 1

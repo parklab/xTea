@@ -226,7 +226,7 @@ class XPostFilter():
 
                 #return value: if b_in_rep is False, and div_rate>0, then this is fall in rep region, but div>cutoff
                 b_in_low_div_rep, div_rate, copy_start, copy_end = self.fall_in_low_div_same_type_rep(
-                    xannotation, ins_chrm, ins_pos, xtea.global_values.REP_LOW_DIVERGENT_CUTOFF)
+                    xannotation, ins_chrm, ins_pos, 7)
 
                 ref_copy_start=copy_start+self.L1_boundary_extnd#change back to the original start position
                 ref_copy_end=copy_end-self.L1_boundary_extnd#change back to the original end position
@@ -614,9 +614,25 @@ class XTEARsltParser():
             return False
         return True
 
+    ####orphan transduction
+    def is_orphan_transduction(self, rcd):
+        s_src=rcd[32]
+        if "orphan" in s_src:
+            return True
+        return False
+
     def get_transduction_source(self, rcd):
         s_src=rcd[23]
         return s_src
+
+    def update_td_info(self, rcd, s_td_info, n_clip, n_disc, n_polyA):
+        rcd[23]=s_td_info
+        rcd[24]=n_clip
+        rcd[25]=n_disc
+        rcd[26]=n_polyA
+
+    def update_td_source_only(self, rcd, s_td_info):
+        rcd[23]=s_td_info
 
     # create a new record
     def add_new_rcd(self, ins_chrm, ins_pos, rcd_td_info, gntp_rcd, s_type, f_out):
