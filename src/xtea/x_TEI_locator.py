@@ -116,8 +116,8 @@ class TE_Multi_Locator():
                                     ###sum (left-realign, right-realign, mate_in_rep)
                                     m_sites_chrm[pos][i_value] += int(value)
                                     i_value += 1
-                    if not xtea.global_values.KEEP_INT_FILES:
-                        os.remove(sf_tmp)
+                    #if not xtea.global_values.KEEP_INT_FILES:
+                    #    os.remove(sf_tmp)
 
                 # OUTPUTTING ALL SITES, NO FILTERING
                 if xtea.global_values.KEEP_INT_FILES:
@@ -129,7 +129,6 @@ class TE_Multi_Locator():
                             fout_sites_merged.write(s_feature + "\t")
                         fout_sites_merged.write("\n")
                 else:
-                    # shutil.rmtree(self.working_folder)
                     map(os.remove, glob(f"{self.working_folder}{xtea.global_values.CLIP_TMP}*"))
 
                 #this will use the number of clipped reads within the nearby region
@@ -153,6 +152,8 @@ class TE_Multi_Locator():
                     fout_sites.write("\n")
         if not xtea.global_values.KEEP_INT_FILES:
             os.remove(sf_out_merged)
+            print("removing "+self.working_folder + xtea.global_values.CLIP_FOLDER)
+            shutil.rmtree(self.working_folder + xtea.global_values.CLIP_FOLDER)
 
 
 ####
@@ -438,7 +439,6 @@ class TELocator():
                                                         sf_pub_folder, sf_out)
         if not xtea.global_values.KEEP_INT_FILES:####remove the file
             os.remove(sf_algnmt)
-            shutil.rmtree(sf_clip_working_folder)
 
     def run_filter_by_barcode_coverage(self, record):
         site_chrm1 = record[0]
