@@ -2,7 +2,7 @@
 #     Basic image
 #######################################################################
 FROM ubuntu:16.04
-MAINTAINER Chong Simon Chu (chong.simon.chu@gmail.com), Michele Berselli (berselli.michele@gmail.com)
+MAINTAINER Chong Simon Chu (chong.simon.chu@gmail.com)
 
 #######################################################################
 #     General updates & installing necessary Linux components
@@ -47,10 +47,7 @@ RUN pip install deep-forest==0.1.5
 #     Scripts
 #######################################################################
 ## xTea
-RUN git clone https://github.com/parklab/xTea.git && \
-    cd xTea && \
-    git checkout v0.1.9 && \
-    cd .. && \
+RUN git clone --single-branch --branch xTea-trioML https://github.com/parklab/xTea.git && \
     cp -r xTea/xtea/* .
 RUN rm -rf xTea
 RUN chmod +x *.py
