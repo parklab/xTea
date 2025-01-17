@@ -224,17 +224,34 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 
 
 5. **Citation and accompany scripts**
-	If you are using xTea for your project, please cite:
+	+ If you are using xTea germline and somatic module for your project, please cite:
 	
 	```
-	Chu, C., Borges-Monroy, R., Viswanadham, V.V. et al. Comprehensive identification of transposable element insertions using multiple sequencing technologies. Nat Commun 12, 3836 (2021). https://doi.org/10.1038/s41467-021-24041-8
+	Chu, Chong, Rebeca Borges-Monroy, Vinayak V. Viswanadham, Soohyun Lee, Heng Li, Eunjung Alice Lee, and Peter J. Park. "Comprehensive identification of transposable element insertions using multiple sequencing technologies." Nature communications 12, no. 1 (2021): 3836.
 	```
 
 	The accompany scripts for re-produce the results in the paper could be found here: `https://github.com/parklab/xTea_paper`
 
+
+	+ If you are using the TE insertion annotation module within the long reads branch, please cite:
+	```
+	Chu, C., Lin, E.W., Tran, A., Jin, H., Ho, N.I., Veit, A., Cortes-Ciriano, I., Burns, K.H., Ting, D.T. and Park, P.J., 2023. The landscape of human SVA retrotransposons. Nucleic Acids Research, 51(21), pp.11453-11465.
+	```
+
+	+ If you are using the xTea-trioML for de novo TE insertion identification, please cite:
+	```
+
+	Chu, Chong, Antuan Tran, Viktor Ljungström, Corinne Sexton, Hu Jin, and Peter J. Park. "Contribution of de novo retroelements to birth defects and childhood cancers." medRxiv (2024).
+	```
+
+
 6. **Update log**
 
-	+ 06/11/23 Add `gnrt_pipeline_local_chm13.py` for CHM13_v2.0 reference genome .
+	+ 01/10/25 `xTea-trioML` is released under `xTea-trioML` branch for identifying de novo TE insertion from trio WGS data.
+
+	+ 10/13/23 `xTea-mosaic` is released under `xtea_mosaic` branch for detecing mosaic TE insertions from high depth WGS data. 
+
+	+ 06/11/23 Add `gnrt_pipeline_local_chm13.py` for CHM13_v2.0 reference genome.
 
 	+ 06/09/22 Update the Dockerfile and cwl for germline module (hg38).
 
