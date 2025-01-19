@@ -27,13 +27,26 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 	```
 	git clone --single-branch --branch xTea_long_release_v0.1.0 https://github.com/parklab/xTea.git
 	```
-3. pre-processed repeat library used by xTea (this library is used for both short and long reads)  
+
+3. de novo TE insertion (trio data as input; check xTea-trioML branch for more details)
+
+	```
+	git clone --single-branch --branch xTea-trioML https://github.com/parklab/xTea.git
+	```
+
+4. mosaic TE insertion (high depth WGS data as input; check xtea_mosaic branch for more details)
+
+	```
+	git clone --single-branch --branch xtea_mosaic https://github.com/parklab/xTea.git
+	```
+
+5. pre-processed repeat library used by xTea (this library is used for both short and long reads)  
 	
 	```
 	wget https://github.com/parklab/xTea/raw/master/rep_lib_annotation.tar.gz
 	```
 	
-4. gene annotation files are downloaded from GENCODE. Decompressed gff3 files are required.
+6. gene annotation files are downloaded from GENCODE. Decompressed gff3 files are required.
 	+ For GRCh38 (or hg38), gff3 files are downloaded and decompressed from https://www.gencodegenes.org/human/release_33.html ;
 	+ For GRCh37 (or hg19), gff3 files are downloaded and decompressed from https://www.gencodegenes.org/human/release_33lift37.html ;
 	+ For CHM13v2, gff3 files are downloaded from https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/annotation/chm13.draft_v2.0.gene_annotation.gff3;
