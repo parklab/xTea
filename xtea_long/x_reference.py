@@ -23,9 +23,9 @@ class XChromosome():
         elif chrm == "hs37d5":
             return True
 
-        if len(chrm)>3 and ((chrm[:3] is "HLA") or (chrm[:3] is "HPV") or (chrm[:3] is "HIV") or (chrm[:3] is "CMV")
-                            or (chrm[:3] is "CMV") or (chrm[:3] is "MCV") or (chrm[:2] is "SV") or (chrm[:4] is "KSHV")
-                            or (chrm[:5] is "decoy") or (chrm[:6] is "random")):#this is some special fields in the bam file
+        if len(chrm)>3 and ((chrm[:3] == "HLA") or (chrm[:3] == "HPV") or (chrm[:3] == "HIV") or (chrm[:3] == "CMV")
+                            or (chrm[:3] == "CMV") or (chrm[:3] == "MCV") or (chrm[:2] == "SV") or (chrm[:4] == "KSHV")
+                            or (chrm[:5] == "decoy") or (chrm[:6] == "random")):#this is some special fields in the bam file
             return True
         fields=chrm.split("-")
         if len(fields)>1:
@@ -66,7 +66,7 @@ class XReference():
         if len(chrm) > 3 and chrm[:3] == "chr":  ##Here remove the "chr"
             b_chrm_with_chr = True
 
-        # print chrm, self.b_with_chr, b_chrm_with_chr ###############################################################
+        # print chrm, self.b_with_chr, b_chrm_with_chr ##############################################################
         if b_with_chr == True and b_chrm_with_chr == True:
             return chrm
         elif b_with_chr == True and b_chrm_with_chr == False:
@@ -295,15 +295,15 @@ class XReference():
 
         if s_working_folder[-1] != "/":
             s_working_folder += "/"
-        flank_folder = s_working_folder + global_values.FLANK_FOLDER
-        if os.path.exists(flank_folder) == False:
-            cmd = "mkdir {0}".format(flank_folder)
+        #flank_folder = s_working_folder + global_values.FLANK_FOLDER
+        if os.path.exists(s_working_folder) == False:
+            cmd = "mkdir {0}".format(s_working_folder)
             # Popen(cmd, shell=True, stdout=PIPE).communicate()
             self.cmd_runner.run_cmd_small_output(cmd)
 
         l_records = []
         for chrm in m_sites:
-            tmp_rcd = (chrm, sf_sites, sf_ref, i_extend, flank_folder)
+            tmp_rcd = (chrm, sf_sites, sf_ref, i_extend, s_working_folder)
             l_records.append(tmp_rcd)
             # self.run_gnrt_flank_region_for_chrm(tmp_rcd) ################
 
@@ -312,6 +312,8 @@ class XReference():
         pool.close()
         pool.join()
 
+        return l_records ##
+####
 ####
     # gnrt the left and right flank regions for each candidate site
     def run_gnrt_target_region_for_chrm(self, record):
@@ -344,7 +346,7 @@ class XReference():
 
             sf_flank_fa = working_folder + "{0}{1}{2}_flanks.fa".format(chrm, global_values.SEPERATOR, pos)
             with open(sf_flank_fa, "w") as fout_flank:
-                fout_flank.write(">target_ref_seq\n")
+                fout_flank.write(">%s_%s\n"%(ref_chrm,pos))
                 fout_flank.write(s_target_region + "\n")
         f_fa.close()
 

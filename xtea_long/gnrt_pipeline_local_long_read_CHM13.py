@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-##11/04/2018
-##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##02/08/2025
+##@@author: Simon (Chong) Chu
+##@@contact: chong.simon.chu@gmail.com
 
 import os
 from subprocess import *
@@ -84,42 +84,42 @@ def gnrt_calling_command(ncores, iflag, i_rep_type, sf_rmsk, sf_rep_cns, i_min_c
         s_fast_mode=""
     s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                  "-i ${{PREFIX}}\"candidate_list_from_clip.txt\" -o ${{PREFIX}}\"all_ins_seqs.fa\"" \
-                 " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
+                 " --rep ${{REP_LIB}} --chm13 -n {0} {1}\n".format(ncores, s_fast_mode)
     if b_complex==True:
         s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt.left_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_left.fa\"" \
-                     " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
+                     " --rep ${{REP_LIB}} --chm13 -n {0} {1}\n".format(ncores, s_fast_mode)
         s_asm_step += "python ${{XTEA_PATH}}\"l_main.py\" -A --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt.right_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_right.fa\"" \
-                     " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
+                     " --rep ${{REP_LIB}} --chm13 -n {0} {1}\n".format(ncores, s_fast_mode)
     if b_asm_cmd==True and b_call_seq==False:
         s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --cmd -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt\" -o ${{PREFIX}}\"all_ins_seqs.fa\"" \
-                     " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
-        if b_complex==True:
+                     " --rep ${{REP_LIB}} --chm13 -n {0} {1}\n".format(ncores, s_fast_mode)
+        if b_complex==True:##
             s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --cmd --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                          "-i ${{PREFIX}}\"candidate_list_from_clip.txt.left_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_left.fa\"" \
-                         " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
+                         " --rep ${{REP_LIB}} --chm13 -n {0} {1}\n".format(ncores, s_fast_mode)
             s_asm_step += "python ${{XTEA_PATH}}\"l_main.py\" -A --cmd --collect_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                          "-i ${{PREFIX}}\"candidate_list_from_clip.txt.right_breakponts\" -o ${{PREFIX}}\"all_ins_seqs_right.fa\"" \
-                         " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
-    elif b_asm_cmd==False and b_call_seq==True:
+                         " --rep ${{REP_LIB}} --chm13 -n {0} {1}\n".format(ncores, s_fast_mode)
+    elif b_asm_cmd==False and b_call_seq==True:#
         s_asm_step = "python ${{XTEA_PATH}}\"l_main.py\" -A --mei_no_asm -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                      "-i ${{PREFIX}}\"candidate_list_from_clip.txt\" -o ${{PREFIX}}\"all_ins_seqs.fa\"" \
-                     " --rep ${{REP_LIB}} -n {0} {1}\n".format(ncores, s_fast_mode)
+                     " --rep ${{REP_LIB}} --chm13 -n {0} {1}\n".format(ncores, s_fast_mode)
 
     s_ghost_step="python ${{XTEA_PATH}}\"l_main.py\" -N -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}}\"ghost\" " \
-                 "-o ${{PREFIX}}\"ghost_reads.fa\" --rmsk {0} --cns {1} --min {2}" \
+                 "-o ${{PREFIX}}\"ghost_reads.fa\" --chm13 --rmsk {0} --cns {1} --min {2}" \
                " -n {3}\n".format(sf_rmsk, sf_rep_cns, i_min_copy_len, ncores)
     s_classify_step="python ${{XTEA_PATH}}\"l_main.py\" -Y -i ${{PREFIX}}\"all_ins_seqs.fa\" -r ${{REF}} " \
-                    "-p ${{TMP}}\"classification\" --rep ${{REP_LIB}} -y {0} " \
+                    "-p ${{TMP}}\"classification\" --rep ${{REP_LIB}} --chm13 -y {0} " \
                     "-o ${{PREFIX}}\"classified_results.txt\" -n {1}\n".format(i_rep_type, ncores)
     if b_complex==True:#complex events
         s_classify_step+="python ${{XTEA_PATH}}\"l_main.py\" -X -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
                          "-i ${{PREFIX}}\"candidate_list_from_clip.txt.left_breakponts\" " \
                          "--i2 ${{PREFIX}}\"candidate_list_from_clip.txt.right_breakponts\" " \
                          " --iline ${{PREFIX}}\"classified_results.txt.merged_LINE1.txt\" " \
-                         "--isva ${{PREFIX}}\"classified_results.txt.merged_SVA.txt\" --rep ${{REP_LIB}} " \
+                         "--isva ${{PREFIX}}\"classified_results.txt.merged_SVA.txt\" --rep ${{REP_LIB}} --chm13 " \
                          "-o ${{PREFIX}}\"complex_TE_SV\" -n {1}\n".format(i_rep_type, ncores)
 
     s_clean="python ${{XTEA_PATH}}\"l_main.py\" --clean -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
@@ -127,16 +127,17 @@ def gnrt_calling_command(ncores, iflag, i_rep_type, sf_rmsk, sf_rep_cns, i_min_c
                      " -n {0}\n".format(ncores)
 
     sf_ins_seq_for_pseudo="all_ins_seqs.fa"+LRD_PSEUDOGENE_INPUT_SUF
+    ####https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/annotation/chm13v2.0_GENCODEv35_CAT_Liftoff.vep.gff3.gz
     s_pseudo="python ${{XTEA_PATH}}\"l_main.py\" --pseudo -i ${{PREFIX}}\"{0}\" " \
-             "-r ${{REP_LIB}}\"gene_annotation/exon.fa\" " \
-             "--gene ${{REP_LIB}}\"gene_annotation/gencode.v28.GRCh38.annotation.gff3\" " \
+             "-r ${{REP_LIB}}\"gene_annotation/exon.fa\" --chm13 " \
+             "--gene ${{REP_LIB}}\"gene_annotation/chm13v2.0_GENCODEv35_CAT_Liftoff.vep.gff3\" " \
              "-p ${{TMP}}\"classification\" " \
              "-o ${{PREFIX}}\"pseudogene_insertion_results.txt\" -n {1}\n".format(sf_ins_seq_for_pseudo, ncores)
 
     s_dimorphic="python ${{XTEA_PATH}}\"l_dimorphic_HERV.py\"  -p ${{TMP}} " \
                 "-i ${{PREFIX}}\"candidate_list_from_clip.txt.left_breakponts\" " \
                 "--i2 ${{PREFIX}}\"candidate_list_from_clip.txt.right_breakponts\" " \
-                "-a ${{REP_LIB}}\"LTR/hg38_LTR.fa.out\" " \
+                "-a ${{REP_LIB}}\"LTR/chm13_LTR.fa.out\" --chm13 " \
                 "-o ${{PREFIX}}\"dimorphic_herv_candidates.txt\" -n {0}\n".format(ncores)
 
     s_ref_sva="python ${{XTEA_PATH}}\"l_main.py\" --rsva -b ${{BAM_LIST}} -r ${{REF}} -p ${{TMP}} " \
@@ -301,7 +302,7 @@ def gnrt_running_shell(sf_ids, sf_bams, s_wfolder, sf_ref, sf_folder_xtea, sf_re
         for line in fin_id:
             sid = line.rstrip()
             m_id[sid] = 1
-            sf_folder = s_wfolder + sid  # first creat folder
+            sf_folder = s_wfolder + sid  #first creat folder
             if os.path.exists(sf_folder) == True:
                 continue
             cmd = "mkdir {0}".format(sf_folder)
@@ -470,7 +471,7 @@ if __name__ == '__main__':
     (options, args) = parse_option()
     b_version = options.version
     if b_version==True:#
-        print(("xTea %s for long reads on hg38\n" % S_VERSION))
+        print(("xTea %s for long reads on CHM13\n" % S_VERSION))
     else:
         sf_id = options.id
         sf_bams = options.bam ###input is a bam file

@@ -615,7 +615,7 @@ class SVAClassifier():#
                         fout_unmapped.write(">" + query_name + "\n" + query_seq + "\n")
                         continue
                     m_hit_mast2[query_name] = (map_pos, i_map_len)
-            except ValueError:
+            except ValueError:#
                 print(sf_algnmt, "is empty")
         return m_hit_mast2
 ####

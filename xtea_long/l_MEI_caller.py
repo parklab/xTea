@@ -80,7 +80,7 @@ class L_MEI_Caller():
         :param i_peak_win: if two breakpoints within this distance, then they will be merged
         :param i_cutoff: minimum of the supported clipped and contained reads
         :param sf_merged_out: output merged candidate sites
-        Revised: 11/14/2019, save breakpoints only have left (right) clipped reads
+        Revised: 11/14/2019, save breakpoints only have left (right) clipped reads.
         '''
         sf_tmp = self.wfolder + self.BRKPNT_FOLDER+"/"
         cmd_runner = CMD_RUNNER()
@@ -839,7 +839,7 @@ class L_MEI_Caller():
     ####
     def call_complex_MEIs_from_asm_in_parallel(self, sf_ref, sf_l_sites, sf_r_sites, s_working_folder, i_extend,
                                                f_flk_map_ratio, sf_l1_rslt, sf_sva_rslt, flk_lenth, sf_rep_folder,
-                                               b_hg19, sf_out):
+                                               b_hg19, b_chm13, sf_out):
         #first generate the left flanks for left sites
         # and right flanks for right sites
         xref = XReference()
@@ -928,7 +928,7 @@ class L_MEI_Caller():
 
         xctg.classify_events_by_seq_algnmt_mask(m_candidates, sf_ref, f_segmt_map_ratio, f_cover_ratio, sf_l1_rslt,
                                                 sf_sva_rslt, flk_lenth, sf_complex_sv_folder, sf_rep_folder, b_hg19,
-                                                m_simple_sv, sf_out)
+                                                b_chm13, m_simple_sv, sf_out)
 ####
 ####
     def _load_in_sites(self, sf_sites, sf_wfolder):

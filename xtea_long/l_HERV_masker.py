@@ -1,6 +1,6 @@
 from l_rep_masker import *
 
-class HERVMasker(LRepMasker):
+class HERVMasker(LRepMasker):##
     def __init__(self, swfolder, n_jobs):
         LRepMasker.__init__(self, swfolder, n_jobs)
         self._herv = "HERV"

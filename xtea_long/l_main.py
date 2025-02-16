@@ -98,6 +98,9 @@ def parse_option():
     parser.add_option("--hg19",#by default it's hg38
                       action="store_true", dest="hg19", default=False,
                       help="Working on reference genome hg19")
+    parser.add_option("--chm13",  # by default it's hg38
+                      action="store_true", dest="chm13", default=False,
+                      help="Working on reference genome chm13")
     parser.add_option("--cns", dest="consensus",
                       help="repeat consensus file", metavar="FILE")
     parser.add_option("--fast",
@@ -281,6 +284,7 @@ if __name__ == '__main__':
         swfolder = options.wfolder
         sf_rep_folder=options.rep_lib#repeat library folder
         b_hg19 = options.hg19
+        b_chm13=options.chm13
         sf_l1_rslt=options.iline
         sf_sva_rslt=options.isva
         if swfolder[-1] != "/":
@@ -292,7 +296,7 @@ if __name__ == '__main__':
         lcaller = L_MEI_Caller(swfolder, n_cores, sf_ref)
         lcaller.call_complex_MEIs_from_asm_in_parallel(sf_ref, sf_lsites, sf_rsites, swfolder, i_extd_len,
                                                        f_flk_map_ratio, sf_l1_rslt, sf_sva_rslt, flk_lenth,
-                                                       sf_rep_folder, b_hg19, sf_out_prefix)
+                                                       sf_rep_folder, b_hg19, b_chm13, sf_out_prefix)
 ####
     elif options.classify:#classify the insertions to different types
         sf_rep_ins=options.input #this is the input seq in fasta format
@@ -303,11 +307,12 @@ if __name__ == '__main__':
         swfolder = options.wfolder
         i_type=options.type
         b_hg19=options.hg19
+        b_chm13 = options.chm13
         flk_lenth=3000
         if swfolder[-1] != "/":
             swfolder += "/"
         lrc=LRepClassification(swfolder, n_jobs)
-        lrc.set_rep_configuration(i_type, sf_rep_folder, b_hg19)
+        lrc.set_rep_configuration(i_type, sf_rep_folder, b_hg19, b_chm13)
         lrc.classify_ins_seqs(sf_rep_ins, sf_ref, flk_lenth, sf_rslt)
 ####
     elif options.merge:#classify the insertions to different types
@@ -425,12 +430,5 @@ if __name__ == '__main__':
         lcaller.clean_intermediate_files2(l_extd_len, sf_sites)
 
 ####
-####
-#sf_bam = "/n/data1/hms/dbmi/park/simon_chu/projects/data/NA12878_pacbio/NA12878_pacbio_40x_hg19.sorted.bam"
-
-# sf_bam="/n/data1/hms/dbmi/park/simon_chu/projects/data/NA12878_nanopore/ngmlr_alignment/ngm_Nanopore_human_ngmlr-0.2.3_mapped.bam"
-# sf_bam="/n/data1/hms/dbmi/park/simon_chu/projects/data/NA12878_pacbio/NA12878_pacbio_40x.sorted.bam"
-# sf_bam="/n/data1/hms/dbmi/park/simon_chu/projects/data/1000G_trio/Pacbio/WGS/alignment_hg38/NA19240_2_ref.sorted.bam"
-
 ####
 ####

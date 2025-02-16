@@ -486,7 +486,7 @@ class LRepMasker():
                 fout_ins.write(sinfo)
 ####
     def is_no_polA_no_TSD(self, s_polyA, s_TSD):
-        if (s_polyA is self._s_no_polyA) and (s_TSD is "None"):
+        if (s_polyA == self._s_no_polyA) and (s_TSD == "None"):
             return True
         return False
 
@@ -627,6 +627,7 @@ class LRepMasker():
                 s_TSD + "\t" + s_5mer_source + "\t" + s_3mer_source + "\t" + s_seq + "\t" + s_5mer_seq + \
                 "\t" + s_3mer_seq + "\t" + s_with_polyA + "\n"
         fout.write(sinfo)
+
 ####
     def save_tbd_cases_to_file(self, m_not_slct, sf_out):
         with open(sf_out,"w") as fout:
@@ -793,7 +794,7 @@ class LRepMasker():
     def adjust_pos(self, s_rg, i_ofst):
         if s_rg is None:
             return s_rg
-        if s_rg is "":
+        if s_rg == "":
             return s_rg
         fields=s_rg.split(":")
         if len(fields)<3:

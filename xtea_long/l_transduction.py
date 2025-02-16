@@ -572,9 +572,9 @@ class LTransduction():
             s_region2 = rcd[5]
             i_reg1_len = 0
             i_reg2_len = 0
-            if s_region1 is not "None":
+            if s_region1 != "None":
                 i_reg1_len = self.lbinfo.parse_region_fields(s_region1)
-            if s_region2 is not "None":
+            if s_region2 != "None":
                 i_reg2_len = self.lbinfo.parse_region_fields(s_region2)
             i_ins_len = i_reg1_len + i_reg2_len
             if i_ins_len >= i_min_len:

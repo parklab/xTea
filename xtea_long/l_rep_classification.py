@@ -1,6 +1,7 @@
 ##03/21/2019
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
+##added CHM13 support --Feb 15, 2025
 
 ####Given assembled insertion, mask the insertion sequence to:
 ####1) Classify the insertion to: LINE1, Alu, SVA, HERV, Psudogene, Mitochondria, Orphan transduction, other insertion
@@ -26,7 +27,7 @@ from l_polyA_masker import *
 from l_combined_masker import *
 
 ####
-class LRepClassification():
+class LRepClassification():#
     def __init__(self, swfolder, n_jobs):
         self.swfolder = swfolder
         if self.swfolder[-1]!="/":
@@ -60,7 +61,7 @@ class LRepClassification():
         return l_cns
 ####
     ####i_type: indicates which type of repeats
-    def set_rep_configuration(self, i_type, s_rep_folder, b_hg19=False):
+    def set_rep_configuration(self, i_type, s_rep_folder, b_hg19=False, b_chm13=False):##
         self.l_type=self.set_rep_type(i_type)
         if (s_rep_folder is None) or (len(s_rep_folder)==0):
             print("repeat folder is not set!!!")
@@ -68,7 +69,7 @@ class LRepClassification():
         if s_rep_folder[-1]!="/":
             s_rep_folder+="/"
 
-        if b_hg19==False:
+        if b_hg19==False and b_chm13==False:
             for s_type in self.l_type:
                 s_tmp_cns=s_rep_folder+"consensus_mask_lrd/"+s_type+".fa"
                 self.l_sf_cns.append(s_tmp_cns)#
@@ -82,7 +83,22 @@ class LRepClassification():
                     s_tmp_cns = s_rep_folder + "consensus_mask_lrd/" + s_type + "_ori.fa"
 
                 if s_type is not self._COMBINED:
-                    self.l_sf_cns_kmer.append(s_tmp_cns)#
+                    self.l_sf_cns_kmer.append(s_tmp_cns)
+        elif b_hg19==False and b_chm13==True:
+            for s_type in self.l_type:
+                s_tmp_cns=s_rep_folder+"consensus_mask_lrd/"+s_type+".fa"
+                self.l_sf_cns.append(s_tmp_cns)#
+                if s_type is self._LINE1:
+                    s_tmp_flank=s_rep_folder+ "consensus_mask_lrd/chm13_FL_L1_flanks_3k.fa"
+                    self.m_sf_flank[s_type]=s_tmp_flank
+                elif s_type is self._SVA:
+                    s_tmp_flank = s_rep_folder + "consensus_mask_lrd/chm13_FL_SVA_flanks_3k.fa"
+                    self.m_sf_flank[s_type] = s_tmp_flank
+                    self.sva_rmsk=s_rep_folder + "consensus_mask_lrd/chm13_SVA.out"
+                    s_tmp_cns = s_rep_folder + "consensus_mask_lrd/" + s_type + "_ori.fa"
+
+                if s_type is not self._COMBINED:
+                    self.l_sf_cns_kmer.append(s_tmp_cns)
         else:
             for s_type in self.l_type:
                 s_tmp_cns=s_rep_folder+"consensus_mask_lrd/"+s_type+".fa"
@@ -323,7 +339,7 @@ class LRepClassification():
             l_rep.append(self._PSUDOGENE)
         l_rep.append(self._COMBINED)
         return l_rep
-
+#
 ####
     def get_mask_complex_sv_rep_type(self):
         return 1+2+4+8+16

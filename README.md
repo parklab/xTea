@@ -124,8 +124,10 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 		
 	+ To run on the cluster, like slurm system: `sbatch < run_xTea_pipeline.sh`
 	+ To run on a single node: `sh run_xTea_pipeline.sh`
-		
-		
+	
+	2.3 Work on CHM13 reference genome
+		+ By default, xTea assume the reference genome is hg38/GRCh38. To work on CHM13 reference genome, replace `gnrt_pipeline_local_long_read_v38.py` with `gnrt_pipeline_local_long_read_CHM13.py` in the demo script. 
+
 	
 3. **Output**
 
@@ -139,3 +141,6 @@ xTea (comprehensive Transposable element analyzer) is designed to identify TE in
 	```
 
 	The accompany scripts for re-produce the results in the paper could be found here: `https://github.com/parklab/xTea_paper`
+
+5. **Update Log**
+	02/15/2025 Add support for CHM13 human reference genome.

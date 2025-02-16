@@ -8,6 +8,7 @@
 
 ####update on 01/27/2019: replace the query module from binary tree (with bug) to interval tree
 
+####
 import global_values
 from intervaltree import IntervalTree
 
@@ -122,7 +123,7 @@ class GFF3():
                     if gene_id not in self.m_region_info:
                         self.m_region_info[gene_id]={}
                     self.m_region_info[gene_id][region_id]=(ori_start_pos, ori_end_pos)
-
+####
 
     # ##For each chrom, sort according to the start position of each region
     # def index_gene_annotation(self):
@@ -196,7 +197,7 @@ class GFF3():
     #             idx_hit += 1
     #     return l_hits
 
-
+    #
     def query_by_position(self, chrm1, pos):
         l_hits=[]
         chrm = self._process_chrm_name2(chrm1)
@@ -242,7 +243,7 @@ class GFF3():
                     s_info+="\tgene_info\n"
                     fout_rslt.write(s_info)
                     continue
-                fields=line.split()
+                fields=line.rstrip().split()
                 chrm=fields[0]
                 pos=int(fields[1])
 
@@ -259,4 +260,5 @@ class GFF3():
                 s_info=line.rstrip()
                 s_info+=("\t"+s_hit_genes+"\n")
                 fout_rslt.write(s_info)
+####
 ####

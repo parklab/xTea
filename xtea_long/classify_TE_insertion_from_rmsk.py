@@ -1,6 +1,6 @@
 ##12/17/2019
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
+##@@contact: chong.simon.chu@gmail.com
 
 from rmsk_TE_ins_classifer import *
 from optparse import OptionParser

@@ -95,7 +95,7 @@ class SVAmasker(LRepMasker):
                 m_refs, algnmt, i_max_all_clip, self.i_copy_flank_len, self.i_slack)
             if b_in_flank==True:
                 continue
-####How to filter out the polyA only cases
+####How to filter out the polyA only cases 
             # if i_map_pos > self._polyA_start_pos:
             #     continue
 ####

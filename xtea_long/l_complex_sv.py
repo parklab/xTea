@@ -190,13 +190,13 @@ class Complex_TE_SV(LRD_Contig):
 
 ####
     def classify_events_by_seq_algnmt_mask(self, m_candidates, sf_ref, f_mratio, f_cover_ratio, sf_l1_rslt, sf_sva_rslt,
-                                           flk_lenth, sf_wfolder, sf_rep_folder, b_hg19, m_simple_sv, sf_out_prefix):
+                                           flk_lenth, sf_wfolder, sf_rep_folder, b_hg19, b_chm13, m_simple_sv, sf_out_prefix):
         l_inter, l_intra=self.define_inter_intra_chrm_events(m_candidates)
         #for intra events
         m_for_te_mask_intra, m_te_del, m_te_inv, m_te_dup, m_non_te_sv, m_algnmts=self.classify_intra_events(
             sf_ref, l_intra, f_mratio, f_cover_ratio, sf_wfolder)
         l_rslts=self.mask_seq_for_TE(m_for_te_mask_intra, sf_l1_rslt, sf_sva_rslt, sf_ref, flk_lenth, sf_wfolder,
-                        sf_rep_folder, b_hg19, sf_out_prefix)
+                        sf_rep_folder, b_hg19, b_chm13, sf_out_prefix)
         #select the qualified intra candidates
         sf_te_promoted_rslt = sf_out_prefix + "_complex_sv.txt"
         m_te_sv=self.slct_te_complex_sv_from_mask(l_rslts, m_te_del, m_te_inv, m_te_dup, m_algnmts, sf_te_promoted_rslt)
@@ -347,7 +347,7 @@ class Complex_TE_SV(LRD_Contig):
 ####mask the sequence to specific TE type
 ####Here to also mask the transduction regions, we integrate all the already masked L1 and SVA
     def mask_seq_for_TE(self, m_for_te_mask, sf_l1_rslt, sf_sva_rslt, sf_ref, flk_lenth, swfolder,
-                        sf_rep_folder, b_hg19, sf_out_prefix):
+                        sf_rep_folder, b_hg19, b_chm13, sf_out_prefix):
         # merge the fasta files
         lrr = L_Raw_Rslt()
         m_l1_seqs = lrr.load_in_results(sf_l1_rslt)
@@ -367,7 +367,7 @@ class Complex_TE_SV(LRD_Contig):
         #mask the sequences
         lrc = LRepClassification(swfolder, self.n_jobs)
         i_type = lrc.get_mask_complex_sv_rep_type()
-        lrc.set_rep_configuration(i_type, sf_rep_folder, b_hg19)
+        lrc.set_rep_configuration(i_type, sf_rep_folder, b_hg19, b_chm13)
         lrc.classify_ins_seqs(sf_rep_ins, sf_ref, flk_lenth, sf_out_prefix)
         l_rslt_list=lrc.get_merged_results(sf_out_prefix, i_type)
         return l_rslt_list

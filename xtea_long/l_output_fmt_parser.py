@@ -32,7 +32,7 @@ class LRegionNameBasicInfo():
     def get_s_NONE(self):
         return "None"
     def is_s_NONE(self, s_chk):
-        return s_chk is "None"
+        return (s_chk == "None")
     #here need to add the set functions
 
 class LInternalStructure():

@@ -1,10 +1,10 @@
 ##07/11/2019
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu chong.simon.chu@gmail.com
+##@@contact: chong_chu@hms.harvard.edu; chong.simon.chu@gmail.com
 
 #This module is added for calling transduction (orphan and non-orphan) events. Also will be extended for SV calling.
 
-class DiscCluster():
+class DiscCluster():#
     # def __init__(self):
     #     self._min_ratio=0.6
 

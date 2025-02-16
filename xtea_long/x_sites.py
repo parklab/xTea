@@ -6,9 +6,11 @@ class XSites():
     def load_in_sites(self):
         m_sites = {}
         with open(self.sf_sites) as fin_sites:
-            for line in fin_sites:
+            for line in fin_sites:##
                 fields = line.split()
                 chrm = fields[0]
+                if chrm[0]=="#":#in case this is vcf file
+                    continue
                 pos = int(fields[1])
                 if chrm not in m_sites:
                     m_sites[chrm] = {}
@@ -22,6 +24,8 @@ class XSites():
             for line in fin_sites:
                 fields = line.split()
                 chrm = fields[0]
+                if chrm[0]=="#":#in case this is vcf file
+                    continue
                 istart = int(fields[1])
                 iend=int(fields[2])
                 if chrm not in m_sites:
@@ -44,9 +48,11 @@ class XSites():
             for line in fin_sites:
                 fields = line.split()
                 chrm = fields[0]
+                if chrm[0]=="#":#in case this is vcf file
+                    continue
                 pos = int(fields[1])
                 hcfdt=fields[-2]
-                is_lth=int(fields[-1])
+                is_lth=int(float(fields[-1]))
                 if is_lth < imin_len:
                     continue
                 transdct = fields[-11]
@@ -58,5 +64,4 @@ class XSites():
                     m_sites[chrm] = {}
                 m_sites[chrm][pos] = 1
         return m_sites
-
 ####

@@ -63,7 +63,7 @@ CK_POLYA_SEQ_MAX=20#at most check 10 bases region for polyA
 POLYA_RATIO=0.4 #at least 40% A or T
 ###############
 ##############################################################################
-####originally used in x_alignments.py
+####originally used in alignments.py
 BARCODE_COV_CUTOFF = 600
 MIN_RAW_DISC_CLUSTER_RATIO=0.3
 ##############################################################################
@@ -101,6 +101,11 @@ def turn_on_sva():
     global IS_CALL_SVA
     IS_CALL_SVA=True
 SVA_ANNOTATION_EXTND=200
+
+IS_WORKING_ON_WES=False
+def set_working_on_WES():
+    global IS_WORKING_ON_WES
+    IS_WORKING_ON_WES=True
 
 ####
 DISC_THRESHOLD = 2000
@@ -188,10 +193,12 @@ MIN_POLYA_CLIP_RATIO=0.1 #at least 20% of the clipped reads of one side are poly
 DOMINANT_POLYA_T_MIN_RATIO=0.75 #if larger than this, then is dominant
 ###############################################################################
 ###############################################################################
-######originally defined in x_annotation.py, x_reference.py
+######originally defined in repeat_annotation.py, reference_genome.py
 S_DELIM = "~"
 LEFT_FLANK = 'left'
 RIGHT_FLANK = 'right'
+S_FLANKING_READS_of_CLIP=".flanking_reads_of_clip.fa"
+S_FLANKING_READS_of_DISC=".flanking_reads_of_disc.fa"
 LOAD_RMSK_LEFT_EXTND=100
 def set_load_rmsk_left_extnd(i_extnd):
     global LOAD_RMSK_LEFT_EXTND
@@ -214,7 +221,7 @@ UNIQUE_MAP_CUTOFF = 60  # if mapping quality larger than 50, then consider as "u
 
 ###############################################################################
 ###############################################################################
-####Originally used in x_contig.py and x_local_assembly.py
+####Originally used in x_contig.py and local_assembly.py
 IDBA_UD = "idba_ud"
 MINIMAP2 = 'minimap2'
 BWA = 'bwa'
@@ -234,12 +241,12 @@ BCFTOOLS_PATH="bcftools"
 TABIX_PATH="tabix"
 ###############################################################################
 ###############################################################################
-####originally used in x_gene_annotation.py
+####originally used in gene_annotation.py
 UP_STREAM_REGION="up_stream"
 DOWN_STREAM_REGION="down_stream"
 ###############################################################################
 ###############################################################################
-########originally used in x_TEA_main.py and x_gene_annotation.py
+########originally used in x_TEA_main.py and gene_annotation.py
 UP_DOWN_GENE=1500
 NON_GENE="not_gene_region"
 
@@ -289,7 +296,7 @@ def set_average_cov(icov):
 BWA_HALF_READ_MIN_SCORE=45 #This is half of read length (maybe a little bit smaller than that)
 CLIP_EXACT_CLIP_SLACK=3#check number of exact clip
 LARGE_INDEL_IN_READ=3#if have 3D or 3I or larger indels within the read, then view as with large indels
-DFT_IS=550
+DFT_IS=550#
 def set_insert_size(i_is):#
     global DFT_IS
     DFT_IS=i_is
@@ -313,7 +320,7 @@ ONE_SIDE_POLYA_CUTOFF=0.75
 LRD_MIN_MAPQ=20 #minimum mapping quality for long reads
 LRD_MIN_MAP_LEN=1000 #minimum mapped length for long reads
 LRD_MIN_FOCUS_INS_LEN=50
-####initially used at x_intermediate_sites.py
+####initially used at intermediate_sites.py
 LRD_BRKPNT_FOCAL_REGIN=75 #search breakpoints in [-/+] of this range, and if 85% of breakpoints or > cutoff breakpoints then pass
 LRD_BRKPNT_FOCAL_CLIP_RATIO=1
 LRD_BRKPNT_MAXIMUM_STD=250
