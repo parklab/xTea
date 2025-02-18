@@ -260,6 +260,8 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 
 6. **Update log**
 
+	+ 02/16/25 Add support for CHM13_v2.0 reference genome on the long-read version.
+
 	+ 01/10/25 `xTea-trioML` is released under `xTea-trioML` branch for identifying de novo TE insertion from trio WGS data.
 
 	+ 10/13/23 `xTea-mosaic` is released under `xtea_mosaic` branch for detecing mosaic TE insertions from high depth WGS data. 
