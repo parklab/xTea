@@ -97,7 +97,7 @@ class X_BasicInfo():
         l_cov.sort()
         n_slct_sites = len(l_cov)
         if n_slct_sites > 0:
-            f_ave_cov = l_cov[n_slct_sites / 2]
+            f_ave_cov = l_cov[int(n_slct_sites / 2)]
         return f_ave_cov
 ####
     #collect the basic information of samples
@@ -157,7 +157,7 @@ class X_BasicInfo():
                 l_cov.sort()
                 n_slct_sites = len(l_cov)
                 if n_slct_sites>0:
-                    f_ave_cov=l_cov[n_slct_sites/2]
+                    f_ave_cov=l_cov[int(n_slct_sites/2)]
 
                 # for read length
                 rlth = self._calc_read_length(m_rlth)
@@ -206,7 +206,7 @@ class X_BasicInfo():
         l_cov.sort()
         n_slct_sites = len(l_cov)
         if n_slct_sites > 0:
-            f_ave_cov = l_cov[n_slct_sites / 2]
+            f_ave_cov = l_cov[int(n_slct_sites / 2)]
 
         # for read length
         rlth = self._calc_read_length(m_rlth)
