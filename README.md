@@ -1,25 +1,52 @@
 
-## xTea-mosaic
+## xTea
 
-xTea-mosaic is derived from xTea to identify mosaic TE insertions from bulk high-depth PE short WGS data. The current version is for testing only, not guranteed for stable output.
+xTea (comprehensive transposable element analyzer) is designed to identify TE insertions from paired-end Illumina reads, barcode linked-reads, long reads (PacBio or Nanopore), or hybrid data from different sequencing platforms and takes whole-exome sequencing (WES) or whole-genome sequencing (WGS) data as input. 
 
 ![alt text](./xTea_workflow.png)
 
 
 ## Download
 
-1. short reads (Illumina; High-depth)
+1. short reads (Illumina and Linked-Reads)
+
+	+ 1.1 latest version
+
+	```
+	git clone https://github.com/parklab/xTea.git
+	```
+
+	+ 1.2 cloud binary version
+
+	```
+	git clone --single-branch --branch release_xTea_cloud_1.0.0-beta  https://github.com/parklab/xTea.git
+	```
+
+2. long reads (PacBio or Nanopore)
+
+	```
+	git clone --single-branch --branch xTea_long_release_v0.1.0 https://github.com/parklab/xTea.git
+	```
+
+3. de novo TE insertion (trio data as input; check xTea-trioML branch for more details)
+
+	```
+	git clone --single-branch --branch xTea-trioML https://github.com/parklab/xTea.git
+	```
+
+4. mosaic TE insertion (high depth WGS data as input; check xtea_mosaic branch for more details)
 
 	```
 	git clone --single-branch --branch xtea_mosaic https://github.com/parklab/xTea.git
 	```
-2. pre-processed repeat library used by xTea (this library is used for both short and long reads)  
+
+5. pre-processed repeat library used by xTea (this library is used for both short and long reads)  
 	
 	```
 	wget https://github.com/parklab/xTea/raw/master/rep_lib_annotation.tar.gz
 	```
 	
-3. gene annotation files are downloaded from GENCODE. Decompressed gff3 files are required.
+6. gene annotation files are downloaded from GENCODE. Decompressed gff3 files are required.
 	+ For GRCh38 (or hg38), gff3 files are downloaded and decompressed from https://www.gencodegenes.org/human/release_33.html ;
 	+ For GRCh37 (or hg19), gff3 files are downloaded and decompressed from https://www.gencodegenes.org/human/release_33lift37.html ;
 	+ For CHM13v2, gff3 files are downloaded from https://s3-us-west-2.amazonaws.com/human-pangenomics/T2T/CHM13/assemblies/annotation/chm13.draft_v2.0.gene_annotation.gff3;
@@ -55,6 +82,28 @@ xTea-mosaic is derived from xTea to identify mosaic TE insertions from bulk high
 6. Note: bwa and samtools need to be added to the $PATH.
 
 
+## Install
+
++ **Use Conda**
+
+	xtea is a bioconda package, to install first make sure the bioconda channel has been added:
+	```
+	conda config --add channels defaults
+	conda config --add channels bioconda
+	conda config --add channels conda-forge
+	```
+
+	Then, install xtea (while creating a new enviroment):
+	```
+	conda create -n your_env xtea=0.1.6
+	```
+
+	Or install directly via: `conda install -y xtea=0.1.6`
+
++ **Install-free**
+	
+	If the dependencies have already been installed, then install-free mode is recommended. One can directly run the downloaded python scripts.
+
 
 ## Run xTea
 1. **Input**
@@ -73,28 +122,57 @@ xTea-mosaic is derived from xTea to identify mosaic TE insertions from bulk high
 			NA12878 /path/na12878_illumina_1_sorted.bam
 			NA12877 /path/na12877_illumina_1_sorted.bam
 			```
+		
+		+  A 10X bam/cram file (sorted and indexed, see [BarcodeMate](https://github.com/simoncchu/BarcodeMate) regarding barcode-based indicies) list, e.g. a file named `10X_bam_list.txt` with content as follows (three columns separated by a space or tab: sample-id bam-path barcode-index-bam-path):
+		
+			```
+			NA12878 /path/na12878_10X_1_sorted.bam /path/na12878_10X_1_barcode_indexed.bam
+			NA12877 /path/na12877_10X_1_sorted.bam /path/na12877_10X_1_barcode_indexed.bam
+			```
+		
+		+  A case-ctrl bam/cram file list (three columns separated by a space or tab: sample-id case-bam-path ctrl-bam-path
+			```
+			DO0001 /path/DO001_case_sorted.bam /path/DO001_ctrl_sorted.bam
+			DO0002 /path/DO002_case_sorted.bam /path/DO002_ctrl_sorted.bam
+			```
 
 
 2. **Run the pipeline from local cluster or machine**
 	
 
-	2.1 Generate the running script
+	2.1 Generate the running script (if it is install-free, then use the full path of the downloaded `bin/xtea` instead.)
 			
-	+ Run on a cluster or a single node (by default xTea_mosaic assumes the reference genome is **GRCh38** or **hg38**. For `hg19` or `GRCh37`, please use `gnrt_pipeline_local.py`; for `CHM13`, please use `gnrt_pipeline_local_chm13.py`)
-		+ Here, the slurm system is used as an example. If using LSF, replace `--slurm` with `--lsf`. For those using clusters other than slurm or LSF, users must adjust the generated shell script header accordingly. Users also must adjust the number of cores (`-n`) and memory (`-m`) accordingly. For very high depth bam files, runtime (denoted by `-t`) may take longer.
+	+ Run on a cluster or a single node (by default `xtea` assumes the reference genome is **GRCh38** or **hg38**. For `hg19` or `GRCh37`, please use `xtea_hg19`; for `CHM13`, please use `gnrt_pipeline_local_chm13.py`)
+		+ Here, the slurm system is used as an example. If using LSF, replace `--slurm` with `--lsf`. For those using clusters other than slurm or LSF, users must adjust the generated shell script header accordingly. Users also must adjust the number of cores (`-n`) and memory (`-m`) accordingly. In general, each core will require 2-3G memory to run. For very high depth bam files, runtime (denoted by `-t`) may take longer.
 		+ **Note that `--xtea` is a required option that points to the *exact folder* containing python scripts.**
 
-		+ Using high-depth Illumina data
+		+ Using only Illumina data
 			```
-			python /home/xTea_mosaic/gnrt_pipeline_local_v38.py -M -U -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -f 5907 -y 1 --slurm -t 10-12:00 -q short -n 8 -m 96 --nclip 2 --cr 0 --nd 1 --nfclip 1 --nfdisc 1 --blacklist /home/germline_insertions.bed
+			xtea -i sample_id.txt -b illumina_bam_list.txt -x null -p ./path_work_folder/ -o submit_jobs.sh -l /home/rep_lib_annotation/ -r /home/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -f 5907 -y 7  --slurm -t 0-12:00 -q short -n 8 -m 25
+			```
+
+		+ Using only 10X data
+			```
+			xtea -i sample_id.txt -b null -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -y 7 -f 5907 --slurm -t 0-12:00 -q short -n 8 -m 25		
+			```
+		
+		+ Using hybrid data of 10X and Illumina 
+			```
+			xtea -i sample_id.txt -b illumina_bam_list.txt -x 10X_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -y 7 -f 5907 --slurm -t 0-12:00 -q short -n 8 -m 25
+			```
+		+ Using case-ctrl mode
+			```
+			xtea --case_ctrl --tumor -i sample_id.txt -b case_ctrl_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh -l /home/ec2-user/rep_lib_annotation/ -r /home/ec2-user/reference/genome.fa -g /home/gene_annotation_file.gff3 --xtea /home/ec2-user/xTea/xtea/ -y 7 -f 5907 --slurm -t 0-12:00 -q short -n 8 -m 25
+			```
+		+ Working with long reads (non case-ctrl; more detailed steps please check the "xTea_long_release_v0.1.0" branch)
+			```
+			xtea_long -i sample_id.txt -b long_read_bam_list.txt -p ./path_work_folder/ -o submit_jobs.sh --rmsk ./rep_lib_annotation/LINE/hg38/hg38_L1_larger_500_with_all_L1HS.out -r /home/ec2-user/reference/genome.fa --cns ./rep_lib_annotation/consensus/LINE1.fa --rep /home/ec2-user/rep_lib_annotation/ --xtea /home/ec2-user/xTea_long/xtea_long/ -f 31 -y 15 -n 8 -m 32 --slurm -q long -t 2-0:0:0
 			```
 
 		+ Parameters:
 			
 			```
 			Required:
-			    -M: indicates this is for mosaic mode;
-			    -U: indicates this is to use user-specific cutoff, rather than automatic parameter setting.
 				-i: samples id list (one sample id per line);
 				-b: Illumina bam/cram file list (sorted and indexed — one file per line);
 				-x: 10X bam file list (sorted and indexed — one file per line);
@@ -108,23 +186,37 @@ xTea-mosaic is derived from xTea to identify mosaic TE insertions from bulk high
 				    it is highly recommended to run the tool on one repeat type first, and subsequently on the rest. 
 				    For example, first use '-y 1', and for then use '-y 6' in a second run);
 				-f: steps to run. (5907 means run all the steps);
-				--xtea: this is the full path of the xTea/xtea folder, where the python scripts reside in;
+				--xtea: this is the full path of the xTea/xtea folder (or the xTea_long_release_v0.1.0 folder for long reads module), 
+				        where the python scripts reside in;
 				-g: gene annotation file in gff3 format;
 				-o: generated running scripts under the working folder;
+			Optional:
+				-n: number of cores (default: 8, should be an integer);
+				-m: maximum memory in GB (default: 25, should be an integer);
+				-q: cluster partition name;
+				-t: job runtime;
+				--flklen: flanking region length;
+				--lsf: add this option if using an LSF cluster (by default, use of the slurm scheduler is assumed);
+				--tumor: indicates the tumor sample in a case-ctrl pair;
+				--purity: tumor purity (by default 0.45);
+				--blacklist: blacklist file in bed format. Listed regions will be filtered out;
+				--slurm: runs using the slurm scheduler. Generates a script header fit for this scheduler;
+			
+			The following cutoffs will be automatically set based on read depth (and also purity in the case of a tumor sample); 
+			These parameters have been thoroughly tuned based on the use of benchmark data and also on a large cohort analysis. 
+			For advanced users (optional major cutoffs):
+				--user: by default, this is turned off. If this option is set, then a user-specific cutoff will be used;
 				--nclip: minimum number of clipped reads;
 				--cr: minimum number of clipped reads whose mates map to repetitive regions;
 				--nd: minimum number of discordant pairs;
-				--blacklist: for mosaic calling, this one is the germline insertions from population data (e.g. gnomAD). File should be in bed format. Regions do not want to consider can also be added to this file.
 
-			Optional:
-				-n: number of cores (default: 8, should be an integer);
-				-m: maximum memory in GB (default: 25, should be an integer; for mosaic mode, large memory is needed);
-				-q: cluster partition name;
-				-t: job runtime (for mosaic mode, long running time is needed);
-				--flklen: flanking region length;
-				--lsf: add this option if using an LSF cluster (by default, use of the slurm scheduler is assumed);
-				--slurm: runs using the slurm scheduler. Generates a script header fit for this scheduler;
-
+			Specific parameters for long reads module:
+			    --rmsk: this is a reference full-length L1 annotation file from RepeatMasker only for the "ghost" L1 detection module. 
+			            One file named "hg38_L1_larger2K_with_all_L1HS.out" within the downloaded library could be directly used;
+			    --cns: this is the L1 concensus sequence needed only by the "ghost" L1 detection module. 
+			           One file named "LINE1.fa" within the downloaded library could be directly used;
+			    --rep: repeat library folder (folder contain files decompressed from the downloaded "rep_lib_annotation.tar.gz");
+			    --clean: clean the intermediate files;
 
 			```
 		
@@ -132,28 +224,54 @@ xTea-mosaic is derived from xTea to identify mosaic TE insertions from bulk high
 		
 	+ To run on the script: `sh run_xTea_pipeline.sh` or users can submit the jobs (where each line corresponds to one job) to a cluster.
 	
+	
+3. **Run from the Cloud**
+	
+	+ A docker file and a cwl file are provided for running the tool on AWS/GCP/FireCloud.
+
 			
-3. **Output**
+4. **Output**
 
 	A gVCF file will be generated for each sample.
+	+ For germline TE insertion calling on short reads, the `orphan transduction` module usually has a higher false positive rate. Users can filter out false positive events with a command such as `grep -v "orphan" out.vcf > new_out.vcf` to retrieve higher confidence events.
 
 
-4. **Citation and accompany scripts**
-	If you are using xTea for your project, please cite:
+5. **Citation and accompany scripts**
+	+ If you are using xTea germline and somatic module for your project, please cite:
 	
 	```
-	Chu, C., Borges-Monroy, R., Viswanadham, V.V. et al. Comprehensive identification of transposable element insertions using multiple sequencing technologies. Nat Commun 12, 3836 (2021). https://doi.org/10.1038/s41467-021-24041-8
+	Chu, Chong, Rebeca Borges-Monroy, Vinayak V. Viswanadham, Soohyun Lee, Heng Li, Eunjung Alice Lee, and Peter J. Park. "Comprehensive identification of transposable element insertions using multiple sequencing technologies." Nature communications 12, no. 1 (2021): 3836.
 	```
 
 	The accompany scripts for re-produce the results in the paper could be found here: `https://github.com/parklab/xTea_paper`
 
-6. **Update log**
-	+ 10/13/23 Release the version for mosaic insertion calling from high-depth WGS.
 
-	+ 06/11/23 Add `gnrt_pipeline_local_chm13.py` for CHM13_v2.0 reference genome .
+	+ If you are using the TE insertion annotation module within the long reads branch, please cite:
+	```
+	Chu, C., Lin, E.W., Tran, A., Jin, H., Ho, N.I., Veit, A., Cortes-Ciriano, I., Burns, K.H., Ting, D.T. and Park, P.J., 2023. The landscape of human SVA retrotransposons. Nucleic Acids Research, 51(21), pp.11453-11465.
+	```
+
+	+ If you are using the xTea-trioML for de novo TE insertion identification, please cite:
+	```
+
+	Chu, Chong, Antuan Tran, Viktor Ljungström, Corinne Sexton, Hu Jin, and Peter J. Park. "Contribution of de novo retroelements to birth defects and childhood cancers." medRxiv (2024).
+	```
+
+
+6. **Update log**
+
+	+ 02/16/25 Add support for CHM13_v2.0 reference genome on the long-read version.
+
+	+ 01/10/25 `xTea-trioML` is released under `xTea-trioML` branch for identifying de novo TE insertion from trio WGS data.
+
+	+ 10/13/23 `xTea-mosaic` is released under `xtea_mosaic` branch for detecing mosaic TE insertions from high depth WGS data. 
+
+	+ 06/11/23 Add `gnrt_pipeline_local_chm13.py` for CHM13_v2.0 reference genome.
 
 	+ 06/09/22 Update the Dockerfile and cwl for germline module (hg38).
 
 	+ 04/20/22 A fatal error was noticed at the genotyping step. The machine learing model was trained with features extracted with a old version of xTea, and this will introduce bias to predict the features extracted with the latest version of xTea. A new model is uploaded for non-conda version.
 	
 	+ 04/20/22 The scikit-learn version issue is complained by several users. To solve this issue, the new genotype classification model is trained with DF21 (https://github.com/LAMDA-NJU/Deep-Forest). Users need to install with command `pip install deep-forest`. For now, this is only for the non-conda version. I'll update the conda version soon.
+
+	+ 04/17/25 Add --blacklist parameter to solve mosaic call failing
