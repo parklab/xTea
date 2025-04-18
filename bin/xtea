@@ -37,10 +37,6 @@ def gnrt_script_head(spartition, ncores, stime, smemory, s_id):#
     s_head += "#SBATCH --mem={0}G\n".format(smemory)
     s_head += "#SBATCH -p {0}\n".format(spartition)
     s_head += "#SBATCH -o {0}_%j.out\n".format(s_id)
-    s_head += "#SBATCH --mail-type=NONE\n"
-    s_head += "#SBATCH --mail-user=chong.simonchu@gmail.com\n"
-    if spartition == "park" or spartition == "priopark":
-        s_head += "#SBATCH --account=park_contrib\n\n"
     return s_head
 
 ####
@@ -118,22 +114,23 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
                      "--ref ${{REF}} -a ${{ANNOTATION}} -b ${{BAM_LIST}} -p ${{TMP}} " \
                      "-o ${{PREFIX}}\"candidate_list_from_disc.txt\" -n {1} {2} {3} {4} {5}\n".format(idisc_c, ncores, s_purity, s_user, s_tumor, s_resume)
     if b_mosaic==True:
-        sclip_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --mosaic -i ${{BAM_LIST}} --lc {0} --rc {1} --cr {2}  " \
+        # included --cov to remove filtering based on deep coverage
+        sclip_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --cov 1000 --mosaic -i ${{BAM_LIST}} --lc {0} --rc {1} --cr {2}  " \
                      "-r ${{L1_COPY_WITH_FLANK}}  -a ${{ANNOTATION}} --cns ${{L1_CNS}} --ref ${{REF}} -p ${{TMP}} " \
                      "-o ${{PREFIX}}\"candidate_list_from_clip.txt\"  -n {3} --cp {4} {5} {6}\n".format(iclip_c, iclip_c,
                                                                                                     iclip_rp,
                                                                                                     ncores, s_cfolder,
                                                                                                     s_user, s_clean)
-        sdisc_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\"  -D --somatic -i ${{PREFIX}}\"candidate_list_from_clip.txt\" --nd {0} " \
+        sdisc_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\"  --cov 1000 -D --somatic -i ${{PREFIX}}\"candidate_list_from_clip.txt\" --nd {0} " \
                      "--ref ${{REF}} -a ${{ANNOTATION}} -b ${{BAM_LIST}} -p ${{TMP}} " \
                      "-o ${{PREFIX}}\"candidate_list_from_disc.txt\" -n {1} {2}\n".format(idisc_c, ncores, s_user)
     if b_mosaic is True and b_SVA is True:
-        sclip_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --mosaic --sva -i ${{BAM_LIST}} --lc {0} --rc {1} --cr {2}  " \
+        sclip_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --cov 1000 --mosaic --sva -i ${{BAM_LIST}} --lc {0} --rc {1} --cr {2}  " \
                      "-r ${{L1_COPY_WITH_FLANK}}  -a ${{ANNOTATION}} --cns ${{L1_CNS}} --ref ${{REF}} -p ${{TMP}} " \
                      "-o ${{PREFIX}}\"candidate_list_from_clip.txt\"  -n {3} --cp {4} {5} {6}\n".format(iclip_c, iclip_c,
                                                                                                     iclip_rp, ncores,
                                                                                                     s_cfolder, s_user, s_clean)
-        sdisc_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\"  -D --sva --somatic -i ${{PREFIX}}\"candidate_list_from_clip.txt\" --nd {0} " \
+        sdisc_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\"  --cov 1000 -D --sva --somatic -i ${{PREFIX}}\"candidate_list_from_clip.txt\" --nd {0} " \
                      "--ref ${{REF}} -a ${{ANNOTATION}} -b ${{BAM_LIST}} -p ${{TMP}} " \
                      "-o ${{PREFIX}}\"candidate_list_from_disc.txt\" -n {1} {2}\n".format(idisc_c, ncores, s_user)
     sbarcode_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -B -i ${{PREFIX}}\"candidate_list_from_disc.txt\" --nb 400 " \
@@ -193,14 +190,14 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
     ####
     sf_post_filter = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --postF --rtype {0} -p ${{TMP_CNS}} " \
                      "-n {1} -i ${{PREFIX}}\"candidate_disc_filtered_cns2.txt\" " \
-                     "-a ${{ANNOTATION1}} {2} {3} " \
+                     "-a ${{ANNOTATION1}} {2} {3}" \
                      "-o ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering.txt\"\n".format(i_rep_type, ncores,
                                                                                                  s_tumor, s_hard_cut)
 ####
     if b_mosaic is True:
         sf_post_filter = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --postF --postFmosaic --rtype {0} -p ${{TMP_CNS}} " \
                          "-n {1} -i ${{PREFIX}}\"candidate_disc_filtered_cns2.txt\" " \
-                         "-a ${{ANNOTATION1}} {2} " \
+                         "-a ${{ANNOTATION1}} {2} --blacklist ${{BLACK_LIST}}" \
                          "-o ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering.txt\"\n".format(i_rep_type, ncores, s_tumor)
 
     sf_post_filter_hc = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --postF --rtype {0} -p ${{TMP_CNS}} -n {1} " \
@@ -210,7 +207,7 @@ def gnrt_calling_command(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, ncore
         .format(i_rep_type, ncores, s_tumor, s_hard_cut)
     if b_mosaic is True:
         sf_post_filter_hc = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --postF --postFmosaic --rtype {0} -p ${{TMP_CNS}} -n {1} " \
-                            "-i ${{PREFIX}}\"candidate_disc_filtered_cns2.txt.high_confident\" -a ${{ANNOTATION1}} {2} " \
+                            "-i ${{PREFIX}}\"candidate_disc_filtered_cns2.txt.high_confident\" -a ${{ANNOTATION1}} {2} --blacklist ${{BLACK_LIST}}" \
                             "-o ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\"\n" \
             .format(i_rep_type, ncores, s_tumor)
 
@@ -287,21 +284,21 @@ def gnrt_calling_command_annotation_vcf(ncores, i_rep_type):
 
     sf_cvt_gvcf = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gVCF -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene_gntp.txt\" " \
                   " -o ${{PREFIX}} -b ${{BAM_LIST}} --ref ${{REF}} --rtype {0}\n".format(i_rep_type)
-    s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b ${{PREFIX}}\"bam_list1.txt\" " \
-                "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
-                " --ref ${{REF}} -e {0} -n {1} " \
-                "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(1000, ncores)
-    s_bamsnap_hc = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b ${{PREFIX}}\"bam_list1.txt\" " \
-                "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\" " \
-                " --ref ${{REF}} -e {0} -n {1} " \
-                "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot_hc.txt\"\n".format(1000, ncores)
+    #s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b ${{PREFIX}}\"bam_list1.txt\" " \
+    #            "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
+    #            " --ref ${{REF}} -e {0} -n {1} " \
+    #            "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(1000, ncores)
+    #s_bamsnap_hc = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b ${{PREFIX}}\"bam_list1.txt\" " \
+    #            "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\" " \
+    #            " --ref ${{REF}} -e {0} -n {1} " \
+    #            "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot_hc.txt\"\n".format(1000, ncores)
 
     s_cmd=""
     s_cmd += sf_gene
     s_cmd += sf_gntp_classify
     s_cmd += sf_cvt_gvcf
-    s_cmd += s_bamsnap
-    s_cmd += s_bamsnap_hc
+    #s_cmd += s_bamsnap
+    #s_cmd += s_bamsnap_hc
     return s_cmd
 ####
 
@@ -311,20 +308,20 @@ def gnrt_calling_command_annotation_vcf_tumor_case(ncores, i_rep_type):
 
     sf_cvt_gvcf = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gVCF -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering_with_gene.txt\" " \
                   " -o ${{PREFIX}} -b ${{BAM_LIST}} --ref ${{REF}} --rtype {0}\n".format(i_rep_type)
-    s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b ${{PREFIX}}\"bam_list1.txt\" " \
-                "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
-                " --ref ${{REF}} -e {0} -n {1} " \
-                "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(1000, ncores)
-    s_bamsnap_hc = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b ${{PREFIX}}\"bam_list1.txt\" " \
-                "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\" " \
-                " --ref ${{REF}} -e {0} -n {1} " \
-                "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot_hc.txt\"\n".format(1000, ncores)
+    #s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b ${{PREFIX}}\"bam_list1.txt\" " \
+    #            "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
+    #            " --ref ${{REF}} -e {0} -n {1} " \
+    #            "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(1000, ncores)
+    #s_bamsnap_hc = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b ${{PREFIX}}\"bam_list1.txt\" " \
+    #            "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.high_confident.post_filtering.txt\" " \
+    #            " --ref ${{REF}} -e {0} -n {1} " \
+    #            "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot_hc.txt\"\n".format(1000, ncores)
 
     s_cmd=""
     s_cmd += sf_gene
     s_cmd += sf_cvt_gvcf
-    s_cmd += s_bamsnap
-    s_cmd += s_bamsnap_hc
+    #s_cmd += s_bamsnap
+    #s_cmd += s_bamsnap_hc
     return s_cmd
 
 ####
@@ -363,21 +360,21 @@ def gnrt_calling_command_somatic_case_control(iflt_clip, iflt_disc, ncores, sf_c
             "-o ${{PREFIX}}\"tmp/igv/igv_screenshot_somatic.txt\"\n".format(sf_case_control_bam_list)
 
     ####BamSnap
-    s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
-            "-i ${{PREFIX}}\"candidate_disc_filtered_cns2.txt\" " \
-            " --ref ${{REF}} -e 1000 -n {1} " \
-            "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(sf_case_control_bam_list, ncores)
-    s_bamsnap_hc = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
-               "-i ${{PREFIX}}\"candidate_disc_filtered_cns_high_confident_post_filtering_somatic.txt\" " \
-               " --ref ${{REF}} -e 1000 -n {1} " \
-               "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot_somatic.txt\"\n".format(sf_case_control_bam_list, ncores)
+    #s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
+    #        "-i ${{PREFIX}}\"candidate_disc_filtered_cns2.txt\" " \
+    #        " --ref ${{REF}} -e 1000 -n {1} " \
+    #        "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(sf_case_control_bam_list, ncores)
+    #s_bamsnap_hc = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
+    #           "-i ${{PREFIX}}\"candidate_disc_filtered_cns_high_confident_post_filtering_somatic.txt\" " \
+    #           " --ref ${{REF}} -e 1000 -n {1} " \
+    #           "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot_somatic.txt\"\n".format(sf_case_control_bam_list, ncores)
     ####
     s_cmd += s_case_control
     s_cmd += s_case_control_hc
     s_cmd += s_igv
     s_cmd += s_igv_hc
-    s_cmd += s_bamsnap
-    s_cmd += s_bamsnap_hc
+    #s_cmd += s_bamsnap
+    #s_cmd += s_bamsnap_hc
 
     if iflag & 1024 == 1024:
         s_cmd += gnrt_calling_command_annotation_vcf_somatic(ncores, i_rep_type)
@@ -400,13 +397,13 @@ def gnrt_calling_command_denovo_from_trio(iflt_clip, iflt_disc, ncores, sf_ctr_l
             .format(sf_ctr_list, ncores, iflt_clip, iflt_disc, iflk_len)
 
     ####BamSnap####
-    s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main_latest.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
-            "-i ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering_denovo.txt\" " \
-            " --ref ${{REF}} -e 1000 -n {1} " \
-            "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(sf_case_control_bam_list, ncores)
+    #s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main_latest.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
+    #        "-i ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering_denovo.txt\" " \
+    #        " --ref ${{REF}} -e 1000 -n {1} " \
+    #        "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(sf_case_control_bam_list, ncores)
     ####
     s_cmd += s_case_control
-    s_cmd += s_bamsnap
+    #s_cmd += s_bamsnap
 
     return s_cmd
 
@@ -423,13 +420,13 @@ def gnrt_calling_command_denovo_from_trio_from_raw(iflt_clip, iflt_disc, ncores,
         .format(sf_ctr_list, ncores, iflt_clip, iflt_disc, iflk_len)
 
     ####BamSnap
-    s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main_latest.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
-            "-i ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering_denovo.txt\" " \
-            " --ref ${{REF}} -e 1000 -n {1} " \
-            "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(sf_case_control_bam_list, ncores)
+    #s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main_latest.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b {0} " \
+    #        "-i ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering_denovo.txt\" " \
+    #        " --ref ${{REF}} -e 1000 -n {1} " \
+    #        "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(sf_case_control_bam_list, ncores)
      ####
     s_cmd += s_case_control
-    s_cmd += s_bamsnap
+    #s_cmd += s_bamsnap
 
     return s_cmd
 ####
@@ -451,7 +448,7 @@ def gnrt_calling_command_non_RNA(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_dis
                  "--ref ${{REF}} -a ${{ANNOTATION}} -b ${{BAM_LIST}} -p ${{TMP}} " \
                  "-o ${{PREFIX}}\"candidate_list_from_disc.txt\" -n {1} {2}\n".format(idisc_c, ncores, s_user)
     if b_mosaic == True:
-        sdisc_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\"  -D --somatic --dna -i ${{PREFIX}}\"candidate_list_from_clip.txt\" --nd {0} " \
+        sdisc_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\"  --cov 1000 -D --somatic --dna -i ${{PREFIX}}\"candidate_list_from_clip.txt\" --nd {0} " \
                      "--ref ${{REF}} -a ${{ANNOTATION}} -b ${{BAM_LIST}} -p ${{TMP}} " \
                      "-o ${{PREFIX}}\"candidate_list_from_disc.txt\" -n {1} {2}\n".format(idisc_c, ncores, s_user)
     sbarcode_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -B --dna -i ${{PREFIX}}\"candidate_list_from_disc.txt\" --nb 400 " \
@@ -479,12 +476,12 @@ def gnrt_calling_command_non_RNA(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_dis
 
     sf_post_filter = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --postF --rtype {0} -p ${{TMP_CNS}} " \
                      "-n {1} -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
-                     "-a ${{ANNOTATION1}} {2} " \
+                     "-a ${{ANNOTATION1}} {2} --blacklist ${{BLACK_LIST}}" \
                      "-o ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering.txt\"\n".format(i_rep_type, ncores, s_hard_cut)
     if b_mosaic is True:
         sf_post_filter = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --postF --postFmosaic --rtype {0} -p ${{TMP_CNS}} " \
                          "-n {1} -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
-                         "-a ${{ANNOTATION1}} " \
+                         "-a ${{ANNOTATION1}} --blacklist ${{BLACK_LIST}}" \
                          "-o ${{PREFIX}}\"candidate_disc_filtered_cns_post_filtering.txt\"\n".format(i_rep_type, ncores)
     ####
     ####
@@ -532,7 +529,7 @@ def gnrt_calling_command_MT(iclip_c, iclip_rp, idisc_c, iflt_clip, iflt_disc, nc
                  "--ref ${{REF}} -a ${{ANNOTATION}} -b ${{BAM_LIST}} -p ${{TMP}} " \
                  "-o ${{PREFIX}}\"candidate_list_from_disc.txt\" -n {1} {2}\n".format(idisc_c, ncores, s_user)
     if b_mosaic == True:
-        sdisc_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\"  -D --somatic --dna --mit -i ${{PREFIX}}\"candidate_list_from_clip.txt\" --nd {0} " \
+        sdisc_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\"  --cov 1000 -D --somatic --dna --mit -i ${{PREFIX}}\"candidate_list_from_clip.txt\" --nd {0} " \
                      "--ref ${{REF}} -a ${{ANNOTATION}} -b ${{BAM_LIST}} -p ${{TMP}} " \
                      "-o ${{PREFIX}}\"candidate_list_from_disc.txt\" -n {1} {2}\n".format(idisc_c, ncores, s_user)
     sbarcode_step = "python ${{XTEA_PATH}}\"x_TEA_main.py\" -B --dna --mit -i ${{PREFIX}}\"candidate_list_from_disc.txt\" --nb 400 " \
@@ -609,16 +606,16 @@ def gnrt_calling_command_annotation_vcf_non_RT(ncores, i_rep_type):
     sf_cvt_gvcf = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --gVCF -i ${{PREFIX}}\"candidate_disc_filtered_cns.txt.post_filtering_with_gene_gntp.txt\" " \
                   " -o ${{PREFIX}} -b ${{BAM_LIST}} --ref ${{REF}} --rtype {0}\n".format(i_rep_type)
 
-    s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b ${{PREFIX}}\"bam_list1.txt\" " \
-                "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
-                " --ref ${{REF}} -e {0} -n {1} " \
-                "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(1000, ncores)
+    #s_bamsnap = "python ${{XTEA_PATH}}\"x_TEA_main.py\" --igv --bamsnap --single_sample -p ${{PREFIX}}\"tmp/igv\" -b ${{PREFIX}}\"bam_list1.txt\" " \
+    #            "-i ${{PREFIX}}\"candidate_disc_filtered_cns.txt\" " \
+    #            " --ref ${{REF}} -e {0} -n {1} " \
+    #            "-o ${{PREFIX}}\"tmp/igv/bamsnap_screenshot.txt\"\n".format(1000, ncores)
 
     s_cmd = ""
     s_cmd += sf_gene
     s_cmd += sf_gntp_classify
     s_cmd += sf_cvt_gvcf
-    s_cmd += s_bamsnap
+    #s_cmd += s_bamsnap
     return s_cmd
     ####
 #
