@@ -47,6 +47,7 @@ class XPostFilter():
         self.REP_MSTA_MIN_LEN = 300
         self.b_rslt_with_chr=True #####if rslt has "chr" while rmsk doesn't (vice versa), then it will be a problem
         self._two_side="two_side"
+        #self._two_side_tprt_both="two_side_tprt_both"
         self._one_half_side = "one_half"
         self._one_side="one_side"
         self._other="other"
@@ -61,7 +62,7 @@ class XPostFilter():
 
 ####
     def post_processing_SVA(self, l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff, f_cov,
-                            x_blklist, b_tumor, sf_new_out):
+                            x_blklist, b_tumor, sf_new_out, b_hard_cut):
         i_dft_cluster_diff_cutoff=global_values.TWO_CLIP_CLUSTER_DIFF_CUTOFF
         global_values.set_two_clip_cluster_diff_cutoff(self.sva_clip_cluster_diff_cutoff)
         with open(sf_new_out, "w") as fout_new:
@@ -83,20 +84,20 @@ class XPostFilter():
                         continue
                     if af_filter.is_qualified_rcd(rcd[-1], m_cutoff) == False:
                         continue
-                    if b_with_polyA==False:#require polyA
+                    if b_with_polyA==False and global_values.IS_WORKING_ON_WES==False:#require polyA
                         continue
                 elif s_rep_supt_type is self._one_half_side:##one and half side
                     #check whether fall in repetitive region of the same type
                     if (b_in_rep is True) and (div_rate<global_values.REP_DIVERGENT_CUTOFF):
                         continue
-                    if b_with_polyA==False:#require polyA
+                    if b_with_polyA==False and global_values.IS_WORKING_ON_WES==False:#require polyA
                         continue
                     if xtprt_filter.is_polyA_dominant_two_side_sva(rcd, self.REP_SVA_CNS_HEAD) is True:
                         continue
                 elif s_rep_supt_type is self._one_side:###one side
                     if (b_in_rep is True) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
                         continue
-                    if b_with_polyA == False:
+                    if b_with_polyA == False and global_values.IS_WORKING_ON_WES==False:
                         continue
                     #filter out orphan transduction or transduction, if it is one-side information
                     if (xtea_parser.is_orphan_transduction(rcd) == True or xtea_parser.is_transduction(rcd) == True) \
@@ -107,6 +108,12 @@ class XPostFilter():
                 else:#for other type, just skip
                     continue
 ####
+                #this is mainly for samples with uneven coverage
+                #use a hard-cut to filter out candidates with high coverage
+                b_both_cov_abnormal = xtprt_filter.both_side_cov_abnormal(rcd, f_cov * self.abnormal_cov_times)
+                if (b_both_cov_abnormal == True) and (b_hard_cut == True) and (global_values.IS_WORKING_ON_WES==False):
+                    continue
+
                 #if two-side-clip, and none-in-polyA side, then filter out
                 if b_in_rep and xtprt_filter.is_two_side_clip_both_polyA_sva(rcd, self.REP_SVA_POLYA_START):
                     continue
@@ -124,47 +131,71 @@ class XPostFilter():
 ####
 ####
     def post_processing_Alu(self, l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff, f_cov,
-                            x_blklist, sf_new_out):
-        with open(sf_new_out, "w") as fout_new:
+                            x_blklist, sf_new_out, b_hard_cut):
+        with open(sf_new_out, "w") as fout_new, open(sf_new_out+".post_filtering_Alu.log", "w") as fout_log:
             for old_rcd in l_old_rcd:
                 rcd = xtea_parser.replace_ins_length(old_rcd, self.REP_ALU_POLYA_START + 15)
                 s_rep_supt_type = xtea_parser.get_ins_sub_type_alu(rcd) #here if both un-clip, then view as "two-side"
                 ins_chrm = rcd[0]
                 ins_pos = rcd[1]
-
+                s_tmp_id="%s_%s"%(ins_chrm, str(ins_pos)) #the temp id
                 b_in_blacklist, tmp_pos = x_blklist.fall_in_region(ins_chrm, int(ins_pos))
                 if b_in_blacklist == True:
+                    print("%s is filtered out because falling into blacklist regions" % s_tmp_id)####
+                    fout_log.write("{0}:{1} is filtered out, because fall in centromere region\n".format(
+                        ins_chrm, ins_pos))
                     continue
 
                 b_in_rep, i_pos = xannotation.is_within_repeat_region_interval_tree(ins_chrm, int(ins_pos))
                 div_rate, sub_family, family, pos_start, pos_end = xannotation.get_div_subfamily(ins_chrm, i_pos)
                 b_with_polyA = xtprt_filter.has_polyA_signal(rcd)
 
-                if s_rep_supt_type is self._two_side:  ####two sides
+                if s_rep_supt_type == self._two_side:  ####two sides
                     if (xtprt_filter.is_polyA_dominant_two_side(rcd) == True) \
                             and (xtprt_filter.is_two_side_polyA_same_orientation(rcd)==True):
+                        fout_log.write("{0}:{1} is filtered out, because both-side polyA of same orientation signal detected!\n".format(
+                            ins_chrm, ins_pos))
                         continue
                     if af_filter.is_qualified_rcd(rcd[-1], m_cutoff) == False:
+                        print("%s is filtered out at allele frequency checking step" % s_tmp_id)  ####
+                        fout_log.write("{0}:{1} is filtered out at allele frequency checking step!\n".format(
+                            ins_chrm, ins_pos))
                         continue
-                    if (b_with_polyA is False) and \
+                    if (b_with_polyA is False) and global_values.IS_WORKING_ON_WES==False and \
                                     xtprt_filter.is_two_side_tprt_and_with_polyA(rcd, self.REP_ALU_MIN_LEN)==False:
+                        fout_log.write("{0}:{1} is filtered because no polyA although with TPRT!\n".format(
+                            ins_chrm, ins_pos))
                         continue
-                elif s_rep_supt_type is self._one_half_side:  ##one and half side
+                elif s_rep_supt_type == self._one_half_side:  ##one and half side
                     # check whether fall in repetitive region of the same type
                     #b_in_rep, i_pos = xannotation.is_within_repeat_region_interval_tree(ins_chrm, int(ins_pos))
-                    if (b_in_rep is True) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                    if (b_in_rep == True) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                        fout_log.write("{0}:{1} is filtered out, because fall in low div region\n".format(
+                            ins_chrm, ins_pos))
                         continue
-                    if xtprt_filter.is_polyA_dominant_one_side(rcd, self.nclip_half_cutoff) is True:
+                    if xtprt_filter.is_polyA_dominant_one_side(rcd, self.nclip_half_cutoff) == True \
+                            and global_values.IS_WORKING_ON_WES==False:
+                        fout_log.write("{0}:{1} is filtered out, because one side polyA dominant!\n".format(
+                            ins_chrm, ins_pos))
                         continue
-                    if (b_in_rep is True) and (b_with_polyA==False):
+                    if (b_in_rep == True) and (b_with_polyA==False) and (global_values.IS_WORKING_ON_WES==False):
+                        fout_log.write("{0}:{1} is filtered out, because fall in repeat and no polyA!\n".format(
+                            ins_chrm, ins_pos))
                         continue
-                elif s_rep_supt_type is self._one_side:  ###one side
+                elif s_rep_supt_type == self._one_side:  ###one side
                     #b_in_rep, i_pos = xannotation.is_within_repeat_region_interval_tree(ins_chrm, int(ins_pos))
-                    if (b_in_rep is True) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                    if (b_in_rep == True) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                        fout_log.write("{0}:{1} is filtered out, because fall in low div region (one-side)\n".format(
+                            ins_chrm, ins_pos))
                         continue
-                    if xtprt_filter.is_polyA_dominant_one_side(rcd, self.nclip_half_cutoff) is True:
+                    if xtprt_filter.is_polyA_dominant_one_side(rcd, self.nclip_half_cutoff) == True \
+                            and global_values.IS_WORKING_ON_WES==False:#
+                        fout_log.write("{0}:{1} is filtered out, because polyA dominant (one-side)\n".format(
+                            ins_chrm, ins_pos))
                         continue
-                    if (b_in_rep is True) and (b_with_polyA==False):
+                    if (b_in_rep == True) and (b_with_polyA==False) and (global_values.IS_WORKING_ON_WES==False):
+                        fout_log.write("{0}:{1} is filtered out, because fall in repeat and no polyA (one-side)!\n".format(
+                            ins_chrm, ins_pos))
                         continue
                 else:  # for other type, just skip
                     continue
@@ -173,17 +204,35 @@ class XPostFilter():
                 # and both side clip reads aligned to end of consensus, then skip
                 if (b_in_rep is True) and \
                         (xtprt_filter.is_two_side_clip_and_both_hit_end(rcd, self.REP_ALU_POLYA_START)==True):
+                    fout_log.write(
+                        "{0}:{1} is filtered out, because fall in repeat region, and both clip side fall in tail!\n".format(
+                            ins_chrm, ins_pos))
                     continue
 ####
                 # if fall in Alu copy, but no clip cluster hit end of consensus, then skip
                 if (b_in_rep is True) and (xtprt_filter.hit_consensus_tail(rcd, self.REP_ALU_POLYA_START)==False):
+                    fout_log.write(
+                        "{0}:{1} is filtered out, because fall in repeat region, and none of clip side fall in tail!\n".format(
+                            ins_chrm, ins_pos))
+                    continue
+#
+                #this is mainly for samples with uneven coverage
+                #use a hard-cut to filter out candidates with high coverage
+                b_both_cov_abnormal = xtprt_filter.both_side_cov_abnormal(rcd, f_cov * self.abnormal_cov_times)
+                if b_both_cov_abnormal == True and b_hard_cut == True and global_values.IS_WORKING_ON_WES==False:
+                    continue
+
+                if b_hard_cut==True and b_in_rep==True and s_rep_supt_type != global_values.TWO_SIDE_TPRT_BOTH:
                     continue
 
                 # if the nearby region has lots of indel reads, then skip
                 b_cov_abnormal=xtprt_filter.cov_is_abnormal(rcd, f_cov*self.abnormal_cov_times)
                 n_indel_cutoff=int(f_cov*self.indel_reads_max_ratio)
                 if xtprt_filter.has_enough_indel_reads(rcd, n_indel_cutoff)==True \
-                        and n_indel_cutoff>0 and b_cov_abnormal==True:
+                        and n_indel_cutoff>0 and b_cov_abnormal==True and global_values.IS_WORKING_ON_WES==False:
+                    fout_log.write(
+                        "{0}:{1} is filtered out, because many reads contain indels and the depth is abnormal!\n".format(
+                            ins_chrm, ins_pos))
                     continue
 ####
                 # save the passed ones
@@ -197,7 +246,7 @@ class XPostFilter():
 
 ####
     def post_processing_L1(self, l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff, f_cov,
-                           x_blklist, b_tumor, sf_new_out, sf_td_new=None):#
+                           x_blklist, b_tumor, sf_new_out, b_hard_cut, sf_td_new=None):#
         m_td_new={}#this is the transduction novel sites
         if sf_td_new!=None and os.path.isfile(sf_td_new)==True:####
             with open(sf_td_new) as fin_td_new:
@@ -210,7 +259,7 @@ class XPostFilter():
                     m_td_new[ins_chrm][ins_pos]=1
 
         #sf_new_out1=sf_new_out+".before_size_re_estimation"
-        with open(sf_new_out, "w") as fout_new, open(sf_new_out+".post_filtering.log", "w") as fout_log:
+        with open(sf_new_out, "w") as fout_new, open(sf_new_out+".post_filtering_L1.log", "w") as fout_log:
             for old_rcd in l_old_rcd:#
                 # note: the last field of each old_rcd is the whole record in string format
                 rcd=xtea_parser.replace_ins_length(old_rcd, self.REP_LINE_POLYA_START+100)
@@ -291,7 +340,7 @@ class XPostFilter():
                         fout_log.write("{0}:{1} is filtered out, because two side polyA dominant!\n".format(
                             ins_chrm, ins_pos))
                         continue
-                    if xtprt_filter.hit_end_of_cns(rcd)==False:
+                    if xtprt_filter.hit_end_of_cns(rcd)==False and global_values.IS_WORKING_ON_WES==False:
                         print("{0}:{1} is filtered out, because doesn't hit the end of consensus!".format(ins_chrm, ins_pos))
                         fout_log.write("{0}:{1} is filtered out, because doesn't hit the end of consensus!\n".format(
                             ins_chrm, ins_pos))
@@ -335,11 +384,17 @@ class XPostFilter():
                 else:# for other type, just skip
                     continue
 
+                #this is mainly for samples with uneven coverage
+                #use a hard-cut to filter out candidates with high coverage
+                b_both_cov_abnormal = xtprt_filter.both_side_cov_abnormal(rcd, f_cov * self.abnormal_cov_times)
+                if b_both_cov_abnormal == True and b_hard_cut == True and global_values.IS_WORKING_ON_WES==False:
+                    continue
+
                 #if coverage is abnormal (>2 times coverage) or within rep region, but two sides clipped are from polyA
                 b_cov_abnormal = xtprt_filter.cov_is_abnormal(rcd, f_cov * self.abnormal_cov_times)
                 if ((b_in_rep is True) or (b_cov_abnormal is True)) and \
                                 xtprt_filter.is_two_side_clip_and_both_hit_end(rcd, self.REP_LINE_POLYA_START)==True \
-                    and (xtprt_filter.is_two_side_polyA_same_orientation(rcd) == True):  #both polyA or polyT:
+                    and (xtprt_filter.is_two_side_polyA_same_orientation(rcd) == True) and global_values.IS_WORKING_ON_WES==False:  #both polyA or polyT:
                     print("{0}:{1} is filtered out, because coverage is abnormal and also two side clip both hit end of consensus!".format(
                         ins_chrm, ins_pos))
                     fout_log.write("{0}:{1} is filtered out, because coverage is abnormal and also two side clip both hit end of consensus!\n".format(
@@ -375,6 +430,86 @@ class XPostFilter():
     #     return m_basic_info
     ####
 
+    ####this is post-processing for non reverse transcription cases, where no polyA exists
+    ####
+    def post_processing_non_RT(self, l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff, f_cov,
+                            x_blklist, sf_new_out, b_hard_cut):
+        with open(sf_new_out, "w") as fout_new:
+            for old_rcd in l_old_rcd:
+                rcd = xtea_parser.replace_ins_length(old_rcd, self.REP_ALU_POLYA_START + 15)
+                s_rep_supt_type = xtea_parser.get_ins_sub_type_alu(rcd)  # here if both un-clip, then view as "two-side"
+                ins_chrm = rcd[0]
+                ins_pos = rcd[1]
+
+                b_in_blacklist, tmp_pos = x_blklist.fall_in_region(ins_chrm, int(ins_pos))
+                if b_in_blacklist == True:
+                    continue
+
+                b_in_rep, i_pos = xannotation.is_within_repeat_region_interval_tree(ins_chrm, int(ins_pos))
+                div_rate, sub_family, family, pos_start, pos_end = xannotation.get_div_subfamily(ins_chrm, i_pos)
+                b_with_polyA = True#Assume there is polyA signal
+
+                if s_rep_supt_type is self._two_side:  ####two sides
+                    if (xtprt_filter.is_polyA_dominant_two_side(rcd) == True) \
+                            and (xtprt_filter.is_two_side_polyA_same_orientation(rcd) == True):
+                        continue
+                    if af_filter.is_qualified_rcd(rcd[-1], m_cutoff) == False:
+                        continue
+                    if (b_with_polyA is False) and \
+                            xtprt_filter.is_two_side_tprt_and_with_polyA(rcd, self.REP_ALU_MIN_LEN) == False:
+                        continue
+                elif s_rep_supt_type is self._one_half_side:  ##one and half side
+                    # check whether fall in repetitive region of the same type
+                    # b_in_rep, i_pos = xannotation.is_within_repeat_region_interval_tree(ins_chrm, int(ins_pos))
+                    if (b_in_rep is True) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                        continue
+                    if xtprt_filter.is_polyA_dominant_one_side(rcd, self.nclip_half_cutoff) is True:
+                        continue
+                    if (b_in_rep is True) and (b_with_polyA == False):
+                        continue
+                elif s_rep_supt_type is self._one_side:  ###one side
+                    # b_in_rep, i_pos = xannotation.is_within_repeat_region_interval_tree(ins_chrm, int(ins_pos))
+                    if (b_in_rep is True) and (div_rate < global_values.REP_DIVERGENT_CUTOFF):
+                        continue
+                    if xtprt_filter.is_polyA_dominant_one_side(rcd, self.nclip_half_cutoff) is True:
+                        continue
+                    if (b_in_rep is True) and (b_with_polyA == False):
+                        continue
+                else:  # for other type, just skip
+                    continue
+
+                # if have both side clipped reads, and fall in Alu copy,
+                # and both side clip reads aligned to end of consensus, then skip
+                if (b_in_rep is True) and \
+                        (xtprt_filter.is_two_side_clip_and_both_hit_end(rcd, self.REP_ALU_POLYA_START) == True):
+                    continue
+                ####
+                # if fall in Alu copy, but no clip cluster hit end of consensus, then skip
+                if (b_in_rep is True) and (xtprt_filter.hit_consensus_tail(rcd, self.REP_ALU_POLYA_START) == False):
+                    continue
+
+                # this is mainly for samples with uneven coverage
+                # use a hard-cut to filter out candidates with high coverage
+                b_both_cov_abnormal = xtprt_filter.both_side_cov_abnormal(rcd, f_cov * self.abnormal_cov_times)
+                if b_both_cov_abnormal == True and b_hard_cut == True and global_values.IS_WORKING_ON_WES==False:
+                    continue
+
+                # if the nearby region has lots of indel reads, then skip
+                b_cov_abnormal = xtprt_filter.cov_is_abnormal(rcd, f_cov * self.abnormal_cov_times)
+                n_indel_cutoff = int(f_cov * self.indel_reads_max_ratio)
+                if xtprt_filter.has_enough_indel_reads(rcd, n_indel_cutoff) == True \
+                        and n_indel_cutoff > 0 and b_cov_abnormal == True and global_values.IS_WORKING_ON_WES==False:
+                    continue
+                ####
+                # save the passed ones
+                # l_slct.append(rcd)
+                s_in_rep = "not_in_Alu_copy"
+                if b_in_rep is True:
+                    s_in_rep = "Fall_in_Alu_copy_" + str(div_rate)
+                s_pass_info = rcd[-1].rstrip() + "\t" + s_in_rep + "\n"
+                fout_new.write(s_pass_info)
+
+
     ####
     def fall_in_low_div_same_type_rep(self, xannotation, ins_chrm, ins_pos, i_cutoff):
         # check all the possible hits, not only the first one
@@ -408,7 +543,7 @@ class XPostFilter():
 
 ####
     def run_post_filtering(self, sf_xtea_rslt, sf_rmsk, i_min_copy_len, i_rep_type, f_cov, sf_black_list,
-                           sf_new_out, b_tumor=False):
+                           sf_new_out, b_hard_cut, b_tumor=False):
         #1. for two side cases, filter out the polyA dominant ones
         #2. for single-end cases, filter out those fall in same type of reference copies
         xtea_parser=XTEARsltParser()
@@ -424,22 +559,27 @@ class XPostFilter():
         x_blklist=XBlackList()
         x_blklist.load_index_regions(sf_black_list)
 
-####Hard code here !!!!!!!!!!!
+####Hard code here !!!!!!!!!!!!!!
         if (i_rep_type & 1) != 0:
             i_min_copy_len=self.L1_min_ref_copy_len #set a smaller value
             sf_td_new_sites=sf_xtea_rslt+global_values.TD_NON_SIBLING_SUFFIX+ global_values.TD_NEW_SITES_SUFFIX
             xannotation = self.construct_interval_tree(sf_rmsk, i_min_copy_len, self.b_rslt_with_chr,
                                                        self.L1_boundary_extnd)
             self.post_processing_L1(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation,
-                                    m_cutoff, f_cov, x_blklist, b_tumor, sf_new_out, sf_td_new_sites)
+                                    m_cutoff, f_cov, x_blklist, b_tumor, sf_new_out, b_hard_cut, sf_td_new_sites)
         elif (i_rep_type & 4) != 0:
             xannotation = self.construct_interval_tree(sf_rmsk, i_min_copy_len, self.b_rslt_with_chr)
             self.post_processing_SVA(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation,
-                                     m_cutoff, f_cov, x_blklist, b_tumor, sf_new_out)
-        else:
+                                     m_cutoff, f_cov, x_blklist, b_tumor, sf_new_out, b_hard_cut)
+        elif (i_rep_type & 2) != 0:#Alu
             xannotation = self.construct_interval_tree(sf_rmsk, i_min_copy_len, self.b_rslt_with_chr)
             self.post_processing_Alu(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation,
-                                     m_cutoff, f_cov, x_blklist, sf_new_out)
+                                     m_cutoff, f_cov, x_blklist, sf_new_out, b_hard_cut)
+        else:##
+            xannotation = self.construct_interval_tree(sf_rmsk, i_min_copy_len, self.b_rslt_with_chr)
+            self.post_processing_non_RT(l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation,
+                                     m_cutoff, f_cov, x_blklist, sf_new_out, b_hard_cut)
+
 ####
 ####
 
@@ -589,20 +729,26 @@ class XTEARsltParser():
                 if i_tei_len<0:
                     i_tei_len=i_rclip_end-i_rdisc_start
         else:#transduction
-            if i_rdisc_start>0 and i_ldisc_start>0:
-                if i_rdisc_start<i_ldisc_start:
+            if self.is_orphan_transduction(rcd)==True:#orpha transduction
+                if i_rdisc_start>0 and i_ldisc_start>0:
+                    i_tei_len=abs(i_rdisc_start-i_ldisc_start)
+                else:
+                    i_tei_len = 0
+            else:
+                if i_rdisc_start>0 and i_ldisc_start>0:
+                    if i_rdisc_start<i_ldisc_start:
+                        i_tei_len = icns_lth - i_rdisc_start
+                    else:
+                        i_tei_len = icns_lth - i_ldisc_start
+                elif i_rdisc_start<0 and i_ldisc_start>0:
+                    i_tei_len=icns_lth-i_ldisc_start
+                elif i_rdisc_start>0 and i_ldisc_start<0:
                     i_tei_len = icns_lth - i_rdisc_start
                 else:
-                    i_tei_len = icns_lth - i_ldisc_start
-            elif i_rdisc_start<0 and i_ldisc_start>0:
-                i_tei_len=icns_lth-i_ldisc_start
-            elif i_rdisc_start>0 and i_ldisc_start<0:
-                i_tei_len = icns_lth - i_rdisc_start
-            else:
-                i_tei_len=0
-
+                    i_tei_len=0
         return abs(i_tei_len)
-
+#
+####
     ####return both-end/both-side or return one-side
     def get_ins_sub_type_alu(self, rcd):
         n_ef_lclip = int(rcd[5])
@@ -1029,6 +1175,13 @@ class XTPRTFilter():
             return True
         return False
 
+    def both_side_cov_abnormal(self, rcd, f_cutoff):
+        f_lcov = float(rcd[11])
+        f_rcov = float(rcd[12])
+        if ((f_lcov+f_rcov) > 2*f_cutoff):
+            return True
+        return False
+
     def fall_in_or_close_repetitive_region(self, rcd):
         s_rep=rcd[48]
         if "not" in s_rep:
@@ -1046,7 +1199,6 @@ class AFConflictFilter():
     ####
     def get_rep_type(self):
         l_types = []
-        l_types.append(global_values.ORPHAN_TRANSDUCTION)
         l_types.append(global_values.ONE_SIDE_FLANKING)
         l_types.append(global_values.TWO_SIDE)
         l_types.append(global_values.TWO_SIDE_TPRT_BOTH)
@@ -1174,6 +1326,8 @@ class AFConflictFilter():
         # b_clip_full = f_clip_full_map > f_clip_full_cutoff
         # b_disc_concd = f_disc_concod > f_disc_concod_cutoff
         #b_pass = b_ef_clip and b_ef_disc and b_clip_full and b_disc_concd
+        if s_type not in m_cutoff:
+            s_type= global_values.OTHER_TYPE
         (f_upper_af, f_lower_af) = m_cutoff[s_type]
         b_clip_af_qualified=False
         if f_clip_full_map>=f_lower_af and f_clip_full_map<=f_upper_af:

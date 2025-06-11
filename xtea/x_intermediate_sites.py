@@ -270,6 +270,7 @@ class XIntemediateSites():
                 ##Here, use list in order to output the list (by call the output_candidate_sites function)
                 m_peak_candidate_sites[chrm][tmp_candidate_pos] = [max_clip]
         return m_peak_candidate_sites
+
 ####
     ####In this version, we will calculate the standard derivation of the left and right clip cluster
     # In the previous step (call_TEI_candidate_sites), some sites close to each other may be introduced together

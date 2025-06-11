@@ -1,7 +1,6 @@
 ##11/04/2018
 ##@@author: Simon (Chong) Chu, DBMI, Harvard Medical School
-##@@contact: chong_chu@hms.harvard.edu
-
+##@@contact: chong.simon.chu@gmail.com
 
 import pysam
 from x_annotation import *
@@ -11,7 +10,8 @@ import global_values
 from x_polyA import *
 from bwa_align import *
 
-class OneClipRead():
+####
+class OneClipRead():#
     def __init__(self):
         self.left_brk_pos = -1
         self.left_brk_lth = 0
@@ -36,14 +36,11 @@ class OneClipRead():
 def unwrap_self_cnt_clip(arg, **kwarg):
     return ClipReadInfo.collect_clipped_reads_with_position_by_chrm(*arg, **kwarg)
 
-
 def unwrap_self_cnt_clip_pos(arg, **kwarg):
     return ClipReadInfo.collect_clip_positions_by_chrm(*arg, **kwarg)
 
-
 def unwrap_self_collect_clip_parts(arg, **kwarg):
     return ClipReadInfo.collect_clipped_parts_by_chrm(*arg, **kwarg)
-
 
 def unwrap_self_cnt_clip_parts(arg, **kwarg):
     return ClipReadInfo.run_cnt_clip_part_aligned_to_rep_by_chrm(*arg, **kwarg)
@@ -51,10 +48,8 @@ def unwrap_self_cnt_clip_parts(arg, **kwarg):
 def unwrap_self_cnt_clip_parts_mosaic(arg, **kwarg):
     return ClipReadInfo.run_cnt_clip_part_aligned_to_rep_by_chrm_mosaic(*arg, **kwarg)
 
-
 def unwrap_self_collect_clip_parts_l(arg, **kwarg):
     return LContigClipReadInfo.collect_clipped_parts_lr_by_chrm(*arg, **kwarg)
-
 ####
 
 ####This class used for collect clip-read related information from the alignment
@@ -69,7 +64,6 @@ class ClipReadInfo():
         self.working_folder = working_folder
         if working_folder[-1] != "/":
             self.working_folder += "/"
-
 
     ####return two files:
     ####1. the clip_position file
@@ -143,7 +137,7 @@ class ClipReadInfo():
 
                 if algnmt.is_supplementary or algnmt.is_secondary:  ###secondary and supplementary are not considered
                     continue
-                if l_cigar[0][0] == 4:  # soft-clip
+                if l_cigar[0][0] == 4:# soft-clip
                     clipped_seq = query_seq[:l_cigar[0][1]]
                     clipped_qulity = self._cvt_to_Ascii_quality(query_quality[:l_cigar[0][1]])
                     clipped_rname = query_name + global_values.SEPERATOR + mate_chrm + \
@@ -163,7 +157,7 @@ class ClipReadInfo():
                     f_clip_fq.write("@" + clipped_rname + "\n")
                     f_clip_fq.write(clipped_seq + "\n+\n")
                     f_clip_fq.write(clipped_qulity + "\n")  ####
-
+####
             if l_cigar[-1][0] == 4 or l_cigar[-1][0] == 5:  # right clipped
                 ##calculate the exact clip position
                 for (type, lenth) in l_cigar[:-1]:
@@ -255,7 +249,7 @@ class ClipReadInfo():
         for chrm in references:#
             sf_clip_pos = self.working_folder + chrm + global_values.CLIP_POS_SUFFIX
             if os.path.isfile(sf_clip_pos) == False:
-                print(("Error: Position file for chrom {0} doesn't exist!!!!".format(chrm)))
+                print("Error: Position file for chrom {0} doesn't exist!!!!".format(chrm))
                 continue
 
             m_clip_pos_freq = {}
@@ -451,7 +445,7 @@ class ClipReadInfo():
         f_clip_fq = open(sf_clip_fq, "w")
         xpolyA=PolyA()
         samfile = pysam.AlignmentFile(sf_bam, "rb", reference_filename=self.sf_reference) #
-        m_chrm_id=self._get_chrm_id_name(samfile)
+        m_chrm_id=self._get_chrm_id_name(samfile)#  
         for algnmt in samfile.fetch(chrm):  ##fetch reads mapped to "chrm"
             ##here need to skip the secondary and supplementary alignments?
             # if algnmt.is_secondary or algnmt.is_supplementary:
@@ -570,7 +564,7 @@ class ClipReadInfo():
         xchrom = XChromosome()
         for chrm in references:
             if xchrom.is_decoy_contig_chrms(chrm) == True:  ###Here filter out those aligned to decoy sequences
-                print(("Skip chromosome {0}".format(chrm)))  ##
+                print("Skip chromosome {0}".format(chrm))  ##
                 continue
             l_chrm_records.append((chrm, self.sf_bam, self.working_folder))
         samfile.close()
@@ -654,7 +648,7 @@ class ClipReadInfo():
         ####clip positions for specific chrm
         sf_clip_pos = working_folder + ref_chrm + global_values.CLIP_POS_SUFFIX
         if os.path.isfile(sf_clip_pos) == False:
-            print(("Error: Position file for chrom {0} doesn't exist!!!!".format(ref_chrm)))
+            print("Error: Position file for chrom {0} doesn't exist!!!!".format(ref_chrm))
             return
         ###clip positions for specific chrm with extra #left_clip #right_clip (mapped parts)
         sf_out_clip_pos = working_folder + ref_chrm + global_values.CLIP_RE_ALIGN_POS_SUFFIX
@@ -716,7 +710,7 @@ class ClipReadInfo():
                 if n_map < (
                         n_total * 3 / 4):  ########################require at least half of the seq is mapped !!!!!!!!!
                     continue
-
+####
                 ####write out the original clip positions
                 s_clip_info = "{0}\t{1}\n".format(ori_mpos, qname_fields[-2])
                 fout_ori_clip_pos.write(s_clip_info)
@@ -929,10 +923,10 @@ class ClipReadInfo():
                     n_map += lenth
                 if type != 2:  # deletion is not added to the total length data
                     n_total += lenth
-            # if n_map < (n_total / 2):  ########################require at least half of the seq is mapped !!!!!!!!!!!!!
-            #     continue
-            if n_map < (n_total * 3 / 4):  ########################require at least 3/4 of the seq is mapped !!!!!!!!!!!
+            if n_map < (n_total / 2):  ########################require at least half of the seq is mapped !!!!!!!!!!!!!
                 continue
+            #if n_map < (n_total * 3 / 4):  ########################require at least 3/4 of the seq is mapped !!!!!!!!!!!
+            #    continue
 
             b_left = True
             if qname_fields[-2] == global_values.FLAG_RIGHT_CLIP:
@@ -1293,7 +1287,7 @@ class LContigClipReadInfo():
         xchrom = XChromosome()
         for chrm in references:
             if xchrom.is_decoy_contig_chrms(chrm) == True:  ###Here filter out those aligned to decoy sequences
-                print(("Skip chromosome {0}".format(chrm)))  ##
+                print("Skip chromosome {0}".format(chrm))  ##
                 continue
             l_chrm_records.append((chrm, self.sf_bam, sf_sites, islack, self.working_folder))
         samfile.close()

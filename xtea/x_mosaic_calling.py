@@ -53,7 +53,7 @@ class MosaicCaller(XPostFilter):
         self.filter_by_blacklist(sf_new_out_bf_black_list, sf_black_list, self.brkpnt_slack, sf_new_out)
 ####
 ####
-    def call_mosaic_L1_from_bulk(self, l_old_rcd, xtea_parser, xtprt_filter, af_filter, xannotation, m_cutoff, sf_new_out):
+    def call_mosaic_L1_from_bulk(self, l_old_rcd, xtea_parser, xtprt_filter, af_filter:AFConflictFilter, xannotation, m_cutoff, sf_new_out):
         with open(sf_new_out, "w") as fout_new:
             for rcd in l_old_rcd:
                 s_rep_supt_type = xtea_parser.get_ins_sub_type(rcd)
@@ -170,13 +170,13 @@ class MosaicCaller(XPostFilter):
         m_cutoff = {}
         for s_type in l_types:
             if ("two_side" in s_type) or ("both-side" in s_type) or ("one_side_and_half_transduction" in s_type):
-                m_cutoff[s_type] = (0.35,0.02)
+                m_cutoff[s_type] = (0.99,0.0001)
             elif "one_side" in s_type:#
-                m_cutoff[s_type] = (0.35,0.02)
+                m_cutoff[s_type] = (0.99,0.0001)
             elif ("one_half" in s_type) or ("one-half" in s_type):
-                m_cutoff[s_type] = (0.35,0.02)
+                m_cutoff[s_type] = (0.99,0.0001)
             else:
-                m_cutoff[s_type] = (0.35,0.02)
+                m_cutoff[s_type] = (0.99,0.0001)
         return m_cutoff
 
 ####
