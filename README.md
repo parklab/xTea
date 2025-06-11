@@ -147,7 +147,7 @@ xTea-mosaic is derived from xTea to identify mosaic TE insertions from bulk high
 	```
 
 4. **Update log**
-	+ 06/10/25 Fixed bugs in post-filtering step.
+	+ 06/10/25 Fixed bugs in post-filtering step.  
 
 	+ 10/13/23 Release the version for mosaic insertion calling from high-depth WGS.
 
