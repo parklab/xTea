@@ -232,10 +232,11 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 			
 4. **Output**
 
-	A gVCF file will be generated for each sample.
+	+ A gVCF file will be generated for each sample.
+
 	+ For germline TE insertion calling on short reads, the `orphan transduction` module usually has a higher false positive rate. Users can filter out false positive events with a command such as `grep -v "orphan" out.vcf > new_out.vcf` to retrieve higher confidence events.
 
-	+ There is a separate script https://github.com/parklab/xTea/blob/master/xtea/x_vcf_merger.py can be used to merge the gVCF of each TE type to a single gVCF, and merge gVCF to a population level VCF. To run it, two files are needed to prepare:
+	+ There is a separate script https://github.com/parklab/xTea/blob/master/xtea/x_vcf_merger.py can be used to merge the gVCF of each TE type to a single gVCF, and merge gVCF to a population level VCF. First, prepare for two metadata files and then run the script to merge:
 
 		+ A sample metadata file with each line: `sample_id sex biosample_id population_code` (space/tab separated). E.g. `NA12878 Male SRXxxx EUR`
 
@@ -271,6 +272,10 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 
 
 6. **Update log**
+
+	+ 07/04/25	Added the gVCF merging step at both the single sample and population level.
+
+	+ 06/10/25 Fixed bugs in the post-filtering step of the mosaic module `xTea-mosaic`.
 
 	+ 02/16/25 Add support for CHM13_v2.0 reference genome on the long-read version.
 
