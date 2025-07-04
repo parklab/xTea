@@ -235,6 +235,18 @@ xTea (comprehensive transposable element analyzer) is designed to identify TE in
 	A gVCF file will be generated for each sample.
 	+ For germline TE insertion calling on short reads, the `orphan transduction` module usually has a higher false positive rate. Users can filter out false positive events with a command such as `grep -v "orphan" out.vcf > new_out.vcf` to retrieve higher confidence events.
 
+	+ There is a separate script https://github.com/parklab/xTea/blob/master/xtea/x_vcf_merger.py can be used to merge the gVCF of each TE type to a single gVCF, and merge gVCF to a population level VCF. To run it, two files are needed to prepare:
+
+		+ A sample metadata file with each line: `sample_id sex biosample_id population_code` (space/tab separated). E.g. `NA12878 Male SRXxxx EUR`
+
+		+ A result list file with each line: `sample_id path_of_sample_folder_in_xtea_output`. E.g. `NA12878 /n/folder/xtea_output/NA12878/`
+
+		+ To run the merging step:
+
+			- For a single sample, to merge the three types of insertion, use the `-S --xrslts path/rslt_list_file.txt --sample_info path/sample_info.txt -y 7 -w 35 -p path/output_folder/`
+
+			- To merge into a population level vcf file (with population AF), use the `-P --xrslts path/rslt_list_file.txt --sample_info path/sample_info.txt --ref path/reference_file.fa -w 35 -p path/output_folder/ -o path/output_merged.vcf`
+
 
 5. **Citation and accompany scripts**
 	+ If you are using xTea germline and somatic module for your project, please cite:
