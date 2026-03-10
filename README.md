@@ -76,14 +76,7 @@ xTea-trioML is an improved version of xTea designed to identify de novo TE inser
 			NA12878 /path/na12878_illumina_1_sorted.bam
 			NA12877 /path/na12877_illumina_1_sorted.bam
 			```
-		
-		+  A 10X bam/cram file (sorted and indexed, see [BarcodeMate](https://github.com/simoncchu/BarcodeMate) regarding barcode-based indicies) list, e.g. a file named `10X_bam_list.txt` with content as follows (three columns separated by a space or tab: sample-id bam-path barcode-index-bam-path):
-		
-			```
-			NA12878 /path/na12878_10X_1_sorted.bam /path/na12878_10X_1_barcode_indexed.bam
-			NA12877 /path/na12877_10X_1_sorted.bam /path/na12877_10X_1_barcode_indexed.bam
-			```
-		
+				
 		+  A case-ctrl bam/cram file list (three columns separated by a space or tab: sample-id case-bam-path ctrl-bam-path
 			```
 			DO0001 /path/DO001_case_sorted.bam /path/DO001_ctrl_sorted.bam
@@ -92,11 +85,20 @@ xTea-trioML is an improved version of xTea designed to identify de novo TE inser
 
 2. **Run from the Cloud**
 	
-	+ A docker file and a cwl file are provided for running the tool on AWS/GCP/FireCloud.
+	+ A docker file and a cwl file (xtea_denvo_cavatica_v0.15.cwl) are provided for running the tool on AWS/GCP/FireCloud.
 
+
+3. **Run from the HPC cluster**
+	
+	+ Following the steps in xtea_denovo.cwl to call the candidate de novo retroelements
+
+
+4. **Machine learning based filtering step**
+	
+	+ Following the steps within `train_predict_denovo_with_trioML` to further filtering the false positives
 
 			
-3. **Output**
+5. **Output**
 
-	A gVCF file will be generated for each sample.
+	A gVCF file will be generated for each sample. In each folder, besides the intermediate files, the bamsnap screenshot of each de novo retroelement is also generated.
 	
